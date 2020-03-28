@@ -241,24 +241,6 @@ INT frontend_init()
   std::cout << "Socket status : " << gSocket->getErrorString() << std::endl;
 
 
-  // Read a temperature
-  char buffer[200];
-  //sprintf(buffer,"custom_command get_temp 1\r\n");
-  sprintf(buffer,"custom_command SELECT_NUM_SAMPLES_TO_SEND_TO_UDP 512\r\n");
-  // Java-style write()
-  size=sizeof(buffer);
-  std::cout << "write" << std::endl;
-  gSocket->write(buffer,size);
-
-  sleep(1);
-  char bigbuffer[500];
-  // Use available() to check when ready
-  // Java-style read()
-  size = sizeof(bigbuffer);
-  std::cout << "read" << std::endl;
-  int val = gSocket->read(bigbuffer,size);
-  
-  std::cout << "readback" << bigbuffer << ", val = " << val <<  std::endl;
 
 
 
@@ -367,6 +349,78 @@ INT read_slow_control(char *pevent, INT off)
 {
 
 
+  for(int i = 0; i < 6; i++){
+
+    double resistor = 1.0;
+    if(i==0){
+      std::cout << "LDO1: " ;//" << std::endl;
+      resistor = 0.1;
+    }
+    if(i==1) std::cout << "LDO2: " ;//" << std::endl;
+    if(i==2){
+      std::cout << "LDO3: " ;//" << std::endl;
+      resistor =200;
+    }
+    if(i==3){
+      std::cout << "LDO4: " ;//" << std::endl;
+    }
+    if(i==4){
+      std::cout << "LDO5: " ;//" << std::endl;
+    }
+    if(i==5){
+      std::cout << "LDO6: " ;//" << std::endl;
+      resistor =0.1;
+    }
+    // Read a current/voltage sensor
+    char buffer[200];
+    sprintf(buffer,"uart_read_all_ctrl %i 0\r\n",i+71);
+    int size=sizeof(buffer);
+    gSocket->write(buffer,size);
+    
+    int counter = 0;
+    bool notdone = true;
+    while(counter < 10000 && notdone){
+      //    std::cout << "Checking counter" << counter <<  std::endl;
+      if(gSocket->available()){
+	notdone = false;
+      }else{
+	usleep(10000);
+      }
+      counter++;
+      
+    }
+    char bigbuffer[500];
+    size = sizeof(bigbuffer);
+    int val = gSocket->read(bigbuffer,size);
+    std::string readback(bigbuffer);
+    std::vector<std::string> values;
+    std::size_t current, previous = 0;
+    current = readback.find("+");
+    while (current != std::string::npos) {
+      values.push_back(readback.substr(previous, current - previous));
+      previous = current + 1;
+      current = readback.find("+", previous);
+    }
+    values.push_back(readback.substr(previous, current - previous));
+    
+    //std::cout << "readback: ";
+    for(int i = 0; i < values.size()-2; i++){
+      //      std::cout << values[i] << ", ";
+      if(i == 3){
+	long int ivolt = strtol(values[i].c_str(),NULL,0);
+	double shunt_volt = ((double)(ivolt )) *0.00001; 
+	//std::cout << shunt_volt << "V, ";
+	std::cout << shunt_volt/resistor << "A, ";
+      }
+      if(i == 5){
+	long int ivolt = strtol(values[i].c_str(),NULL,0);
+	double bus_volt = ((double)(ivolt >>3)) *0.004; 
+	std::cout << bus_volt <<", ";
+      }
+    }
+  }
+    std::cout << std::endl;
+
   return 0;
 
   // Create event header
@@ -386,18 +440,13 @@ INT read_slow_control(char *pevent, INT off)
   uint32_t homing = 0;
   uint32_t is_initialized = 0;
   uint32_t at_limit = 0x0202;
-  uint32_t counter = dummy_counter++;
-  uint32_t gantry_position_x = (dummy_counter %100);  // Maybe these should be floats?
-  uint32_t gantry_position_y = 200 - (dummy_counter %100);  // Maybe these should be floats?
 
   // Save variables in bank
   *pddata++ = moving;
   *pddata++ = homing;
   *pddata++ = is_initialized;
   *pddata++ = at_limit;
-  *pddata++ = counter;
-  *pddata++ = gantry_position_x;
-  *pddata++ = gantry_position_y;
+
     
   bk_close(pevent, pddata);	
 
