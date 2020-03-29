@@ -1,4 +1,4 @@
-/********************************************************************\
+/******************************************************************** \
 
 Control and slow readout of BRB (Big Red Board), aka mPMT mainboard
 
@@ -349,31 +349,51 @@ INT read_slow_control(char *pevent, INT off)
 {
 
 
-  for(int i = 0; i < 6; i++){
+  bk_init32(pevent);
+  if(0){
+  float *pddata;
+  
+  // Bank names must be exactly four char
+  bk_create(pevent, "BRV0", TID_FLOAT, (void**)&pddata);
+
+  for(int j = 0; j < 8; j++){
 
     double resistor = 1.0;
-    if(i==0){
+    if(j==0){
       std::cout << "LDO1: " ;//" << std::endl;
       resistor = 0.1;
     }
-    if(i==1) std::cout << "LDO2: " ;//" << std::endl;
-    if(i==2){
+    if(j==1) std::cout << "LDO2: " ;//" << std::endl;
+    if(j==2){
       std::cout << "LDO3: " ;//" << std::endl;
       resistor =200;
     }
-    if(i==3){
+    if(j==3){
       std::cout << "LDO4: " ;//" << std::endl;
     }
-    if(i==4){
+    if(j==4){
       std::cout << "LDO5: " ;//" << std::endl;
     }
-    if(i==5){
+    if(j==5){
       std::cout << "LDO6: " ;//" << std::endl;
       resistor =0.1;
     }
+    if(j==6){
+      std::cout << "reg 77: " ;//" << std::endl;                                                                                              
+      resistor =0.05;
+    }
+    if(j==7){
+      std::cout << "reg 78: " ;//" << std::endl;                                                                                              
+      resistor =0.05;
+    }
+
+
+    struct timeval t1;  
+    gettimeofday(&t1, NULL);
+
     // Read a current/voltage sensor
     char buffer[200];
-    sprintf(buffer,"uart_read_all_ctrl %i 0\r\n",i+71);
+    sprintf(buffer,"uart_read_all_ctrl %i 0\r\n",j+71);
     int size=sizeof(buffer);
     gSocket->write(buffer,size);
     
@@ -386,9 +406,13 @@ INT read_slow_control(char *pevent, INT off)
       }else{
 	usleep(10000);
       }
-      counter++;
-      
+      counter++;      
     }
+    struct timeval t2;  
+    gettimeofday(&t2, NULL);
+      
+    double dtime = t2.tv_sec - t1.tv_sec + (t2.tv_usec - t1.tv_usec)/1000000.0;
+
     char bigbuffer[500];
     size = sizeof(bigbuffer);
     int val = gSocket->read(bigbuffer,size);
@@ -403,73 +427,75 @@ INT read_slow_control(char *pevent, INT off)
     }
     values.push_back(readback.substr(previous, current - previous));
     
-    //std::cout << "readback: ";
+    for(int i = 0; i < values.size()-1; i++){
+            std::cout << values[i] << ", ";
+    }
+    std::cout << " |  resistance / current / voltage : ";
     for(int i = 0; i < values.size()-2; i++){
       //      std::cout << values[i] << ", ";
       if(i == 3){
 	long int ivolt = strtol(values[i].c_str(),NULL,0);
-	double shunt_volt = ((double)(ivolt )) *0.00001; 
+	double shunt_volt = ((double)(ivolt & 0xfff )) *0.00001; 
+	float shunt_current = 1000.0*shunt_volt/resistor;
+	std::cout << resistor << "ohm, ";
 	//std::cout << shunt_volt << "V, ";
-	std::cout << shunt_volt/resistor << "A, ";
+	std::cout << shunt_current << "mA, ";
+	if(j==2){
+	  shunt_current = 1000.0*(shunt_volt/resistor)/0.0004;
+	  std::cout << "Special LDO3 current = "  << shunt_current << "mA, ";
+	}
+	*pddata++ = shunt_current;
       }
       if(i == 5){
 	long int ivolt = strtol(values[i].c_str(),NULL,0);
 	double bus_volt = ((double)(ivolt >>3)) *0.004; 
-	std::cout << bus_volt <<", ";
+	std::cout << bus_volt <<"V ";
+	*pddata++ = bus_volt;
       }
     }
+    std::cout << " dt=" << dtime <<std::endl;
+
   }
-    std::cout << std::endl;
-
-  return 0;
-
-  // Create event header
-  bk_init32(pevent);
-  
-  // Create a bank with some unsigned integers (move control variables))   
-  
-  // Bank data of unsigned int
-  uint32_t *pddata;
-  
-  // Bank names must be exactly four char
-  bk_create(pevent, "MOTO", TID_DWORD, (void**)&pddata);
-  
-  // Read the state of the motors from Arduino
-  // TOFIX!!!
-  uint32_t moving = 1;
-  uint32_t homing = 0;
-  uint32_t is_initialized = 0;
-  uint32_t at_limit = 0x0202;
-
-  // Save variables in bank
-  *pddata++ = moving;
-  *pddata++ = homing;
-  *pddata++ = is_initialized;
-  *pddata++ = at_limit;
-
     
+
   bk_close(pevent, pddata);	
+  }
 
-  // Create a bank with some float (temperature))  
-  
-  // Bank data of float
-  float *pddata2;
-  
-  // Bank names must be exactly four char
-  bk_create(pevent, "TEMP", TID_FLOAT, (void**)&pddata2);
-  
-  // Read the temperature from Arduino
-  // TOFIX!!!
-  float temp[5] = {34.2, 25.1, 34.4, 26.5, 34.3};
-  temp[3] += dummy_counter %4;
-  temp[4] -= dummy_counter %3;
+  for(int i = 1; i < 4; i++){
 
-  // Save temperature variables in bank
-  for(int i = 0; i < 5; i++) *pddata2++ = temp[i];
+    struct timeval t1;  
+    gettimeofday(&t1, NULL);
+
+    // Read a current/voltage sensor
+    char buffer[200];
+    sprintf(buffer,"custom_command get_temp %i\r\n",i);
+    int size=sizeof(buffer);
+    gSocket->write(buffer,size);
     
-  bk_close(pevent, pddata2);	
-  
-  
+    int counter = 0;
+    bool notdone = true;
+    while(counter < 10000 && notdone){
+      //    std::cout << "Checking counter" << counter <<  std::endl;
+      if(gSocket->available()){
+	notdone = false;
+      }else{
+	usleep(10000);
+      }
+      counter++;      
+    }
+    struct timeval t2;  
+    gettimeofday(&t2, NULL);
+      
+    double dtime = t2.tv_sec - t1.tv_sec + (t2.tv_usec - t1.tv_usec)/1000000.0;
+
+    char bigbuffer[500];
+    size = sizeof(bigbuffer);
+    int val = gSocket->read(bigbuffer,size);
+    std::string readback(bigbuffer);
+    std::cout << i << " : " << readback << "  (dtime="<< dtime << ")" << std::endl;
+    //    custom_command get_temp X 
+  }
+
   return bk_size(pevent);
 
 }
