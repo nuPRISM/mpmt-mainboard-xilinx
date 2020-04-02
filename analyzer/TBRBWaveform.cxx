@@ -30,7 +30,7 @@ void TBRBWaveform::CreateHistograms(){
   // Otherwise make histograms
   clear();
   
-  for(int i = 0; i < 8; i++){ // loop over 2 channels
+  for(int i = 0; i < 20; i++){ // loop over 2 channels
     
     char name[100];
     char title[100];
@@ -38,7 +38,7 @@ void TBRBWaveform::CreateHistograms(){
     
     sprintf(title,"BRB Waveform for channel=%i",i);	
     
-    TH1D *tmp = new TH1D(name, title, 100, 0, 800);
+    TH1D *tmp = new TH1D(name, title, 512, -0.5, 511.5);
     tmp->SetXTitle("ns");
     tmp->SetYTitle("ADC value");
     

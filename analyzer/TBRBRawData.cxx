@@ -17,28 +17,53 @@ TBRBRawData::TBRBRawData(int bklen, int bktype, const char* name, void *pdata):
 {
 
   uint16_t* fData = reinterpret_cast<uint16_t*>(pdata);
+
+  int nwords = bklen;
+  int npackets = bklen / 533;
+  std::cout << "Number of words: " << nwords
+            << ", number of packets : " << npackets << std::endl;
   
   // check for correct endian-ness
-  for(int i = 0; i < bklen/2; i++){    
-     fData[i] = R__bswap_constant_16(fData[i]);    
-  }
+  //  for(int i = 0; i < bklen/2; i++){    
+  // fData[i] = R__bswap_constant_16(fData[i]);    
+  //}
 
   
-  for(int i = 0; i < 50; i++){
-    printf("%i 0x%04x\n",i,fData[i]);
-  }
   std::cout << "_________________________________________" << std::endl;
 
+
+  // loop over the packets
+  for(int p = 0; p < npackets; p++){
+
+    int istart = p*533;
+
+    int frameid = fData[istart + 4];
+    int packetid = fData[istart + 2];
+    int channel = fData[istart + 19];
+    std::cout << "p=" << p << " istart=" << istart << " frame id " << frameid
+              << "packet id " << packetid
+              << " channel=" << channel << std::endl;
+
+    // ignore packetid %2 == 1... these are trailer packets...
+    if(packetid % 2 == 1) continue;
+
+    
+    
+    for(int i = istart; i < 35+istart; i++){
+      //printf("%i 0x%04x\n",i,fData[i]);
+    }
+    
+    std::vector<uint32_t> Samples;
+    for(int i = 21 + istart; i < 533 + istart; i++){
+      Samples.push_back((fData[i] >> 4));
+    }
+    
   
-  std::vector<uint32_t> Samples;
-  for(int i = 21; i < 121; i++){
-    Samples.push_back((fData[i] >> 4));
+    RawChannelMeasurement meas = RawChannelMeasurement(channel);
+    meas.AddSamples(Samples);
+    fMeasurements.push_back(meas);
+
   }
-
-  RawChannelMeasurement meas = RawChannelMeasurement(0);
-  meas.AddSamples(Samples);
-  fMeasurements.push_back(meas);
-
 
   
   
