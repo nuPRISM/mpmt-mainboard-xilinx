@@ -367,6 +367,7 @@ int frontend_loop()
    return SUCCESS;
 }
 
+int gSelectADC;
 int begin_of_run(int run_number, char *error)
 {
    gUnknownPacketCount = 0;
@@ -376,6 +377,12 @@ int begin_of_run(int run_number, char *error)
    event_data.clear();
    fLastFrameID = 0;
    fGotFirstPacket = false; 
+
+   // Get selected ADC from ODB
+   gSelectADC = 0;
+   int size = sizeof(gSelectADC);
+   int status = db_get_value(hDB, 0, "/Equipment/BRB/Settings/selectADC", &gSelectADC, &size, TID_INT, TRUE);
+   std::cout << "Using ADC: "<< gSelectADC << std::endl;
 
    return SUCCESS;
 }
@@ -433,8 +440,8 @@ int read_event(char *pevent, int off)
    if(length < 100) std::cerr << "Error packet too short!!! " << length << std::endl;
    uint16_t *data = (uint16_t*)buf;
    int frameID = (((data[4] & 0xff00)>>8) | ((data[4] & 0xff)<<8));
-   //   std::cout << "frameID: " << frameID << std::endl;
-   
+   std::cout << "frameID: " << frameID << " with length: " << length << std::endl;
+
    bool saveEvent = false;
    if(frameID != fLastFrameID && fGotFirstPacket){
       std::cout << "Frame IDs differ ("<<frameID <<"/" << fLastFrameID 
@@ -454,7 +461,10 @@ int read_event(char *pevent, int off)
 
    // save the data in overall packet.  Endian flip
    for(int i  = 0; i < length/2; i++){
-      event_data.push_back((((data[i] & 0xff00)>>8) | ((data[i] & 0xff)<<8)));
+      uint16_t tmp = (((data[i] & 0xff00)>>8) | ((data[i] & 0xff)<<8));
+      if(i == 19) tmp += gSelectADC * 4; // fix the channel number
+      
+      event_data.push_back(tmp);
    }
 
    fLastFrameID = frameID;

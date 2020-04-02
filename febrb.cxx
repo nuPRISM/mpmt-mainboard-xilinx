@@ -117,6 +117,7 @@ EQUIPMENT equipment[] = {
 
 int gAddress; // BRB address
 int gPort; // BRB port
+int gSelectADC; // Which ADC to use?
 
 KOsocket *gSocket;
 
@@ -185,17 +186,40 @@ INT frontend_exit()
 INT begin_of_run(INT run_number, char *error)
 {
 
+  // Figure out which ADC channel we want
+  std::string path;
+  path += "/Equipment/";
+  path += EQ_NAME;
+  path += "/Settings/selectADC";
+
+
+  gSelectADC = 0;
+  int size = sizeof(gSelectADC);
+  int status = db_get_value(hDB, 0, path.c_str(), &gSelectADC, &size, TID_INT, TRUE);
+  std::cout << "Using ADC: "<< gSelectADC << std::endl;
+  if(gSelectADC < 0 || gSelectADC > 4){
+    cm_msg(MERROR, "BOR", "selectADC (=%i) must be between 0-4.", gSelectADC);
+    gSelectADC = 0;
+  }
+
   // Setup the ADC readout...
 
   char buffer[200];
   char bigbuffer[500];
-  int size=sizeof(buffer);
+  size=sizeof(buffer);
   int size2 = sizeof(bigbuffer);
+
+  // Select ADC
+  sprintf(buffer,"uart_regfile_ctrl_write 0 9 %i 0\r\n",gSelectADC);
+  gSocket->write(buffer,size);
+  int val = gSocket->read(bigbuffer,size2);
+  std::cout << "gSelectADC : " << bigbuffer << " ("<< val << ")" <<std::endl;
+  usleep(500000);
 
   // Set the Number samples
   sprintf(buffer,"custom_command SELECT_NUM_SAMPLES_TO_SEND_TO_UDP 512\r\n");
   gSocket->write(buffer,size);
-  int val = gSocket->read(bigbuffer,size2);
+  val = gSocket->read(bigbuffer,size2);
   std::cout << "Set number samples: " << bigbuffer << " ("<< val << ")" <<std::endl;
   usleep(500000);
 
