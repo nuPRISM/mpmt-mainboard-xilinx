@@ -100,8 +100,15 @@ LIBMIDAS = -L$(MIDAS_LIB) -lmidas
 #
 # All includes
 INCS = -I. -I$(MIDAS_INC) -I$(MIDAS_DRV) 
-all: $(UFE).exe  
+all: $(UFE).exe  feudp.exe
 
+
+feudp.exe: $(LIB) $(MIDAS_LIB)/mfe.o $(DRIVERS) feudp.o
+	$(CXX) $(CFLAGS) $(OSFLAGS) $(INCS) -o feudp.exe feudp.o $(DRIVERS) \
+	$(MIDAS_LIB)/mfe.o  $(LIBMIDAS) $(LIBS)
+
+feudp.o: feudp.cxx
+	$(CXX) $(CFLAGS) $(INCS) $(OSFLAGS) -o $@ -c $<
 
 $(UFE).exe: $(LIB) $(MIDAS_LIB)/mfe.o $(DRIVERS) KOsocket.o $(UFE).o
 	$(CXX) $(CFLAGS) $(OSFLAGS) $(INCS) -o $(UFE).exe $(UFE).o $(DRIVERS) \

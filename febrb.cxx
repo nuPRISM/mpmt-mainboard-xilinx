@@ -117,87 +117,7 @@ EQUIPMENT equipment[] = {
 
 int gAddress; // BRB address
 int gPort; // BRB port
-
-
-/*-- Sequencer callback info  --------------------------------------*/
-
-/*
-void seq_callback(INT hDB, INT hseq, void *info)
-{
-  KEY key;
-
-  printf("odb ... Settings %x touched\n", hseq);
-}
-
-BOOL gStartHome;
-BOOL gStartMove;
-HNDLE handleHome;
-HNDLE handleMove;
-
-
-INT start_move(){
-
-  // TOFIX: add some checks that we aren't already moving
-  if(0){ // Something went wrong
-    cm_msg(MERROR,"start_move","Error in move! \n");
-  }
-
-  if(!gStartMove) return 0; // Just return if move not requested...
-
-  std::string path;
-  path += "/Equipment/";
-  path += EQ_NAME;
-  path += "/Settings";
-
-  // Get the destination position
-  std::string destpath = path + "/Destination";
-  float destination[2] = {0,0};
-  int size = sizeof(destination);
-  int status = db_get_value(hDB, 0, destpath.c_str(), &destination, &size, TID_FLOAT, TRUE);
-
-  // Get the velocity
-  std::string velpath = path + "/Velocity";
-  float velocity[2] = {1,1};
-  size = sizeof(velocity);
-  status = db_get_value(hDB, 0, velpath.c_str(), &velocity, &size, TID_FLOAT, TRUE);
-        
-  //printf("Moving to position X=%f, Y=%f with speed %f %f\n",destination[0],destination[1],velocity[0], velocity[1]);
-  cm_msg(MINFO,"start_move","Moving to position X=%f, Y=%f with speed %f %f\n",destination[0],destination[1],velocity[0], velocity[1]);
-
-  // TOFIX: instruct the Arduino to move to the specified destination at specified speed.
-  
-  for(int i = 0; i < 5; i++){
-    sleep(1);
-    printf(".");
-  }
-  printf("\nFinished move\n");
-
-  // Little magic to reset the key to 'n' without retriggering hotlink
-  BOOL move = false;
-  db_set_data_index1(hDB, handleMove, &move, sizeof(move), 0, TID_BOOL, FALSE);
-
-  return 0;
-
-}
-
-INT start_home(){
-
-  // TOFIX: add some checks that we aren't already moving
-
-  if(!gStartHome) return 0; // Just return if home not requested...
-
-
-  printf("Start home...\n");
-  sleep(3);
-  // TOFIX: instruct the Arduino to home
-  printf("Finished home\n");
-
-  // Little magic to reset the key to 'n' without retriggering hotlink
-  BOOL home = false;
-  db_set_data_index1(hDB, handleHome, &home, sizeof(home), 0, TID_BOOL, FALSE);
-
-  return 0;
-  }*/
+int gSelectADC; // Which ADC to use?
 
 KOsocket *gSocket;
 
@@ -266,6 +186,68 @@ INT frontend_exit()
 INT begin_of_run(INT run_number, char *error)
 {
 
+  // Figure out which ADC channel we want
+  std::string path;
+  path += "/Equipment/";
+  path += EQ_NAME;
+  path += "/Settings/selectADC";
+
+
+  gSelectADC = 0;
+  int size = sizeof(gSelectADC);
+  int status = db_get_value(hDB, 0, path.c_str(), &gSelectADC, &size, TID_INT, TRUE);
+  std::cout << "Using ADC: "<< gSelectADC << std::endl;
+  if(gSelectADC < 0 || gSelectADC > 4){
+    cm_msg(MERROR, "BOR", "selectADC (=%i) must be between 0-4.", gSelectADC);
+    gSelectADC = 0;
+  }
+
+  // Setup the ADC readout...
+
+  char buffer[200];
+  char bigbuffer[500];
+  size=sizeof(buffer);
+  int size2 = sizeof(bigbuffer);
+
+  // Select ADC
+  sprintf(buffer,"uart_regfile_ctrl_write 0 9 %i 0\r\n",gSelectADC);
+  gSocket->write(buffer,size);
+  int val = gSocket->read(bigbuffer,size2);
+  std::cout << "gSelectADC : " << bigbuffer << " ("<< val << ")" <<std::endl;
+  usleep(500000);
+
+  // Set the Number samples
+  sprintf(buffer,"custom_command SELECT_NUM_SAMPLES_TO_SEND_TO_UDP 512\r\n");
+  gSocket->write(buffer,size);
+  val = gSocket->read(bigbuffer,size2);
+  std::cout << "Set number samples: " << bigbuffer << " ("<< val << ")" <<std::endl;
+  usleep(500000);
+
+  sprintf(buffer,"custom_command CHANGE_STREAMING_PARAMS \r\n");
+  gSocket->write(buffer,size);
+  val = gSocket->read(bigbuffer,size2);
+  std::cout << "Change parameters: " << bigbuffer << " ("<< val << ")" <<std::endl;
+  usleep(500000);
+
+  // Start the events
+  sprintf(buffer,"uart_regfile_ctrl_write 0 1 1 0\r\n");
+  gSocket->write(buffer,size);
+  val = gSocket->read(bigbuffer,size2);
+  std::cout << "uart 1 1 : " << bigbuffer << " ("<< val << ")" <<std::endl;
+  usleep(2000000);
+
+  sprintf(buffer,"udp_stream_start 0 192.168.1.253 1500\r\n");
+  gSocket->write(buffer,size);
+  val = gSocket->read(bigbuffer,size2);
+  std::cout << "udp_stream_start : " << bigbuffer << " ("<< val << ")" <<std::endl;
+  usleep(500000);
+
+  sprintf(buffer,"udp_stream_start 0 192.168.1.253 1500\r\n");
+  gSocket->write(buffer,size);
+  val = gSocket->read(bigbuffer,size2);
+  std::cout << "udp_stream_start : " << bigbuffer << " ("<< val << ")" <<std::endl;
+  usleep(500000);
+
   //------ FINAL ACTIONS before BOR -----------
   printf("End of BOR\n");
 
@@ -275,6 +257,19 @@ INT begin_of_run(INT run_number, char *error)
 /*-- End of Run ----------------------------------------------------*/
 INT end_of_run(INT run_number, char *error)
 {
+
+  char buffer[200];
+  char bigbuffer[500];
+  int size=sizeof(buffer);
+  int size2 = sizeof(bigbuffer);
+
+  // Stop the events                                                                                                                                                      
+  sprintf(buffer,"uart_regfile_ctrl_write 0 1 0 0\r\n");
+  gSocket->write(buffer,size);
+  int val = gSocket->read(bigbuffer,size2);
+  std::cout << "uart 1 0 : " << bigbuffer << " ("<< val << ")" <<std::endl;
+  usleep(500000);
+
 
   printf("EOR\n");
   
@@ -350,7 +345,7 @@ INT read_slow_control(char *pevent, INT off)
 
 
   bk_init32(pevent);
-  if(0){
+
   float *pddata;
   
   // Bank names must be exactly four char
@@ -399,7 +394,7 @@ INT read_slow_control(char *pevent, INT off)
     
     int counter = 0;
     bool notdone = true;
-    while(counter < 10000 && notdone){
+    if(0)    while(counter < 10000 && notdone){
       //    std::cout << "Checking counter" << counter <<  std::endl;
       if(gSocket->available()){
 	notdone = false;
@@ -416,6 +411,12 @@ INT read_slow_control(char *pevent, INT off)
     char bigbuffer[500];
     size = sizeof(bigbuffer);
     int val = gSocket->read(bigbuffer,size);
+
+    struct timeval t3;  
+    gettimeofday(&t3, NULL);
+      
+    double dtime2 = t3.tv_sec - t1.tv_sec + (t3.tv_usec - t1.tv_usec)/1000000.0;
+    //    std::cout << bigbuffer << std::endl;
     std::string readback(bigbuffer);
     std::vector<std::string> values;
     std::size_t current, previous = 0;
@@ -453,15 +454,65 @@ INT read_slow_control(char *pevent, INT off)
 	*pddata++ = bus_volt;
       }
     }
-    std::cout << " dt=" << dtime <<std::endl;
+    std::cout << " dt=" << dtime << " " << dtime2 << std::endl;
 
   }
     
 
   bk_close(pevent, pddata);	
+  
+
+
+  float *pddata2;
+  
+  bk_create(pevent, "BRT0", TID_FLOAT, (void**)&pddata2);
+
+  for(int j = 1; j < 4; j++){
+
+    //std::cout << "temp: " << j << std::endl;
+
+    struct timeval t1;  
+    gettimeofday(&t1, NULL);
+
+    // Read temperature
+    char buffer[200];
+    sprintf(buffer,"custom_command get_temp %i\r\n",j);
+    int size=sizeof(buffer);
+    gSocket->write(buffer,size);
+    
+    char bigbuffer[500];
+    size = sizeof(bigbuffer);
+    int val = gSocket->read(bigbuffer,size);
+
+    struct timeval t3;  
+    gettimeofday(&t3, NULL);
+      
+    double dtime2 = t3.tv_sec - t1.tv_sec + (t3.tv_usec - t1.tv_usec)/1000000.0;
+    //std::cout << "bigbuf: " << bigbuffer << " bigbuf " << std::endl;
+
+    std::string readback(bigbuffer);
+    std::vector<std::string> values;
+    std::size_t current, previous = 0;
+    current = readback.find("\r");
+    while (current != std::string::npos) {
+      values.push_back(readback.substr(previous, current - previous));
+      previous = current + 1;
+      current = readback.find("\r", previous);
+    }
+    values.push_back(readback.substr(previous, current - previous));
+    
+    float temperature = strtof (values[0].c_str(), NULL);
+    std::cout << "Temperature(" << j << ") = " << temperature 
+	      << "  in " << dtime2 << "s." << std::endl;
+    *pddata2++ = temperature;
+
+
   }
 
-  for(int i = 1; i < 4; i++){
+  bk_close(pevent, pddata2);	
+
+
+  if(0)  for(int i = 1; i < 4; i++){
 
     struct timeval t1;  
     gettimeofday(&t1, NULL);
