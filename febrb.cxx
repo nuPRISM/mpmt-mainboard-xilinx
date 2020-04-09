@@ -442,7 +442,7 @@ INT read_slow_control(char *pevent, INT off)
     }
     values.push_back(readback.substr(previous, current - previous));
     
-    for(int i = 0; i < values.size()-1; i++){
+    for(int i = 0; i < values.size()-3; i++){
             std::cout << values[i] << ", ";
     }
     std::cout << " |  resistance / current / voltage : ";
@@ -481,6 +481,7 @@ INT read_slow_control(char *pevent, INT off)
   
   bk_create(pevent, "BRT0", TID_FLOAT, (void**)&pddata2);
 
+  std::cout << "Temp: ";
   for(int j = 1; j < 4; j++){
 
     //std::cout << "temp: " << j << std::endl;
@@ -516,12 +517,12 @@ INT read_slow_control(char *pevent, INT off)
     values.push_back(readback.substr(previous, current - previous));
     
     float temperature = strtof (values[0].c_str(), NULL);
-    std::cout << "Temperature(" << j << ") = " << temperature 
-	      << "  in " << dtime2 << "s." << std::endl;
+    std::cout << temperature << " " ; 
     *pddata2++ = temperature;
 
 
   }
+  std::cout << std::endl;
 
   bk_close(pevent, pddata2);	
 
