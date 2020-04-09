@@ -204,12 +204,7 @@ INT begin_of_run(INT run_number, char *error)
 {
 
   // Figure out which ADC channel we want
-  std::string path;
-  path += "/Equipment/";
-  path += EQ_NAME;
-  path += "/Settings/selectADC";
-
-
+  std::string path = std::string("/Equipment/") + std::string(EQ_NAME) + std::string("/Settings/selectADC");
   gSelectADC = 0;
   int size = sizeof(gSelectADC);
   int status = db_get_value(hDB, 0, path.c_str(), &gSelectADC, &size, TID_INT, TRUE);
@@ -233,10 +228,32 @@ INT begin_of_run(INT run_number, char *error)
   std::cout << "gSelectADC : " << bigbuffer << " ("<< val << ")" <<std::endl;
   usleep(500000);
 
+  // Use the test pattern, if requested
+  path = std::string("/Equipment/") + std::string(EQ_NAME) + std::string("/Settings/testPatternAdc");
+  BOOL testPattern = false;
+  size = sizeof(testPattern);
+  status = db_get_value(hDB, 0, path.c_str(), &testPattern, &size, TID_BOOL, TRUE);
+
+  if(testPattern){
+    cm_msg(MINFO,"BOR","Using test pattern for ADC");
+    sprintf(buffer,"uart_regfile_ctrl_write %i a 99 0\r\n",gSelectADC+60);
+    SendBrbCommand(buffer);
+    sprintf(buffer,"uart_regfile_ctrl_write %i b 99 0\r\n",gSelectADC+60);
+    SendBrbCommand(buffer);
+    sprintf(buffer,"uart_regfile_ctrl_write %i 6 2 0\r\n",gSelectADC+60);
+    SendBrbCommand(buffer);
+  }else{
+    std::cout << "Not using test pattern " << std::endl;
+    //sprintf(buffer,"uart_regfile_ctrl_write %i a 0 0\r\n",gSelectADC+60);
+    //SendBrbCommand(buffer);
+    //sprintf(buffer,"uart_regfile_ctrl_write %i b 0 0\r\n",gSelectADC+60);
+    //SendBrbCommand(buffer);
+    //sprintf(buffer,"uart_regfile_ctrl_write %i 6 0 0\r\n",gSelectADC+60);
+    //SendBrbCommand(buffer);    
+  }
   // Set the Number samples
   SendBrbCommand("custom_command SELECT_NUM_SAMPLES_TO_SEND_TO_UDP 512\r\n");
   SendBrbCommand("custom_command CHANGE_STREAMING_PARAMS \r\n");
-
 
   // Start the events
   SendBrbCommand("uart_regfile_ctrl_write 0 1 1 0\r\n");
@@ -407,7 +424,7 @@ INT read_slow_control(char *pevent, INT off)
 
     char bigbuffer[500];
     size = sizeof(bigbuffer);
-    int val = gSocket->read(bigbuffer,size);
+    gSocket->read(bigbuffer,size);
 
     struct timeval t3;  
     gettimeofday(&t3, NULL);
@@ -479,7 +496,7 @@ INT read_slow_control(char *pevent, INT off)
     
     char bigbuffer[500];
     size = sizeof(bigbuffer);
-    int val = gSocket->read(bigbuffer,size);
+    gSocket->read(bigbuffer,size);
 
     struct timeval t3;  
     gettimeofday(&t3, NULL);
@@ -507,42 +524,6 @@ INT read_slow_control(char *pevent, INT off)
   }
 
   bk_close(pevent, pddata2);	
-
-
-  if(0)  for(int i = 1; i < 4; i++){
-
-    struct timeval t1;  
-    gettimeofday(&t1, NULL);
-
-    // Read a current/voltage sensor
-    char buffer[200];
-    sprintf(buffer,"custom_command get_temp %i\r\n",i);
-    int size=sizeof(buffer);
-    gSocket->write(buffer,size);
-    
-    int counter = 0;
-    bool notdone = true;
-    while(counter < 10000 && notdone){
-      //    std::cout << "Checking counter" << counter <<  std::endl;
-      if(gSocket->available()){
-	notdone = false;
-      }else{
-	usleep(10000);
-      }
-      counter++;      
-    }
-    struct timeval t2;  
-    gettimeofday(&t2, NULL);
-      
-    double dtime = t2.tv_sec - t1.tv_sec + (t2.tv_usec - t1.tv_usec)/1000000.0;
-
-    char bigbuffer[500];
-    size = sizeof(bigbuffer);
-    int val = gSocket->read(bigbuffer,size);
-    std::string readback(bigbuffer);
-    std::cout << i << " : " << readback << "  (dtime="<< dtime << ")" << std::endl;
-    //    custom_command get_temp X 
-  }
 
   return bk_size(pevent);
 
