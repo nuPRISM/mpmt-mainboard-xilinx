@@ -30,6 +30,7 @@ public:
     SetOnlineName("jsroot_server");
     gettimeofday(&LastUpdateTime, NULL);
 
+    std::cout << "Finished const" << std::endl;
   };
 
 
@@ -42,6 +43,7 @@ public:
     SetTHttpServerReadWrite();
 #endif
 
+    std::cout << "Finished initaliazation" << std::endl;
   }
 
   void InitManager(){
@@ -50,6 +52,7 @@ public:
       delete anaManager;
     anaManager = new TAnaManager();
     
+    std::cout << "Finished initi" << std::endl;
   }
   
 
@@ -63,6 +66,7 @@ public:
 
   bool ProcessMidasEvent(TDataContainer& dataContainer){
 
+    std::cout << "Processing event" << std::endl;
     if(!anaManager) InitManager();
     
     anaManager->ProcessMidasEvent(dataContainer);

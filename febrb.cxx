@@ -181,6 +181,23 @@ INT frontend_exit()
 }
 
 
+// Function for sending command to BRB and receiving requests
+void SendBrbCommand(std::string command){
+
+  char buffer[200];
+  char bigbuffer[500];
+  int size=sizeof(buffer);
+  int size2 = sizeof(bigbuffer);
+
+  // Select ADC                                                                                                                                                              
+  sprintf(buffer,"%s",command.c_str());
+  gSocket->write(buffer,size);
+  int val = gSocket->read(bigbuffer,size2);
+  std::cout << command << " : " << bigbuffer << " ("<< val << ")" <<std::endl;
+  usleep(500000);
+
+
+}
 
 /*-- Begin of Run --------------------------------------------------*/
 INT begin_of_run(INT run_number, char *error)
@@ -217,36 +234,16 @@ INT begin_of_run(INT run_number, char *error)
   usleep(500000);
 
   // Set the Number samples
-  sprintf(buffer,"custom_command SELECT_NUM_SAMPLES_TO_SEND_TO_UDP 512\r\n");
-  gSocket->write(buffer,size);
-  val = gSocket->read(bigbuffer,size2);
-  std::cout << "Set number samples: " << bigbuffer << " ("<< val << ")" <<std::endl;
-  usleep(500000);
+  SendBrbCommand("custom_command SELECT_NUM_SAMPLES_TO_SEND_TO_UDP 512\r\n");
+  SendBrbCommand("custom_command CHANGE_STREAMING_PARAMS \r\n");
 
-  sprintf(buffer,"custom_command CHANGE_STREAMING_PARAMS \r\n");
-  gSocket->write(buffer,size);
-  val = gSocket->read(bigbuffer,size2);
-  std::cout << "Change parameters: " << bigbuffer << " ("<< val << ")" <<std::endl;
-  usleep(500000);
 
   // Start the events
-  sprintf(buffer,"uart_regfile_ctrl_write 0 1 1 0\r\n");
-  gSocket->write(buffer,size);
-  val = gSocket->read(bigbuffer,size2);
-  std::cout << "uart 1 1 : " << bigbuffer << " ("<< val << ")" <<std::endl;
-  usleep(2000000);
+  SendBrbCommand("uart_regfile_ctrl_write 0 1 1 0\r\n");
+  usleep(1000000);
+  SendBrbCommand("udp_stream_start 0 192.168.1.253 1500\r\n");
+  SendBrbCommand("udp_stream_start 0 192.168.1.253 1500\r\n");
 
-  sprintf(buffer,"udp_stream_start 0 192.168.1.253 1500\r\n");
-  gSocket->write(buffer,size);
-  val = gSocket->read(bigbuffer,size2);
-  std::cout << "udp_stream_start : " << bigbuffer << " ("<< val << ")" <<std::endl;
-  usleep(500000);
-
-  sprintf(buffer,"udp_stream_start 0 192.168.1.253 1500\r\n");
-  gSocket->write(buffer,size);
-  val = gSocket->read(bigbuffer,size2);
-  std::cout << "udp_stream_start : " << bigbuffer << " ("<< val << ")" <<std::endl;
-  usleep(500000);
 
   //------ FINAL ACTIONS before BOR -----------
   printf("End of BOR\n");
