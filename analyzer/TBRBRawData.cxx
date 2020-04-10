@@ -40,7 +40,7 @@ TBRBRawData::TBRBRawData(int bklen, int bktype, const char* name, void *pdata):
     int frameid = fData[istart + 4];
     int packetid = fData[istart + 2];
     int channel = fData[istart + 19];
-    std::cout << "p=" << p << " istart=" << istart << " frame id " << frameid
+    if(0)std::cout << "p=" << p << " istart=" << istart << " frame id " << frameid
               << "packet id " << packetid
               << " channel=" << channel << std::endl;
 
@@ -54,10 +54,17 @@ TBRBRawData::TBRBRawData(int bklen, int bktype, const char* name, void *pdata):
     }
     
     std::vector<uint32_t> Samples;
-    for(int i = 21 + istart; i < 533 + istart; i++){
+    // Save data samples; increment by two to flip samples.
+    for(int i = 21 + istart; i < 533 + istart; i+=2){
+
+      Samples.push_back((fData[i+1] >> 4));
       Samples.push_back((fData[i] >> 4));
+
     }
-    
+    if(channel == 0){
+      for(int i = 0; i < 24; i++) std::cout << Samples[i] << ", ";
+      std::cout << std::endl;
+    }
   
     RawChannelMeasurement meas = RawChannelMeasurement(channel);
     meas.AddSamples(Samples);
