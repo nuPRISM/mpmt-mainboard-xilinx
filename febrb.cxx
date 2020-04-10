@@ -244,12 +244,12 @@ INT begin_of_run(INT run_number, char *error)
     SendBrbCommand(buffer);
   }else{
     std::cout << "Not using test pattern " << std::endl;
-    //sprintf(buffer,"uart_regfile_ctrl_write %i a 0 0\r\n",gSelectADC+60);
-    //SendBrbCommand(buffer);
-    //sprintf(buffer,"uart_regfile_ctrl_write %i b 0 0\r\n",gSelectADC+60);
-    //SendBrbCommand(buffer);
-    //sprintf(buffer,"uart_regfile_ctrl_write %i 6 0 0\r\n",gSelectADC+60);
-    //SendBrbCommand(buffer);    
+    sprintf(buffer,"uart_regfile_ctrl_write %i a 0 0\r\n",gSelectADC+60);
+    SendBrbCommand(buffer);
+    sprintf(buffer,"uart_regfile_ctrl_write %i b 0 0\r\n",gSelectADC+60);
+    SendBrbCommand(buffer);
+    sprintf(buffer,"uart_regfile_ctrl_write %i 6 0 0\r\n",gSelectADC+60);
+    SendBrbCommand(buffer);    
   }
   // Set the Number samples
   SendBrbCommand("custom_command SELECT_NUM_SAMPLES_TO_SEND_TO_UDP 512\r\n");
