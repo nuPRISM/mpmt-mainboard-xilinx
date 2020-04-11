@@ -189,11 +189,10 @@ void SendBrbCommand(std::string command){
   int size=sizeof(buffer);
   int size2 = sizeof(bigbuffer);
 
-  // Select ADC                                                                                                                                                              
   sprintf(buffer,"%s",command.c_str());
   gSocket->write(buffer,size);
   int val = gSocket->read(bigbuffer,size2);
-  std::cout << command << " : " << bigbuffer << " ("<< val << ")" <<std::endl;
+  std::cout << command << " (" << val << ") : " << bigbuffer ;
   usleep(500000);
 
 
@@ -225,7 +224,8 @@ INT begin_of_run(INT run_number, char *error)
   sprintf(buffer,"uart_regfile_ctrl_write 0 9 %i 0\r\n",gSelectADC);
   gSocket->write(buffer,size);
   int val = gSocket->read(bigbuffer,size2);
-  std::cout << "gSelectADC : " << bigbuffer << " ("<< val << ")" <<std::endl;
+  std::cout << "gSelectADC  " 
+	    << " ("<< val << ") : " << bigbuffer ;
   usleep(500000);
 
   // Use the test pattern, if requested
@@ -234,23 +234,33 @@ INT begin_of_run(INT run_number, char *error)
   size = sizeof(testPattern);
   status = db_get_value(hDB, 0, path.c_str(), &testPattern, &size, TID_BOOL, TRUE);
 
-  if(testPattern){
-    cm_msg(MINFO,"BOR","Using test pattern for ADC");
-    sprintf(buffer,"uart_regfile_ctrl_write %i a 99 0\r\n",gSelectADC+60);
+  // Do settings for each ADC
+  for(int i = 60; i < 65; i++){
+    
+    // Use offset binary encoding (rathers than twos complement)
+    sprintf(buffer,"uart_regfile_ctrl_write %i 9 1 0\r\n",gSelectADC+i);
     SendBrbCommand(buffer);
-    sprintf(buffer,"uart_regfile_ctrl_write %i b 99 0\r\n",gSelectADC+60);
-    SendBrbCommand(buffer);
-    sprintf(buffer,"uart_regfile_ctrl_write %i 6 2 0\r\n",gSelectADC+60);
-    SendBrbCommand(buffer);
-  }else{
-    std::cout << "Not using test pattern " << std::endl;
-    sprintf(buffer,"uart_regfile_ctrl_write %i a 0 0\r\n",gSelectADC+60);
-    SendBrbCommand(buffer);
-    sprintf(buffer,"uart_regfile_ctrl_write %i b 0 0\r\n",gSelectADC+60);
-    SendBrbCommand(buffer);
-    sprintf(buffer,"uart_regfile_ctrl_write %i 6 0 0\r\n",gSelectADC+60);
-    SendBrbCommand(buffer);    
+
+    if(testPattern){
+      cm_msg(MINFO,"BOR","Using test pattern for ADC");
+      sprintf(buffer,"uart_regfile_ctrl_write %i a 99 0\r\n",gSelectADC+i);
+      SendBrbCommand(buffer);
+      sprintf(buffer,"uart_regfile_ctrl_write %i b 99 0\r\n",gSelectADC+i);
+      SendBrbCommand(buffer);
+      sprintf(buffer,"uart_regfile_ctrl_write %i 6 2 0\r\n",gSelectADC+i);
+      SendBrbCommand(buffer);
+    }else{
+      std::cout << "Not using test pattern " << std::endl;
+      sprintf(buffer,"uart_regfile_ctrl_write %i a 0 0\r\n",gSelectADC+i);
+      SendBrbCommand(buffer);
+      sprintf(buffer,"uart_regfile_ctrl_write %i b 0 0\r\n",gSelectADC+i);
+      SendBrbCommand(buffer);
+      sprintf(buffer,"uart_regfile_ctrl_write %i 6 0 0\r\n",gSelectADC+i);
+      SendBrbCommand(buffer);    
+    }
   }
+
+
   // Set the Number samples
   SendBrbCommand("custom_command SELECT_NUM_SAMPLES_TO_SEND_TO_UDP 512\r\n");
   SendBrbCommand("custom_command CHANGE_STREAMING_PARAMS \r\n");
