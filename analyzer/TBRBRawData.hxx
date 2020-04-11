@@ -19,12 +19,12 @@ public:
   
   int GetChannel(){ return fChan;}
   
-  /// Get data... data seems to actually be twos complement encoded, so need some conversion
+  /// Get data... 
   int GetSample(int i){
     if(i >= 0 && i < (int)fSamples.size()){
       uint16_t data = fSamples[i];
       int conv_data = (int)fSamples[i];
-      if(data >= 2048) conv_data -= 4096;	
+      //if(data >= 2048) conv_data -= 4096;// this is for twos complement encoding, which is now disabled.	
       return conv_data;
     }
     return 9999999;
