@@ -125,11 +125,6 @@ KOsocket *gSocket;
 INT frontend_init()
 {
 
-  // Setup connection to Arduino
-  // TOFIX!!!
-  // 
-
-
   // setup connection to ODB (online database)
   int status = cm_get_experiment_database(&hDB, NULL);
   if (status != CM_SUCCESS) {
@@ -193,8 +188,7 @@ void SendBrbCommand(std::string command){
   gSocket->write(buffer,size);
   int val = gSocket->read(bigbuffer,size2);
   std::cout << command << " (" << val << ") : " << bigbuffer ;
-  usleep(500000);
-
+  usleep(150000);
 
 }
 
@@ -261,15 +255,22 @@ INT begin_of_run(INT run_number, char *error)
   }
 
 
+  // Set the trigger rate to maximum value
+      SendBrbCommand("uart_regfile_ctrl_write 0 4 80 0\r\n");
+  
   // Set the Number samples
   SendBrbCommand("custom_command SELECT_NUM_SAMPLES_TO_SEND_TO_UDP 512\r\n");
+  usleep(200000);
   SendBrbCommand("custom_command CHANGE_STREAMING_PARAMS \r\n");
 
   // Start the events
+  usleep(200000);
   SendBrbCommand("uart_regfile_ctrl_write 0 1 1 0\r\n");
   usleep(1000000);
   SendBrbCommand("udp_stream_start 0 192.168.1.253 1500\r\n");
+  usleep(200000);
   SendBrbCommand("udp_stream_start 0 192.168.1.253 1500\r\n");
+  usleep(200000);
 
 
   //------ FINAL ACTIONS before BOR -----------
@@ -512,8 +513,6 @@ INT read_slow_control(char *pevent, INT off)
     struct timeval t3;  
     gettimeofday(&t3, NULL);
       
-    double dtime2 = t3.tv_sec - t1.tv_sec + (t3.tv_usec - t1.tv_usec)/1000000.0;
-    //std::cout << "bigbuf: " << bigbuffer << " bigbuf " << std::endl;
 
     std::string readback(bigbuffer);
     std::vector<std::string> values;
