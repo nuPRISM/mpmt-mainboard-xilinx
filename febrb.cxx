@@ -363,6 +363,7 @@ int Nloop, Ncount;
 }
 
 int dummy_counter = 0;
+struct timeval last_event_time;  
 
 /*-- Event readout -------------------------------------------------*/
 INT read_slow_control(char *pevent, INT off)
@@ -534,6 +535,18 @@ INT read_slow_control(char *pevent, INT off)
   std::cout << std::endl;
 
   bk_close(pevent, pddata2);	
+
+
+  // Change the select ADC if required...
+  //struct timeval t2;  
+  //gettimeofday(&t2, NULL);
+  
+  //double dtime = t2.tv_sec - last_event_time.tv_sec + (t2.tv_usec - last_event_time.tv_usec)/1000000.0;
+
+
+  //gettimeofday(&last_event_time, NULL);
+  
+
 
   return bk_size(pevent);
 

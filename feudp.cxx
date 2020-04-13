@@ -63,7 +63,7 @@ EQUIPMENT equipment[] = {
       {EQ_EVID, 0, "SYSTEM",          /* event ID, trigger mask, Evbuf */
        EQ_MULTITHREAD, 0, "MIDAS",    /* equipment type, EventSource, format */
        TRUE, RO_ALWAYS,               /* enabled?, WhenRead? */
-       50, 0, 0, 0,                   /* poll[ms], Evt Lim, SubEvtLim, LogHist */
+       1, 0, 0, 0,                   /* poll[ms], Evt Lim, SubEvtLim, LogHist */
        "", "", "",}, read_event,      /* readout routine */
    },
    {""}
