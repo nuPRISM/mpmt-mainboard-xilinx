@@ -8,7 +8,6 @@
 TBRBWaveform::TBRBWaveform(){
 
   SetSubTabName("BRB Waveforms");
-  //SetUpdateOnlyWhenPlotted(true);
   
   CreateHistograms();
   FrequencySetting = -1;
@@ -94,3 +93,72 @@ void TBRBWaveform::Reset(){
     
   }
 }
+
+
+
+
+/// Reset the histograms for this canvas
+TBRBBaseline::TBRBBaseline(){
+
+  SetSubTabName("BRB Baseline");
+  
+  CreateHistograms();
+}
+
+
+void TBRBBaseline::CreateHistograms(){
+
+  // check if we already have histogramss.
+  char tname[100];
+  sprintf(tname,"BRB_Baseline_%i",0);
+
+  TH1D *tmp = (TH1D*)gDirectory->Get(tname);
+  if (tmp) return;
+
+  // Otherwise make histograms
+  clear();
+  
+  for(int i = 0; i < 20; i++){ // loop over 2 channels
+    
+    char name[100];
+    char title[100];
+    sprintf(name,"BRB_Baseline_%i",i);
+    
+    sprintf(title,"BRB Baseline for channel=%i",i);	
+    
+    TH1D *tmp = new TH1D(name, title, 1000, 1990, 2070);
+    tmp->SetXTitle("Average Baseline");
+    push_back(tmp);
+  }
+}
+
+
+void TBRBBaseline::UpdateHistograms(TDataContainer& dataContainer){
+  
+  TBRBRawData *dt743 = dataContainer.GetEventData<TBRBRawData>("BRB0");
+  
+  if(dt743){      
+     
+    std::vector<RawChannelMeasurement> measurements = dt743->GetMeasurements();
+
+     for(int i = 0; i < measurements.size(); i++){
+           
+      int chan = measurements[i].GetChannel();
+      int nsamples = measurements[i].GetNSamples();
+
+      // Use the first 100 samples for baseline
+      double avg = 0.0;
+      for(int ib = 0; ib < 100; ib++){
+	avg += measurements[i].GetSample(ib);
+      }
+      avg /= 100.0;
+      
+      GetHistogram(chan)->Fill(avg);   
+    }
+  }
+  
+}
+
+
+
+

@@ -6,6 +6,7 @@ TAnaManager::TAnaManager(){
 
 
   AddHistogram(new TBRBWaveform());
+  AddHistogram(new TBRBBaseline());
       
 };
 

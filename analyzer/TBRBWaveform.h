@@ -27,6 +27,25 @@ private:
   int FrequencySetting;
 };
 
+
+
+/// Class for making histograms of raw BRB waveforms;
+class TBRBBaseline : public THistogramArrayBase {
+public:
+  TBRBBaseline();
+  virtual ~TBRBBaseline(){};
+
+  void UpdateHistograms(TDataContainer& dataContainer);
+
+  void CreateHistograms();
+  
+  /// Take actions at begin run
+  void BeginRun(int transition,int run,int time){		
+    CreateHistograms();		
+  }
+
+};
+
 #endif
 
 
