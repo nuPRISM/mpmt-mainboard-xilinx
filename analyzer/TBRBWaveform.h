@@ -46,6 +46,23 @@ public:
 
 };
 
+/// Class for making histograms of raw BRB waveforms;
+class TBRBRMS : public THistogramArrayBase {
+public:
+  TBRBRMS();
+  virtual ~TBRBRMS(){};
+
+  void UpdateHistograms(TDataContainer& dataContainer);
+
+  void CreateHistograms();
+  
+  /// Take actions at begin run
+  void BeginRun(int transition,int run,int time){		
+    CreateHistograms();		
+  }
+
+};
+
 #endif
 
 
