@@ -462,7 +462,11 @@ INT read_slow_control(char *pevent, INT off)
       //      std::cout << values[i] << ", ";
       if(i == 3){
 	long int ivolt = strtol(values[i].c_str(),NULL,0);
-	double shunt_volt = ((double)(ivolt & 0xfff )) *0.00001; 
+	uint32_t svolt_ = (ivolt & 0x7fff);
+	if((ivolt & 0x8000)){ // handle twos complement encoding
+	  svolt_ = 0x7fff - svolt_;
+	}
+	double shunt_volt = ((double)(svolt_)) *0.00001; 
 	float shunt_current = 1000.0*shunt_volt/resistor;
 	std::cout << resistor << "ohm, ";
 	//std::cout << shunt_volt << "V, ";
