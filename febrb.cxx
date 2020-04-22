@@ -208,19 +208,9 @@ INT begin_of_run(INT run_number, char *error)
   }
 
   // Setup the ADC readout...
-
   char buffer[200];
-  char bigbuffer[500];
-  size=sizeof(buffer);
-  int size2 = sizeof(bigbuffer);
-
-  // Select ADC
   sprintf(buffer,"uart_regfile_ctrl_write 0 9 %i 0\r\n",gSelectADC);
-  gSocket->write(buffer,size);
-  int val = gSocket->read(bigbuffer,size2);
-  std::cout << "gSelectADC  " 
-	    << " ("<< val << ") : " << bigbuffer ;
-  usleep(500000);
+  SendBrbCommand(buffer);
 
   // Use the test pattern, if requested
   path = std::string("/Equipment/") + std::string(EQ_NAME) + std::string("/Settings/testPatternAdc");
@@ -256,19 +246,21 @@ INT begin_of_run(INT run_number, char *error)
 
 
   // Set the trigger rate to maximum value
-      SendBrbCommand("uart_regfile_ctrl_write 0 4 80 0\r\n");
+  SendBrbCommand("uart_regfile_ctrl_write 0 4 80 0\r\n");
   
   // Set the Number samples
-  SendBrbCommand("custom_command SELECT_NUM_SAMPLES_TO_SEND_TO_UDP 512\r\n");
-  usleep(200000);
-  SendBrbCommand("custom_command CHANGE_STREAMING_PARAMS \r\n");
+  if(1){
+    SendBrbCommand("custom_command SELECT_NUM_SAMPLES_TO_SEND_TO_UDP 512\r\n");
+    usleep(200000);
+    SendBrbCommand("custom_command CHANGE_STREAMING_PARAMS \r\n");
+  }
 
   // Start the events
   usleep(200000);
   SendBrbCommand("uart_regfile_ctrl_write 0 1 1 0\r\n");
-  usleep(1000000);
-  SendBrbCommand("udp_stream_start 0 192.168.1.253 1500\r\n");
   usleep(200000);
+  SendBrbCommand("custom_command enable_dsp_processing \n");
+  usleep(1000000);
   SendBrbCommand("udp_stream_start 0 192.168.1.253 1500\r\n");
   usleep(200000);
 
@@ -283,17 +275,11 @@ INT begin_of_run(INT run_number, char *error)
 INT end_of_run(INT run_number, char *error)
 {
 
-  char buffer[200];
-  char bigbuffer[500];
-  int size=sizeof(buffer);
-  int size2 = sizeof(bigbuffer);
 
   // Stop the events                                                                                                                                                      
-  sprintf(buffer,"uart_regfile_ctrl_write 0 1 0 0\r\n");
-  gSocket->write(buffer,size);
-  int val = gSocket->read(bigbuffer,size2);
-  std::cout << "uart 1 0 : " << bigbuffer << " ("<< val << ")" <<std::endl;
-  usleep(500000);
+  SendBrbCommand("custom_command disable_dsp_processing \r\n");
+  usleep(200000);
+
 
 
   printf("EOR\n");
