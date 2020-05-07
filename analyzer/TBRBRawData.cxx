@@ -31,55 +31,55 @@ TBRBRawData::TBRBRawData(int bklen, int bktype, const char* name, void *pdata):
   
   std::cout << "_________________________________________" << std::endl;
 
+  if(npackets != 21) std::cout << "Error in decoding; packets not " << npackets << " = 21," << std::endl;
 
-  // loop over the packets
-  for(int p = 0; p < npackets; p++){
-
-    int istart = p*533;
-
-    int frameid = fData[istart + 4];
-    int packetid = fData[istart + 2];
-    int channel = fData[istart + 19];
-    if(0)std::cout << "p=" << p << " istart=" << istart << " frame id " << frameid
-              << "packet id " << packetid
-              << " channel=" << channel << std::endl;
-
-    // ignore packetid %2 == 1... these are trailer packets...
-    if(packetid % 2 == 1) continue;
-
-    
-    
-    for(int i = istart; i < 35+istart; i++){
-      //printf("%i 0x%04x\n",i,fData[i]);
-    }
-    
-    std::vector<uint32_t> Samples;
-    // Save data samples; increment by two to flip samples.
-    for(int i = 21 + istart; i < 533 + istart; i+=2){
-
-      Samples.push_back((fData[i+1] >> 4));
-      Samples.push_back((fData[i] >> 4));
-
-    }
-    if(channel == 0){
-      for(int i = 0; i < 24; i++) std::cout << Samples[i] << ", ";
-      std::cout << std::endl;
-    }
   
-    RawChannelMeasurement meas = RawChannelMeasurement(channel);
-    meas.AddSamples(Samples);
-    fMeasurements.push_back(meas);
+  for(int adc =0; adc < 5; adc++){ // loop over ADCs
+
+    std::vector<std::vector<uint32_t> >Samples;
+    for(int ch = 0; ch < 4; ch++){ Samples.push_back(std::vector<uint32_t>());}
+
+    for(int p = 0; p < 4; p++){ // loop over packets
+
+      int counter = adc*4 + p;
+      int istart = counter*533;
+
+      int frameid = fData[istart + 4];
+      int packetid = fData[istart + 2];
+      int cadc = fData[istart + 19];
+      std::cout << adc << " " << p << " istart=" << istart << " frame id " << frameid
+		<< "packet id " << packetid
+		<< " channel=0x" << std::hex << cadc << std::dec  << std::endl;
+
+
+      // Save data samples; data for 4 channels is interleaved
+      for(int i = 21 + istart; i < 533 + istart; i++){
+	int ch = (i-21)%4;  // which channel?
+	Samples[ch].push_back((fData[i] >> 4));	
+      }
+      if(cadc == 0){
+	for(int i = 0; i < 24; i++) std::cout << Samples[0][i] << ", ";
+	std::cout << std::endl;
+      }
+      
+    }
+
+    // Now make the data structures with samples
+    for(int ach = 0; ach < 4; ach++){
+      
+      int ch = adc*4 + ach;
+      
+      RawChannelMeasurement meas = RawChannelMeasurement(ch);
+      meas.AddSamples(Samples[ach]);
+      fMeasurements.push_back(meas);
+    }
+
 
   }
-
+  
   
   
  
-  //RawChannelMeasurement meas0 = RawChannelMeasurement(gr*2);
-  //    meas0.AddSamples(Samples0);
-  
-
-
 }
 
 void TBRBRawData::Print(){
