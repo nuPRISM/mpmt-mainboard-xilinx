@@ -32,7 +32,11 @@ TBRBRawData::TBRBRawData(int bklen, int bktype, const char* name, void *pdata):
   std::cout << "_________________________________________" << std::endl;
 
   if(npackets != 21) std::cout << "Error in decoding; packets not " << npackets << " = 21," << std::endl;
-
+  printf("%4i %4i %4i %4i\n",(fData[21]>>4),(fData[22]>>4),(fData[23]>>4),(fData[24]>>4));
+  printf("%4i %4i %4i %4i\n",(fData[554]>>4),(fData[555]>>4),(fData[556]>>4),(fData[557]>>4));
+  printf("%4i %4i %4i %4i\n",(fData[1087]>>4),(fData[1088]>>4),(fData[1089]>>4),(fData[1090]>>4));
+  printf("%4i %4i %4i %4i\n",(fData[1620]>>4),(fData[1621]>>4),(fData[1622]>>4),(fData[1623]>>4));
+  
   
   for(int adc =0; adc < 5; adc++){ // loop over ADCs
 
@@ -53,25 +57,33 @@ TBRBRawData::TBRBRawData(int bklen, int bktype, const char* name, void *pdata):
 
 
       // Save data samples; data for 4 channels is interleaved
-      for(int i = 21 + istart; i < 533 + istart; i++){
-	int ch = (i-21)%4;  // which channel?
-	Samples[ch].push_back((fData[i] >> 4));	
+      for(int i = 0; i < 512; i++){
+	int ch = i%4;  // which channel?
+	int index = i+21+istart; 
+	Samples[ch].push_back((fData[index] >> 4));	
       }
-      if(cadc == 0){
-	for(int i = 0; i < 24; i++) std::cout << Samples[0][i] << ", ";
-	std::cout << std::endl;
-      }
-      
+
+
     }
 
     // Now make the data structures with samples
+
     for(int ach = 0; ach < 4; ach++){
-      
+
       int ch = adc*4 + ach;
       
       RawChannelMeasurement meas = RawChannelMeasurement(ch);
       meas.AddSamples(Samples[ach]);
       fMeasurements.push_back(meas);
+    }
+
+    if(adc == 0 && 0){
+      for(int i = 0; i < Samples[0].size(); i++){
+	std::cout << "index = " << i << " Samples (ch0,1,2,3): " << Samples[0][i] << " , " << Samples[1][i] << " , "
+		  << Samples[2][i] << " , " << Samples[3][i] << std::endl;
+      }
+
+
     }
 
 
