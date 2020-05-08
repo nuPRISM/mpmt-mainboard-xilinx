@@ -427,6 +427,7 @@ INT poll_event(INT source, INT count, BOOL test)
 
 #define MAX_UDP_SIZE (0x10000)
 
+int npackets = 0;
 int read_event(char *pevent, int off)
 {
    char buf[MAX_UDP_SIZE];
@@ -439,15 +440,29 @@ int read_event(char *pevent, int off)
    // Check the frame ID
    if(length < 100) std::cerr << "Error packet too short!!! " << length << std::endl;
    uint16_t *data = (uint16_t*)buf;
+   int packetID = (((data[2] & 0xff00)>>8) | ((data[2] & 0xff)<<8));
    int frameID = (((data[4] & 0xff00)>>8) | ((data[4] & 0xff)<<8));
-   std::cout << "frameID: " << frameID << " with length: " << length << std::endl;
+   std::cout << "frameID: " << frameID << " packetID: " << packetID << " with length: " << length << std::endl;
+   for(int i = 0; i < 40; i++){
+      int tttt = (((data[i] & 0xff00)>>8) | ((data[i] & 0xff)<<8));
+      unsigned int ttt = (tttt >> 4);
+      printf("%4i ",ttt);
+      if(i%4==3) std::cout << std::endl;
+   }
+
 
    bool saveEvent = false;
    if(frameID != fLastFrameID && fGotFirstPacket){
       std::cout << "Frame IDs differ ("<<frameID <<"/" << fLastFrameID 
                 << "): saving last event." << std::endl;
-      
+      std::cout << "Number of packets: " << npackets << std::endl;
+      npackets = 0;
       std::cout << "Saving " << event_data.size() << " words." << std::endl;
+      printf("%4i %4i %4i %4i\n",(event_data[21]>>4),(event_data[22]>>4),(event_data[23]>>4),(event_data[24]>>4));
+      printf("%4i %4i %4i %4i\n",(event_data[554]>>4),(event_data[555]>>4),(event_data[556]>>4),(event_data[557]>>4));
+      printf("%4i %4i %4i %4i\n",(event_data[1087]>>4),(event_data[1088]>>4),(event_data[1089]>>4),(event_data[1090]>>4));
+      printf("%4i %4i %4i %4i\n",(event_data[1620]>>4),(event_data[1621]>>4),(event_data[1622]>>4),(event_data[1623]>>4));
+
       saveEvent = true;
 
       bk_init32(pevent);
@@ -455,6 +470,8 @@ int read_event(char *pevent, int off)
       bk_create(pevent, bankname, TID_WORD, (void**)&pdata);
       for(int i = 0; i < event_data.size(); i++) *pdata++ = event_data[i];
       bk_close(pevent, pdata);
+
+
       event_data.clear();
 
    }
@@ -462,10 +479,11 @@ int read_event(char *pevent, int off)
    // save the data in overall packet.  Endian flip
    for(int i  = 0; i < length/2; i++){
       uint16_t tmp = (((data[i] & 0xff00)>>8) | ((data[i] & 0xff)<<8));
-      if(i == 19) tmp += gSelectADC * 4; // fix the channel number
+      //if(i == 19) tmp += gSelectADC * 4; // fix the channel number
       
       event_data.push_back(tmp);
    }
+   npackets++;
 
    fLastFrameID = frameID;
    fGotFirstPacket = true; 

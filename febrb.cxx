@@ -213,7 +213,7 @@ INT begin_of_run(INT run_number, char *error)
     sprintf(buffer,"uart_regfile_ctrl_write %i 9 1 0\r\n",i);
     SendBrbCommand(buffer);
 
-    if(testPattern){
+    if(testPattern && i == 61){
       cm_msg(MINFO,"BOR","Using test pattern for ADC");
       sprintf(buffer,"uart_regfile_ctrl_write %i a 99 0\r\n",i);
       SendBrbCommand(buffer);
@@ -234,8 +234,9 @@ INT begin_of_run(INT run_number, char *error)
 
 
   // Set the trigger rate to maximum value
-  SendBrbCommand("uart_regfile_ctrl_write 0 4 80 0\r\n");
-  
+  //SendBrbCommand("uart_regfile_ctrl_write 0 4 80 0\r\n");
+  SendBrbCommand("custom_command SET_EMULATED_TRIGGER_SPEED 100\r\n");
+
   // Set the Number samples
   SendBrbCommand("custom_command SELECT_NUM_SAMPLES_TO_SEND_TO_UDP 512\r\n");
   usleep(200000);
