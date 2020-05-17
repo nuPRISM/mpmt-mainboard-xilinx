@@ -173,6 +173,12 @@ INT frontend_init()
 
 
 
+  // Get ODB values (new C++ ODB!)                                                                                                                             
+  midas::odb pmts = {
+    {"HVset", std::array<double, 20>{} }
+  };
+
+  pmts.connect("/Equipment/BRB/Settings/PMTS", true);
 
 
   return SUCCESS;
@@ -271,6 +277,8 @@ INT begin_of_run(INT run_number, char *error)
   usleep(1000000);
   SendBrbCommand("udp_stream_start 0 192.168.0.253 1500\r\n");
   usleep(200000);
+
+
 
 
   //------ FINAL ACTIONS before BOR -----------
