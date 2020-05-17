@@ -9,13 +9,15 @@ Control and slow readout of BRB (Big Red Board), aka mPMT mainboard
 #include <stdlib.h>
 #include "iostream"
 #include "KOsocket.h"
+
+//#include <functional>
+#include "odbxx.hxx"
 #include "midas.h"
 #include "mfe.h"
 #include "unistd.h"
 #include "time.h"
 #include "sys/time.h"
 #include <stdint.h>
-
 
 
 #define  EQ_NAME   "BRB"
@@ -147,12 +149,26 @@ INT frontend_init()
   status = db_get_value(hDB, 0, varpath.c_str(), &gAddress, &size, TID_BOOL, TRUE);
 
 
-  //  int gAddress; // BRB address                                                                                                                                
-  //int gPort; // BRB port                                                                                                                                      
-  // Open socket
-  std::cout << "Opening socket... " << std::endl;
-  gSocket = new KOsocket("brb00", 40);
-  std::cout << "Finished;... " << std::endl;
+  midas::odb::set_debug(true);
+  // Get ODB values (new C++ ODB!)
+
+  midas::odb o = {
+    {"host", "brb00"},
+    {"port", 35},
+  };
+
+  o.connect("/Equipment/BRB/Settings", true);
+
+
+  // Open socket to BRB
+  std::cout << "Opening socket to  " << o["host"] << ":" << o["port"] << std::endl;
+  gSocket = new KOsocket(o["host"], o["port"]);
+  if(gSocket->getErrorCode() != 0){
+    cm_msg(MERROR,"init","Failed to connect to host; hostname/port = %s %i",((std::string)o["host"]).c_str(),(int)o["port"]);
+    return FE_ERR_HW;
+  }
+
+  std::cout << "Finished;... " << gSocket->getErrorCode() << std::endl;  
   std::cout << "Socket status : " << gSocket->getErrorString() << std::endl;
 
 
@@ -168,9 +184,6 @@ INT frontend_exit()
 
   std::cout << "Closing socket." << std::endl;
   gSocket->shutdown();
-  // Close connection to Arduino
-  // TOFIX!!!
-  //
 
   return SUCCESS;
 }
@@ -200,11 +213,17 @@ INT begin_of_run(INT run_number, char *error)
   // Setup the ADC readout...
   char buffer[200];
 
+
+  // Get ODB values (new C++ ODB!)
+  midas::odb o = {
+    {"testPatternADC", false},
+    {"soft trigger rate", 450.0f }
+  };
+  
+  o.connect("/Equipment/BRB/Settings", true);
+
   // Use the test pattern, if requested
-  std::string path = std::string("/Equipment/") + std::string(EQ_NAME) + std::string("/Settings/testPatternAdc");
-  BOOL testPattern = false;
-  int size = sizeof(testPattern);
-  int status = db_get_value(hDB, 0, path.c_str(), &testPattern, &size, TID_BOOL, TRUE);
+  BOOL testPattern = o["testPatternADC"];
 
   // Do settings for each ADC
   for(int i = 61; i < 66; i++){
@@ -233,9 +252,10 @@ INT begin_of_run(INT run_number, char *error)
   }
 
 
-  // Set the trigger rate to maximum value
-  //SendBrbCommand("uart_regfile_ctrl_write 0 4 80 0\r\n");
-  SendBrbCommand("custom_command SET_EMULATED_TRIGGER_SPEED 100\r\n");
+  // Set the trigger rate as per ODB
+  sprintf(buffer,"custom_command SET_EMULATED_TRIGGER_SPEED %f\r\n",(float)(o["soft trigger rate"]));
+  SendBrbCommand(buffer);
+  //SendBrbCommand("custom_command SET_EMULATED_TRIGGER_SPEED 500\r\n");
 
   // Set the Number samples
   SendBrbCommand("custom_command SELECT_NUM_SAMPLES_TO_SEND_TO_UDP 512\r\n");
@@ -355,30 +375,30 @@ INT read_slow_control(char *pevent, INT off)
 
     double resistor = 1.0;
     if(j==0){
-      std::cout << "LDO1: " ;//" << std::endl;
+      //      std::cout << "LDO1: " ;//" << std::endl;
       resistor = 0.1;
     }
-    if(j==1) std::cout << "LDO2: " ;//" << std::endl;
+    ///    if(j==1) std::cout << "LDO2: " ;//" << std::endl;
     if(j==2){
-      std::cout << "LDO3: " ;//" << std::endl;
+      //std::cout << "LDO3: " ;//" << std::endl;
       resistor =200;
     }
     if(j==3){
-      std::cout << "LDO4: " ;//" << std::endl;
+      //std::cout << "LDO4: " ;//" << std::endl;
     }
     if(j==4){
-      std::cout << "LDO5: " ;//" << std::endl;
+      //std::cout << "LDO5: " ;//" << std::endl;
     }
     if(j==5){
-      std::cout << "LDO6: " ;//" << std::endl;
+      //std::cout << "LDO6: " ;//" << std::endl;
       resistor =0.1;
     }
     if(j==6){
-      std::cout << "reg 77: " ;//" << std::endl;                                                                                              
+      //std::cout << "reg 77: " ;//" << std::endl;                                                                                              
       resistor =0.05;
     }
     if(j==7){
-      std::cout << "reg 78: " ;//" << std::endl;                                                                                              
+      //std::cout << "reg 78: " ;//" << std::endl;                                                                                              
       resistor =0.05;
     }
 
@@ -428,10 +448,10 @@ INT read_slow_control(char *pevent, INT off)
     }
     values.push_back(readback.substr(previous, current - previous));
     
-    for(int i = 0; i < values.size()-3; i++){
-            std::cout << values[i] << ", ";
-    }
-    std::cout << " |  resistance / current / voltage : ";
+    //for(int i = 0; i < values.size()-3; i++){
+    //        std::cout << values[i] << ", ";
+    // }
+    //std::cout << " |  resistance / current / voltage : ";
     for(int i = 0; i < values.size()-2; i++){
       //      std::cout << values[i] << ", ";
       if(i == 3){
@@ -442,23 +462,23 @@ INT read_slow_control(char *pevent, INT off)
 	}
 	double shunt_volt = ((double)(svolt_)) *0.00001; 
 	float shunt_current = 1000.0*shunt_volt/resistor;
-	std::cout << resistor << "ohm, ";
-	//std::cout << shunt_volt << "V, ";
-	std::cout << shunt_current << "mA, ";
+	//std::cout << resistor << "ohm, ";
+	///std::cout << shunt_volt << "V, ";
+	//std::cout << shunt_current << "mA, ";
 	if(j==2){
 	  shunt_current = 1000.0*(shunt_volt/resistor)/0.0004;
-	  std::cout << "Special LDO3 current = "  << shunt_current << "mA, ";
+	  //std::cout << "Special LDO3 current = "  << shunt_current << "mA, ";
 	}
 	*pddata++ = shunt_current;
       }
       if(i == 5){
 	long int ivolt = strtol(values[i].c_str(),NULL,0);
 	double bus_volt = ((double)(ivolt >>3)) *0.004; 
-	std::cout << bus_volt <<"V ";
+	//std::cout << bus_volt <<"V ";
 	*pddata++ = bus_volt;
       }
     }
-    std::cout << " dt=" << dtime << " " << dtime2 << std::endl;
+    //std::cout << " dt=" << dtime << " " << dtime2 << std::endl;
 
   }
     
