@@ -9,9 +9,10 @@ Control and slow readout of BRB (Big Red Board), aka mPMT mainboard
 #include <stdlib.h>
 #include "iostream"
 #include "KOsocket.h"
+#include "PMTControl.h"
 
 //#include <functional>
-#include "odbxx.hxx"
+//#include "odbxx.hxx"
 #include "midas.h"
 #include "mfe.h"
 #include "unistd.h"
@@ -122,6 +123,7 @@ int gPort; // BRB port
 int gSelectADC; // Which ADC to use?
 
 KOsocket *gSocket;
+PMTControl *pmts = 0;
 
 /*-- Frontend Init -------------------------------------------------*/
 INT frontend_init()
@@ -140,16 +142,11 @@ INT frontend_init()
   path += "/Settings";
 
 
+
   // Setup the socket connection
 
-  // Get Address
-  std::string varpath = path + "/address";
-  gAddress = 0;
-  int size = sizeof(gAddress);
-  status = db_get_value(hDB, 0, varpath.c_str(), &gAddress, &size, TID_BOOL, TRUE);
 
-
-  midas::odb::set_debug(true);
+  /*  midas::odb::set_debug(true);
   // Get ODB values (new C++ ODB!)
 
   midas::odb o = {
@@ -162,9 +159,11 @@ INT frontend_init()
 
   // Open socket to BRB
   std::cout << "Opening socket to  " << o["host"] << ":" << o["port"] << std::endl;
-  gSocket = new KOsocket(o["host"], o["port"]);
+  */
+  // gSocket = new KOsocket(o["host"], o["port"]);
+  gSocket = new KOsocket("brb00", 40);
   if(gSocket->getErrorCode() != 0){
-    cm_msg(MERROR,"init","Failed to connect to host; hostname/port = %s %i",((std::string)o["host"]).c_str(),(int)o["port"]);
+    //    cm_msg(MERROR,"init","Failed to connect to host; hostname/port = %s %i",((std::string)o["host"]).c_str(),(int)o["port"]);
     return FE_ERR_HW;
   }
 
@@ -172,13 +171,9 @@ INT frontend_init()
   std::cout << "Socket status : " << gSocket->getErrorString() << std::endl;
 
 
+  // Setup control of PMTs
+  pmts = new PMTControl(gSocket);
 
-  // Get ODB values (new C++ ODB!)                                                                                                                             
-  midas::odb pmts = {
-    {"HVset", std::array<double, 20>{} }
-  };
-
-  pmts.connect("/Equipment/BRB/Settings/PMTS", true);
 
 
   return SUCCESS;
@@ -219,7 +214,7 @@ INT begin_of_run(INT run_number, char *error)
   // Setup the ADC readout...
   char buffer[200];
 
-
+#ifdef BLAHBLAH
   // Get ODB values (new C++ ODB!)
   midas::odb o = {
     {"testPatternADC", false},
@@ -227,9 +222,11 @@ INT begin_of_run(INT run_number, char *error)
   };
   
   o.connect("/Equipment/BRB/Settings", true);
+#endif
 
   // Use the test pattern, if requested
-  BOOL testPattern = o["testPatternADC"];
+  //  BOOL testPattern = o["testPatternADC"];
+  BOOL testPattern = FALSE;
 
   // Do settings for each ADC
   for(int i = 61; i < 66; i++){
@@ -259,9 +256,9 @@ INT begin_of_run(INT run_number, char *error)
 
 
   // Set the trigger rate as per ODB
-  sprintf(buffer,"custom_command SET_EMULATED_TRIGGER_SPEED %f\r\n",(float)(o["soft trigger rate"]));
-  SendBrbCommand(buffer);
-  //SendBrbCommand("custom_command SET_EMULATED_TRIGGER_SPEED 500\r\n");
+  //sprintf(buffer,"custom_command SET_EMULATED_TRIGGER_SPEED %f\r\n",(float)(o["soft trigger rate"]));
+  //SendBrbCommand(buffer);
+  SendBrbCommand("custom_command SET_EMULATED_TRIGGER_SPEED 500\r\n");
 
   // Set the Number samples
   SendBrbCommand("custom_command SELECT_NUM_SAMPLES_TO_SEND_TO_UDP 512\r\n");

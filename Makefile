@@ -110,14 +110,17 @@ feudp.exe: $(LIB) $(MIDAS_LIB)/mfe.o $(DRIVERS) feudp.o
 feudp.o: feudp.cxx
 	$(CXX) $(CFLAGS) $(INCS) $(OSFLAGS) -o $@ -c $<
 
-$(UFE).exe: $(LIB) $(MIDAS_LIB)/mfe.o $(DRIVERS) KOsocket.o $(UFE).o
+$(UFE).exe: $(LIB) $(MIDAS_LIB)/mfe.o $(DRIVERS) KOsocket.o PMTControl.o $(UFE).o
 	$(CXX) $(CFLAGS) $(OSFLAGS) $(INCS) -o $(UFE).exe $(UFE).o $(DRIVERS) \
-	$(MIDAS_LIB)/mfe.o KOsocket.o $(LIBMIDAS) $(LIBS)
+	$(MIDAS_LIB)/mfe.o KOsocket.o PMTControl.o $(LIBMIDAS) $(LIBS)
 
 febrb.o: febrb.cxx
 	$(CXX) $(CFLAGS) $(INCS) $(OSFLAGS) -o $@ -c $<
 
 KOsocket.o: KOsocket.cxx
+	$(CXX) $(CFLAGS) $(INCS) $(OSFLAGS) -o $@ -c $<
+
+PMTControl.o: PMTControl.cxx
 	$(CXX) $(CFLAGS) $(INCS) $(OSFLAGS) -o $@ -c $<
 
 
