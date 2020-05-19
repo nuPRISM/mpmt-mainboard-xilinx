@@ -11,8 +11,7 @@ Control and slow readout of BRB (Big Red Board), aka mPMT mainboard
 #include "KOsocket.h"
 #include "PMTControl.h"
 
-//#include <functional>
-//#include "odbxx.hxx"
+#include "odbxx.hxx"
 #include "midas.h"
 #include "mfe.h"
 #include "unistd.h"
@@ -144,26 +143,21 @@ INT frontend_init()
 
 
   // Setup the socket connection
-
-
-  /*  midas::odb::set_debug(true);
-  // Get ODB values (new C++ ODB!)
-
+  // using new C++ ODB!
+  
+  midas::odb::set_debug(true);
   midas::odb o = {
     {"host", "brb00"},
     {"port", 35},
   };
 
-  o.connect("/Equipment/BRB/Settings", true);
-
+  o.connect("/Equipment/BRB/Settings");
 
   // Open socket to BRB
   std::cout << "Opening socket to  " << o["host"] << ":" << o["port"] << std::endl;
-  */
-  // gSocket = new KOsocket(o["host"], o["port"]);
-  gSocket = new KOsocket("brb00", 40);
+  gSocket = new KOsocket(o["host"], o["port"]);
   if(gSocket->getErrorCode() != 0){
-    //    cm_msg(MERROR,"init","Failed to connect to host; hostname/port = %s %i",((std::string)o["host"]).c_str(),(int)o["port"]);
+    cm_msg(MERROR,"init","Failed to connect to host; hostname/port = %s %i",((std::string)o["host"]).c_str(),(int)o["port"]);
     return FE_ERR_HW;
   }
 
@@ -214,20 +208,17 @@ INT begin_of_run(INT run_number, char *error)
   // Setup the ADC readout...
   char buffer[200];
 
-#ifdef BLAHBLAH
   // Get ODB values (new C++ ODB!)
   midas::odb o = {
     {"testPatternADC", false},
     {"soft trigger rate", 450.0f }
   };
   
-  o.connect("/Equipment/BRB/Settings", true);
-#endif
+  o.connect("/Equipment/BRB/Settings");
 
   // Use the test pattern, if requested
-  //  BOOL testPattern = o["testPatternADC"];
-  BOOL testPattern = FALSE;
-
+  BOOL testPattern = o["testPatternADC"];
+  
   // Do settings for each ADC
   for(int i = 61; i < 66; i++){
     
@@ -256,9 +247,9 @@ INT begin_of_run(INT run_number, char *error)
 
 
   // Set the trigger rate as per ODB
-  //sprintf(buffer,"custom_command SET_EMULATED_TRIGGER_SPEED %f\r\n",(float)(o["soft trigger rate"]));
-  //SendBrbCommand(buffer);
-  SendBrbCommand("custom_command SET_EMULATED_TRIGGER_SPEED 500\r\n");
+  sprintf(buffer,"custom_command SET_EMULATED_TRIGGER_SPEED %f\r\n",(float)(o["soft trigger rate"]));
+  SendBrbCommand(buffer);
+  //SendBrbCommand("custom_command SET_EMULATED_TRIGGER_SPEED 500\r\n");
 
   // Set the Number samples
   SendBrbCommand("custom_command SELECT_NUM_SAMPLES_TO_SEND_TO_UDP 512\r\n");
