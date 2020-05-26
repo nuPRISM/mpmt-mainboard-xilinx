@@ -3,12 +3,16 @@
 
 #include "KOsocket.h"
 #include "odbxx.hxx"
+#include "midas.h" 
 
 class PMTControl {
 
  public:
  
   PMTControl(KOsocket *socket); 
+
+
+  int GetStatus(char *pevent, INT off);  
 
  private:
 

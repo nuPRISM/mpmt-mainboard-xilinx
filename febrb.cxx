@@ -62,6 +62,7 @@ INT resume_run(INT run_number, char *error);
 INT frontend_loop();
 extern void interrupt_routine(void);
 INT read_slow_control(char *pevent, INT off);
+INT read_pmt_status(char *pevent, INT off);
 
 
 /*-- Equipment list ------------------------------------------------*/
@@ -84,8 +85,25 @@ EQUIPMENT equipment[] = {
       "", "", "",
     },
     read_slow_control,       /* readout routine */
+  }, 
+  { "PMTS",                 /* equipment name */
+    {
+      EQ_EVID, EQ_TRGMSK,     /* event ID, trigger mask */
+      "SYSTEM",              /* event buffer */
+      EQ_PERIODIC ,      /* equipment type */
+      LAM_SOURCE(0, 0x8111),     /* event source crate 0, all stations */
+      "MIDAS",                /* format */
+      TRUE,                   /* enabled */
+      RO_ALWAYS | RO_ODB,             /* read always */
+      1000,                    /* poll for 500ms */
+      0,                      /* stop run after this event limit */
+      0,                      /* number of sub events */
+      1,                      /* do log history */
+      "", "", "",
+    },
+    read_pmt_status,       /* readout routine */
   },
-  {""}
+ {""}
 };
 
 
@@ -129,16 +147,16 @@ INT frontend_init()
 {
 
   // setup connection to ODB (online database)
-  int status = cm_get_experiment_database(&hDB, NULL);
-  if (status != CM_SUCCESS) {
-    cm_msg(MERROR, "frontend_init", "Cannot connect to ODB, cm_get_experiment_database() returned %d", status);
-    return FE_ERR_ODB;
-  }
+  //  int status = cm_get_experiment_database(&hDB, NULL);
+  //if (status != CM_SUCCESS) {
+  //cm_msg(MERROR, "frontend_init", "Cannot connect to ODB, cm_get_experiment_database() returned %d", status);
+  // return FE_ERR_ODB;
+  //}
 
-  std::string path;
-  path += "/Equipment/";
-  path += EQ_NAME;
-  path += "/Settings";
+  // std::string path;
+  //path += "/Equipment/";
+  //path += EQ_NAME;
+  //path += "/Settings";
 
 
 
@@ -217,7 +235,7 @@ INT begin_of_run(INT run_number, char *error)
   o.connect("/Equipment/BRB/Settings");
 
   // Use the test pattern, if requested
-  BOOL testPattern = o["testPatternADC"];
+  BOOL testPattern = o["testPatternAdc"];
   
   // Do settings for each ADC
   for(int i = 61; i < 66; i++){
@@ -530,15 +548,6 @@ INT read_slow_control(char *pevent, INT off)
 
   bk_close(pevent, pddata2);	
 
-
-  // Change the select ADC if required...
-  //struct timeval t2;  
-  //gettimeofday(&t2, NULL);
-  
-  //double dtime = t2.tv_sec - last_event_time.tv_sec + (t2.tv_usec - last_event_time.tv_usec)/1000000.0;
-
-
-  //gettimeofday(&last_event_time, NULL);
   
 
 
@@ -546,6 +555,17 @@ INT read_slow_control(char *pevent, INT off)
 
 }
  
+/*-- Event readout -------------------------------------------------*/
+INT read_pmt_status(char *pevent, INT off)
+{
+
+  bk_init32(pevent);
+
+  return pmts->GetStatus(pevent, off);
+
+}
+
+  
 
 
  
