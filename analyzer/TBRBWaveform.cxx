@@ -16,12 +16,12 @@ TBRBWaveform::TBRBWaveform(){
 
 void TBRBWaveform::CreateHistograms(){
 
+  std::cout << "Creating waveforms!!! " << std::endl;
+
   // check if we already have histogramss.
   char tname[100];
   sprintf(tname,"BRB_%i",0);
 
-  TH1D *tmp = (TH1D*)gDirectory->Get(tname);
-  if (tmp) return;
 
   int fWFLength = 7; // Need a better way of detecting this...
   int numSamples = fWFLength / 1;
@@ -34,8 +34,14 @@ void TBRBWaveform::CreateHistograms(){
     char name[100];
     char title[100];
     sprintf(name,"BRB_%i",i);
-    
+    //TH1D *tmp2 = (TH1D*)gDirectory->Get(tname);
+    //    if (tmp2){
+    //std::cout << "Found " << tname << " and will delete !!! " << std::endl;
+    // delete tmp2;
+    //}
+    std::cout << "Creating " << name << std::endl;
     sprintf(title,"BRB Waveform for channel=%i",i);	
+
     
     TH1D *tmp = new TH1D(name, title, 512, -0.5*8, 511.5*8);
     tmp->SetXTitle("ns");
@@ -62,10 +68,11 @@ void TBRBWaveform::UpdateHistograms(TDataContainer& dataContainer){
 
     bool changeHistogram = false; 
     for(int i = 0; i < measurements.size(); i++){
-           
+
+      std::cout << "Measurement: " << i << std::endl;
       int chan = measurements[i].GetChannel();
       int nsamples = measurements[i].GetNSamples();
-
+      std::cout << "Measurement: " << i << " " << chan << std::endl;
       //std::cout << "Nsamples " <<  measurements[i].GetNSamples() << std::endl;
       for(int ib = 0; ib < nsamples; ib++){
 	GetHistogram(chan)->SetBinContent(ib+1, measurements[i].GetSample(ib));

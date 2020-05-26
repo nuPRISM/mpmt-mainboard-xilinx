@@ -8,7 +8,7 @@
 class TBRBWaveform : public THistogramArrayBase {
 public:
   TBRBWaveform();
-  virtual ~TBRBWaveform(){};
+  virtual ~TBRBWaveform(){std::cout << "TBRBWaveform destructor" << std::endl;};
 
   void UpdateHistograms(TDataContainer& dataContainer);
 

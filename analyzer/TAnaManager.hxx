@@ -16,7 +16,11 @@
 class TAnaManager  {
 public:
   TAnaManager();
-  virtual ~TAnaManager(){};
+  virtual ~TAnaManager(){
+    for(unsigned int i = 0; i < fHistos.size(); i++){
+      delete fHistos[i];
+    }
+  };
 
   /// Processes the midas event, fills histograms, etc.
   int ProcessMidasEvent(TDataContainer& dataContainer);

@@ -47,9 +47,12 @@ public:
   }
 
   void InitManager(){
-    
-    if(anaManager)
+
+    std::cout << "Start initmanager " << std::endl;    
+    if(anaManager){
+      std::cout << "Delete old" << std::endl;
       delete anaManager;
+    }
     anaManager = new TAnaManager();
     
     std::cout << "Finished initi" << std::endl;
@@ -70,6 +73,7 @@ public:
     if(!anaManager) InitManager();
     
     anaManager->ProcessMidasEvent(dataContainer);
+    std::cout << "Processed event ... " << std::endl;
 
     // Only update the transient histograms (like waveforms or event displays) every second.
     // Otherwise hammers CPU for no reason.
@@ -77,6 +81,7 @@ public:
     gettimeofday(&nowTime, NULL);    
     double dtime = nowTime.tv_sec - LastUpdateTime.tv_sec + (nowTime.tv_usec - LastUpdateTime.tv_usec)/1000000.0;
     if(dtime > 1.0){ 
+      std::cout << "Update transient plot ... " << std::endl;
       anaManager->UpdateTransientPlots(dataContainer); 
       LastUpdateTime = nowTime;
     }
