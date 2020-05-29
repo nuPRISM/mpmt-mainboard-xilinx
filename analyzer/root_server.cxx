@@ -48,14 +48,11 @@ public:
 
   void InitManager(){
 
-    std::cout << "Start initmanager " << std::endl;    
     if(anaManager){
-      std::cout << "Delete old" << std::endl;
       delete anaManager;
     }
     anaManager = new TAnaManager();
-    
-    std::cout << "Finished initi" << std::endl;
+    std::cout << "Finished initializating manager" << std::endl;
   }
   
 
@@ -69,11 +66,9 @@ public:
 
   bool ProcessMidasEvent(TDataContainer& dataContainer){
 
-    std::cout << "Processing event" << std::endl;
     if(!anaManager) InitManager();
     
     anaManager->ProcessMidasEvent(dataContainer);
-    std::cout << "Processed event ... " << std::endl;
 
     // Only update the transient histograms (like waveforms or event displays) every second.
     // Otherwise hammers CPU for no reason.
