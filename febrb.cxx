@@ -11,7 +11,7 @@ Control and slow readout of BRB (Big Red Board), aka mPMT mainboard
 #include "KOsocket.h"
 #include "PMTControl.h"
 
-#include "odbxx.hxx"
+#include "odbxx.h"
 #include "midas.h"
 #include "mfe.h"
 #include "unistd.h"
@@ -146,19 +146,6 @@ PMTControl *pmts = 0;
 INT frontend_init()
 {
 
-  // setup connection to ODB (online database)
-  //  int status = cm_get_experiment_database(&hDB, NULL);
-  //if (status != CM_SUCCESS) {
-  //cm_msg(MERROR, "frontend_init", "Cannot connect to ODB, cm_get_experiment_database() returned %d", status);
-  // return FE_ERR_ODB;
-  //}
-
-  // std::string path;
-  //path += "/Equipment/";
-  //path += EQ_NAME;
-  //path += "/Settings";
-
-
 
   // Setup the socket connection
   // using new C++ ODB!
@@ -229,6 +216,7 @@ INT begin_of_run(INT run_number, char *error)
   // Get ODB values (new C++ ODB!)
   midas::odb o = {
     {"testPatternADC", false},
+    {"enableSoftwareTrigger", false },
     {"soft trigger rate", 450.0f }
   };
   
@@ -277,7 +265,14 @@ INT begin_of_run(INT run_number, char *error)
 
   // Start the events
   usleep(200000);
-  SendBrbCommand("uart_regfile_ctrl_write 0 1 1 0\r\n");
+  BOOL software_trigger = (bool)(o["enableSoftwareTrigger"]);
+  if(software_trigger){
+      cm_msg(MINFO,"BOR","Enabling software trigger");
+      SendBrbCommand("uart_regfile_ctrl_write 0 1 1 0\r\n");
+  }else{
+      cm_msg(MINFO,"BOR","Disabling software trigger");
+    SendBrbCommand("uart_regfile_ctrl_write 0 1 0 0\r\n");
+  }
   usleep(200000);
   SendBrbCommand("custom_command enable_dsp_processing \n");
   usleep(1000000);

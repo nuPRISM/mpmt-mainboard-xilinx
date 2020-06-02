@@ -2,7 +2,7 @@
 #define PMTControl_hxx_seen
 
 #include "KOsocket.h"
-#include "odbxx.hxx"
+#include "odbxx.h"
 #include "midas.h" 
 
 class PMTControl {
