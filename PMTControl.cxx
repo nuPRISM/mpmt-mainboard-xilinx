@@ -42,20 +42,107 @@ PMTControl::PMTControl(KOsocket *socket){
 
 
 
+//Read value
+float PMTControl::ReadValue(std::string command,int chan){
+  
+  int length = 7;
+  float factor = 1.0;
+  if(command.compare("01LI")== 0){
+    factor = 0.001;
+  }else if(command.compare("01LV")== 0){
+    factor = 0.001;
+  }else if(command.compare("01LS")== 0){
+    length = 4;
+  }else if(command.compare("01LG")== 0){
+    length = 1;
+  }else{
+    std::cout << "Error, command " << command << " not defined! " << std::endl;
+  }
+
+
+  char buffer[200];
+  sprintf(buffer,"custom_command exec_pmt_cmd %s \n",command.c_str());
+  int size=sizeof(buffer);
+  fSocket->write(buffer,size);
+  char bigbuffer[500];
+  size = sizeof(bigbuffer);
+  fSocket->read(bigbuffer,size);
+  
+  std::string readback(bigbuffer);
+  //  long int value = strtol(readback.substr(4,length).c_str(),NULL,0);
+  long int value = atoi(readback.substr(4,length).c_str());
+  float fvalue = ((float)value)*factor;
+  std::cout << "readback: " << readback.substr(4,length) << " " << value 
+	    << " " << " " << fvalue << std::endl;
+  
+  return fvalue;
+}
 
 int PMTControl::GetStatus(char *pevent, INT off)
 {
 
 
   float *pddata;
+  
+  // Read currents from PMT
+  bk_create(pevent, "PMI0", TID_FLOAT, (void**)&pddata);
 
-  bk_create(pevent, "PMT9", TID_FLOAT, (void**)&pddata);
-  *pddata++ = 0.0;
-  *pddata++ = 1.0;
-  *pddata++ = -1.0;
-  *pddata++ = 2.0;
+  for(int i = 0; i < 20; i++){
+    if(i == 0){ // only connect to PMT0 right now.
+      *pddata++ = ReadValue("01LI",0);      
+    }else{
+      *pddata++ = 0.0;
+    }
+  }
 
   bk_close(pevent, pddata);
+
+  float *pddata2;
+  // Readback voltages from PMT
+  bk_create(pevent, "PMV0", TID_FLOAT, (void**)&pddata2);
+
+  for(int i = 0; i < 20; i++){
+    if(i == 0){ // only connect to PMT0 right now.
+      *pddata2++ = ReadValue("01LV",0);      
+    }else{
+      *pddata2++ = 0.0;
+    }
+  }
+
+  bk_close(pevent, pddata2);
+
+  float *pddata3;
+  // Setpoint voltages from PMT
+  if(0){  
+    bk_create(pevent, "PMS0", TID_FLOAT, (void**)&pddata3);
+    
+    for(int i = 0; i < 20; i++){
+      if(i == 0){ // only connect to PMT0 right now.
+	*pddata3++ = ReadValue("01LS",0);      
+      }else{
+	*pddata3++ = 0.0;
+      }
+    }
+    bk_close(pevent, pddata3);
+  }
+
+  int *pddata4;
+  // ON/OFF  from PMT
+  bk_create(pevent, "PMG0", TID_INT, (void**)&pddata4);
+
+  for(int i = 0; i < 20; i++){
+    if(i == 0){ // only connect to PMT0 right now.
+      *pddata4++ = (int)ReadValue("01LG",0);      
+    }else{
+      *pddata4++ = 0;
+    }
+  }
+  bk_close(pevent, pddata4);
+
+
+
+
+
 
   return bk_size(pevent);
 }

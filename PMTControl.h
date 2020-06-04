@@ -16,6 +16,9 @@ class PMTControl {
 
  private:
 
+  // Read PMT value
+  float ReadValue(std::string command,int chan);
+
   // Setup the callback for PMT Settings directory
   midas::odb pmt_watch; 
 
