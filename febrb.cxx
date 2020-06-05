@@ -258,7 +258,8 @@ INT begin_of_run(INT run_number, char *error)
   //SendBrbCommand("custom_command SET_EMULATED_TRIGGER_SPEED 500\r\n");
 
   // Set the Number samples
-  SendBrbCommand("custom_command SELECT_NUM_SAMPLES_TO_SEND_TO_UDP 512\r\n");
+  //SendBrbCommand("custom_command SELECT_NUM_SAMPLES_TO_SEND_TO_UDP 512\r\n");
+  SendBrbCommand("custom_command SELECT_NUM_SAMPLES_TO_SEND_TO_UDP 1024\r\n");
   usleep(200000);
   SendBrbCommand("custom_command CHANGE_STREAMING_PARAMS \r\n");
 

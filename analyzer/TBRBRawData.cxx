@@ -40,12 +40,14 @@ TBRBRawData::TBRBRawData(int bklen, int bktype, const char* name, void *pdata):
   
   for(int adc =0; adc < 5; adc++){ // loop over ADCs
 
+    // Create the something to save samples...
     std::vector<std::vector<uint32_t> >Samples;
     for(int ch = 0; ch < 4; ch++){ Samples.push_back(std::vector<uint32_t>());}
 
-    for(int p = 0; p < 4; p++){ // loop over packets
+    for(int p = 0; p < 8; p++){ // loop over packets// now 1024 samples hopefully
+      //for(int p = 0; p < 4; p++){ // loop over packets
 
-      int counter = adc*4 + p;
+      int counter = adc*8 + p;
       int istart = counter*533;
 
       int frameid = fData[istart + 4];

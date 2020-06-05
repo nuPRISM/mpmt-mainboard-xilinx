@@ -43,7 +43,7 @@ void TBRBWaveform::CreateHistograms(){
     sprintf(title,"BRB Waveform for channel=%i",i);	
 
     
-    TH1D *tmp = new TH1D(name, title, 512, -0.5*8, 511.5*8);
+    TH1D *tmp = new TH1D(name, title, 1024, -0.5*8, 1023.5*8);
     tmp->SetXTitle("ns");
     tmp->SetYTitle("ADC value");
     
