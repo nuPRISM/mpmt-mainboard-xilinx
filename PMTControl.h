@@ -19,12 +19,18 @@ class PMTControl {
   // Read PMT value
   float ReadValue(std::string command,int chan);
 
+  bool SetCommand(std::string command, int value);
+
   // Setup the callback for PMT Settings directory
   midas::odb pmt_watch; 
 
   // Pointer to socket to BRB
   KOsocket *fSocket;
   
+  // Selected Channel
+  int gSelectedChannel;
+
+
 
 };
 

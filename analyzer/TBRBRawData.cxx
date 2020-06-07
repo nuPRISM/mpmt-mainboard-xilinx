@@ -59,8 +59,10 @@ TBRBRawData::TBRBRawData(int bklen, int bktype, const char* name, void *pdata):
 
 
       // Save data samples; data for 4 channels is interleaved
+      // need to convert between ADC channel number and connector channel number
+      int chan_map[4] = {2,3,0,1};
       for(int i = 0; i < 512; i++){
-	int ch = i%4;  // which channel?
+	int ch = chan_map[i%4];  // which channel?
 	int index = i+21+istart; 
 	Samples[ch].push_back((fData[index] >> 4));	
       }

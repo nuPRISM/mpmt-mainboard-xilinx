@@ -1,6 +1,48 @@
 
 #include "PMTControl.h"
 
+bool PMTControl::SetCommand(std::string command, int value){
+
+
+  char buffer[200];
+  if(command.compare("SetChannel") == 0){
+    sprintf(buffer,"custom_command select_pmt %i \n",value);
+  }else{
+    if(command.compare("SH") == 0){
+      sprintf(buffer,"custom_command exec_pmt_cmd 01%s%04i \n",command.c_str(),value);
+    }else if(command.compare("HV") == 0){
+      sprintf(buffer,"custom_command exec_pmt_cmd 01%s%i \n",command.c_str(),value);
+    }else{
+      cm_msg(MERROR,"PMTControl::SetCommand","Invalid set command %s",command.c_str());
+      return false;
+    }
+  }
+
+  int size=sizeof(buffer);
+  std::cout << "Command : " << buffer << " " << size << std::endl;
+  fSocket->write(buffer,size);
+  char bigbuffer[500];
+  size = sizeof(bigbuffer);
+  fSocket->read(bigbuffer,size);
+  
+  std::string readback(bigbuffer);
+  readback.pop_back();
+  readback.pop_back(); 
+  readback.pop_back(); 
+  readback.pop_back(); 
+  readback.pop_back(); 
+
+  // Check that the reply has the expected except substring
+  std::string origcommand(buffer);  
+  if(origcommand.find(readback) == std::string::npos){
+    cm_msg(MERROR,"PMTControl::SetCommand","Reply did not match original command: %s %s",readback.c_str(),origcommand.c_str());
+    return false;
+  }
+  std::cout << "Reply matches expectation: " << readback << " " << origcommand << std::endl;
+
+  return true;
+}
+
 PMTControl::PMTControl(KOsocket *socket){
 
   // Save connection to socket.
@@ -10,26 +52,36 @@ PMTControl::PMTControl(KOsocket *socket){
   
   //Get ODB values (new C++ ODB!)                                                                                                                             
   midas::odb pmts = {
+    {"ChannelSelect", 0 },
     {"HVmax", std::array<double, 20>{} },
     {"HVenable", std::array<bool, 20>{} },
     {"HVset", std::array<double, 20>{} }
 
   };
 
-  std::cout << "PMT connect" << std::endl;
-  pmts.connect("/Equipment/BRB/Settings/PMTS");
-  std::cout << "PMT enable : " << pmts["HVenable"][4] << std::endl;
-  std::cout << "PMT max : " << pmts["HVmax"][4] << std::endl;
+  pmts.connect("/Equipment/PMTS/Settings");
+  gSelectedChannel = pmts["ChannelSelect"];
 
   // Setup the DB watch for the PMT settings
-  pmt_watch.connect("/Equipment/BRB/Settings/PMTS");
-  pmt_watch.watch([](midas::odb &o) {
-      if(o.get_full_path().find("HVset") != std::string::npos){
-	std::cout << "HV set points changed:  \"" + o.get_full_path() + "\" changed to " << o << std::endl;
-	// Change the HV set point
+  pmt_watch.connect("/Equipment/PMTS/Settings");
+  pmt_watch.watch([this](midas::odb &o) {
+
+      if(o.get_full_path().find("ChannelSelect") != std::string::npos){
+	std::cout << "Changed selected to channel:  \"" + o.get_full_path() + "\" changed to " << o << std::endl;
+	gSelectedChannel = (int)o;	
+	SetCommand("SetChannel", gSelectedChannel);
+      }else if(o.get_full_path().find("HVset") != std::string::npos){
+	std::cout << "HV  channel " << gSelectedChannel << " changed to " << o[gSelectedChannel] << std::endl;
+	SetCommand("SH", o[gSelectedChannel]);
       }else if(o.get_full_path().find("HVenable") != std::string::npos){
-	std::cout << "HV enable changed:  \"" + o.get_full_path() + "\" changed to " << o << std::endl;
-	// Change the enable and HV set point
+	int state = (int)o[gSelectedChannel];
+	if(state){
+	  std::cout << "Turning on HV for channel " << gSelectedChannel << std::endl;
+	  SetCommand("HV", 1);
+	}else{
+	  std::cout << "Turning off HV for channel " << gSelectedChannel << std::endl;
+	  SetCommand("HV", 0);
+	}
       };
 
     });

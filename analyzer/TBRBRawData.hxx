@@ -22,7 +22,7 @@ public:
   /// Get data... 
   int GetSample(int i){
     if(i >= 0 && i < (int)fSamples.size()){
-      uint16_t data = fSamples[i];
+      //uint16_t data = fSamples[i];
       int conv_data = (int)fSamples[i];
       //if(data >= 2048) conv_data -= 4096;// this is for twos complement encoding, which is now disabled.	
       return conv_data;

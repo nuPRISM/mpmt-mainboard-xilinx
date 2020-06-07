@@ -67,7 +67,7 @@ void TBRBWaveform::UpdateHistograms(TDataContainer& dataContainer){
     std::vector<RawChannelMeasurement> measurements = dt743->GetMeasurements();
 
     bool changeHistogram = false; 
-    for(int i = 0; i < measurements.size(); i++){
+    for(unsigned int i = 0; i < measurements.size(); i++){
 
       std::cout << "Measurement: " << i << std::endl;
       int chan = measurements[i].GetChannel();
