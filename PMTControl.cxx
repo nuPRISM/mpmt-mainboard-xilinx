@@ -12,6 +12,8 @@ bool PMTControl::SetCommand(std::string command, int value){
       sprintf(buffer,"custom_command exec_pmt_cmd 01%s%04i \n",command.c_str(),value);
     }else if(command.compare("HV") == 0){
       sprintf(buffer,"custom_command exec_pmt_cmd 01%s%i \n",command.c_str(),value);
+    }else if(command.compare("SR") == 0){
+      sprintf(buffer,"custom_command exec_pmt_cmd 01%s%03i \n",command.c_str(),value);
     }else{
       cm_msg(MERROR,"PMTControl::SetCommand","Invalid set command %s",command.c_str());
       return false;
@@ -55,7 +57,8 @@ PMTControl::PMTControl(KOsocket *socket){
     {"ChannelSelect", 0 },
     {"HVmax", std::array<double, 20>{} },
     {"HVenable", std::array<bool, 20>{} },
-    {"HVset", std::array<double, 20>{} }
+    {"HVset", std::array<double, 20>{} },
+    {"HVRampRate", std::array<int, 20>{} }
 
   };
 
@@ -71,8 +74,11 @@ PMTControl::PMTControl(KOsocket *socket){
 	gSelectedChannel = (int)o;	
 	SetCommand("SetChannel", gSelectedChannel);
       }else if(o.get_full_path().find("HVset") != std::string::npos){
-	std::cout << "HV  channel " << gSelectedChannel << " changed to " << o[gSelectedChannel] << std::endl;
+	std::cout << "Channel " << gSelectedChannel << " HV changed to " << o[gSelectedChannel] << std::endl;
 	SetCommand("SH", o[gSelectedChannel]);
+      }else if(o.get_full_path().find("HVRampRate") != std::string::npos){
+	std::cout << "Channel " << gSelectedChannel << " ramp rate changed to " << o[gSelectedChannel] << std::endl;
+	SetCommand("SR", o[gSelectedChannel]);
       }else if(o.get_full_path().find("HVenable") != std::string::npos){
 	int state = (int)o[gSelectedChannel];
 	if(state){
