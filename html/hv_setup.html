@@ -1,0 +1,92 @@
+!DOCTYPE html>
+<html class="mcss">
+<head>
+   <meta charset="UTF-8">
+   <link rel="stylesheet" href="midas.css">
+   <script src="controls.js"></script>
+   <script src="midas.js"></script>
+   <script src="mhttpd.js"></script>
+   <title>HV Setup</title>
+
+   <style>
+      .mtable td { padding: 10px; }
+   </style>
+
+</head>
+
+<body class="mcss" onload="mhttpd_init('HV Setup');;">
+
+<!-- header and side navigation will be filled in mhttpd_init -->
+<div id="mheader"></div>
+<div id="msidenav"></div>
+
+<div id="mmain">
+
+  <table class="mtable">
+    <tr>
+      <th colspan="3" class="mtableheader">HV Setup</th>
+    </tr>
+    <tr>
+      <td> </td>
+      <td> ODB Set Value </td>
+      <td> Readback </td>
+    </tr>
+
+    <tr>
+      <td>
+        Channel Select
+      </td>
+      <td>
+        <div class="modbvalue" data-odb-editable="1" data-odb-path="/Equipment/PMTS/Settings/ChannelSelect" ></div> 
+      </td>
+      <td> ??? </td>
+    </tr>
+    <tr>
+      <td>
+        HV Enable
+      </td>
+      <td>
+        <div class="modbvalue" data-odb-editable="1" data-odb-path="/Equipment/PMTS/Settings/HVenable[0]" ></div> 
+      </td>
+      <td>
+        <div class="modbvalue" data-odb-editable="1" data-odb-path="/Equipment/PMTS/Variables/PMG0[0]" ></div> 
+      </td>
+    </tr>
+    <tr>
+      <td>
+        HV Setpoint (V)
+      </td>
+      <td>
+        <div class="modbvalue" data-odb-editable="1" data-odb-path="/Equipment/PMTS/Settings/HVset[0]" ></div> 
+      </td>
+      <td>
+        <div class="modbvalue" data-odb-editable="1" data-odb-path="/Equipment/PMTS/Variables/PMV0[0]" ></div> 
+      </td>
+    </tr>
+    <tr>
+      <td>
+        HV Ramp-rate (V/s)
+      </td>
+      <td>
+        <div class="modbvalue" data-odb-editable="1" data-odb-path="/Equipment/PMTS/Settings/HVRampRate[0]" ></div> 
+      </td>
+      <td>
+        ??
+      </td>
+    </tr>
+    <tr>
+      <td>
+        Current readback
+      </td>
+      <td>
+      </td>
+      <td>
+        <div class="modbvalue" data-odb-editable="1" data-odb-path="/Equipment/PMTS/Variables/PMI0[0]" ></div> 
+      </td>
+    </tr>
+
+
+  </table>
+
+</body>
+</html>
