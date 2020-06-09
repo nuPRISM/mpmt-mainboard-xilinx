@@ -217,7 +217,8 @@ INT begin_of_run(INT run_number, char *error)
   midas::odb o = {
     {"testPatternADC", false},
     {"enableSoftwareTrigger", false },
-    {"soft trigger rate", 450.0f }
+    {"soft trigger rate", 450.0f },
+    {"channel mask", 0x1f }
   };
   
   o.connect("/Equipment/BRB/Settings");
@@ -255,7 +256,11 @@ INT begin_of_run(INT run_number, char *error)
   // Set the trigger rate as per ODB
   sprintf(buffer,"custom_command SET_EMULATED_TRIGGER_SPEED %f\r\n",(float)(o["soft trigger rate"]));
   SendBrbCommand(buffer);
-  //SendBrbCommand("custom_command SET_EMULATED_TRIGGER_SPEED 500\r\n");
+
+  // Set the channel mask
+  unsigned int mask = (unsigned int)(o["channel mask"]) & 0x1ff;
+  sprintf(buffer,"custom_command set_acquired_masks  0 0x%x \r\n",mask);
+  SendBrbCommand(buffer);
 
   // Set the Number samples
   //SendBrbCommand("custom_command SELECT_NUM_SAMPLES_TO_SEND_TO_UDP 512\r\n");
