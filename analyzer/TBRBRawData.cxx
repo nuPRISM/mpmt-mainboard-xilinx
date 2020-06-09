@@ -31,14 +31,9 @@ TBRBRawData::TBRBRawData(int bklen, int bktype, const char* name, void *pdata):
   
   std::cout << "_________________________________________" << std::endl;
 
-  if(npackets != 21) std::cout << "Error in decoding; packets not " << npackets << " = 21," << std::endl;
-  printf("%4i %4i %4i %4i\n",(fData[21]>>4),(fData[22]>>4),(fData[23]>>4),(fData[24]>>4));
-  printf("%4i %4i %4i %4i\n",(fData[554]>>4),(fData[555]>>4),(fData[556]>>4),(fData[557]>>4));
-  printf("%4i %4i %4i %4i\n",(fData[1087]>>4),(fData[1088]>>4),(fData[1089]>>4),(fData[1090]>>4));
-  printf("%4i %4i %4i %4i\n",(fData[1620]>>4),(fData[1621]>>4),(fData[1622]>>4),(fData[1623]>>4));
+  int nadcs = ((npackets - 1))/8;
   
-  
-  for(int adc =0; adc < 5; adc++){ // loop over ADCs
+  for(int adc =0; adc < nadcs; adc++){ // loop over ADCs
 
     // Create the something to save samples...
     std::vector<std::vector<uint32_t> >Samples;

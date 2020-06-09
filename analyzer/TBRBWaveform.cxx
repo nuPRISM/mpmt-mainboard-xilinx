@@ -69,11 +69,8 @@ void TBRBWaveform::UpdateHistograms(TDataContainer& dataContainer){
     bool changeHistogram = false; 
     for(unsigned int i = 0; i < measurements.size(); i++){
 
-      std::cout << "Measurement: " << i << std::endl;
       int chan = measurements[i].GetChannel();
       int nsamples = measurements[i].GetNSamples();
-      std::cout << "Measurement: " << i << " " << chan << std::endl;
-      //std::cout << "Nsamples " <<  measurements[i].GetNSamples() << std::endl;
       for(int ib = 0; ib < nsamples; ib++){
 	GetHistogram(chan)->SetBinContent(ib+1, measurements[i].GetSample(ib));
       }
