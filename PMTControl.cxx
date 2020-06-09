@@ -1,6 +1,33 @@
 
 #include "PMTControl.h"
 
+// Define what do do with callbacks from watch function
+void PMTControl::callback(midas::odb &o) {
+
+  if(o.get_full_path().find("ChannelSelect") != std::string::npos){
+    std::cout << "Changed selected to channel:  \"" + o.get_full_path() + "\" changed to " << o << std::endl;
+    gSelectedChannel = (int)o;
+    SetCommand("SetChannel", gSelectedChannel);
+  }else if(o.get_full_path().find("HVset") != std::string::npos){
+    std::cout << "Channel " << gSelectedChannel << " HV changed to " << o[gSelectedChannel] << std::endl;
+    SetCommand("SH", o[gSelectedChannel]);
+  }else if(o.get_full_path().find("HVRampRate") != std::string::npos){
+    std::cout << "Channel " << gSelectedChannel << " ramp rate changed to " << o[gSelectedChannel] << std::endl;
+    SetCommand("SR", o[gSelectedChannel]);
+  }else if(o.get_full_path().find("HVenable") != std::string::npos){
+    int state = (int)o[gSelectedChannel];
+    if(state){
+      std::cout << "Turning on HV for channel " << gSelectedChannel << std::endl;
+      SetCommand("HV", 1);
+    }else{
+      std::cout << "Turning off HV for channel " << gSelectedChannel << std::endl;
+      SetCommand("HV", 0);
+    }
+  };
+
+}
+
+
 bool PMTControl::SetCommand(std::string command, int value){
 
 
@@ -67,30 +94,8 @@ PMTControl::PMTControl(KOsocket *socket){
 
   // Setup the DB watch for the PMT settings
   pmt_watch.connect("/Equipment/PMTS/Settings");
-  pmt_watch.watch([this](midas::odb &o) {
-
-      if(o.get_full_path().find("ChannelSelect") != std::string::npos){
-	std::cout << "Changed selected to channel:  \"" + o.get_full_path() + "\" changed to " << o << std::endl;
-	gSelectedChannel = (int)o;	
-	SetCommand("SetChannel", gSelectedChannel);
-      }else if(o.get_full_path().find("HVset") != std::string::npos){
-	std::cout << "Channel " << gSelectedChannel << " HV changed to " << o[gSelectedChannel] << std::endl;
-	SetCommand("SH", o[gSelectedChannel]);
-      }else if(o.get_full_path().find("HVRampRate") != std::string::npos){
-	std::cout << "Channel " << gSelectedChannel << " ramp rate changed to " << o[gSelectedChannel] << std::endl;
-	SetCommand("SR", o[gSelectedChannel]);
-      }else if(o.get_full_path().find("HVenable") != std::string::npos){
-	int state = (int)o[gSelectedChannel];
-	if(state){
-	  std::cout << "Turning on HV for channel " << gSelectedChannel << std::endl;
-	  SetCommand("HV", 1);
-	}else{
-	  std::cout << "Turning off HV for channel " << gSelectedChannel << std::endl;
-	  SetCommand("HV", 0);
-	}
-      };
-
-    });
+  std::function<void(midas::odb &o)> f = [=](midas::odb &o) {  this->callback(o);  };
+  pmt_watch.watch(f);
 
   // Need to add functionality to check if board was turned off... if board was turned off then find that
   // the enable don't match the board, then enables should be turned off in ODB...

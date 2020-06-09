@@ -14,6 +14,9 @@ class PMTControl {
 
   int GetStatus(char *pevent, INT off);  
 
+  // callback function
+  void callback(midas::odb &o);
+
  private:
 
   // Read PMT value
