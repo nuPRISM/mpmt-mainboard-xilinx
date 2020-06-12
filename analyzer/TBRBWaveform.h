@@ -63,6 +63,22 @@ public:
 
 };
 
+
+/// Class for making histograms of pulseheights;
+class TBRBPH : public THistogramArrayBase {
+public:
+  TBRBPH();
+  virtual ~TBRBPH(){};
+
+  void UpdateHistograms(TDataContainer& dataContainer);
+
+  void CreateHistograms();
+  
+  /// Take actions at begin run
+  void BeginRun(int transition,int run,int time){ CreateHistograms(); }
+
+};
+
 #endif
 
 

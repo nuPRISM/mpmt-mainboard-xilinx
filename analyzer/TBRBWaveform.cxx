@@ -212,21 +212,6 @@ void TBRBRMS::UpdateHistograms(TDataContainer& dataContainer){
       int chan = measurements[i].GetChannel();
       int nsamples = measurements[i].GetNSamples();
 
-      /*
-      // Use the first 100 samples for RMS
-      double sum = 0;
-      for(int ib = 0; ib < 100; ib++){
-        sum += pow(measurements[i].GetSample(ib),2);
-      }
-
-      avg /= 100.0;
-
-
-      for (int i = 0; i < n; i++)
-	sum += pow(x[i], 2);
-
-      return sqrt(sum / n);
-      */
       float sum = 0.0, mean, SD = 0.0;
       for (int ib = 0; ib < 100; ++ib) {
         sum += measurements[i].GetSample(ib);
@@ -238,6 +223,72 @@ void TBRBRMS::UpdateHistograms(TDataContainer& dataContainer){
       GetHistogram(chan)->Fill(sqrt(SD / 100));
 	//      GetHistogram(chan)->Fill(avg);   
     }
+  }
+  
+}
+
+
+
+
+
+
+
+/// Reset the histograms for this canvas
+TBRBPH::TBRBPH(){
+  SetSubTabName("BRB Pulse Height");  
+  CreateHistograms();
+}
+
+
+void TBRBPH::CreateHistograms(){
+
+  // check if we already have histogramss.
+  char tname[100];
+  sprintf(tname,"BRB_PH_%i",0);
+
+  TH1D *tmp = (TH1D*)gDirectory->Get(tname);
+  if (tmp) return;
+
+  // Otherwise make histograms
+  clear();
+  
+  for(int i = 0; i < 20; i++){ // loop over 2 channels
+    
+    char name[100];
+    char title[100];
+    sprintf(name,"BRB_PH_%i",i);
+    
+    sprintf(title,"BRB Pulse Heigh for channel=%i",i);	
+
+    TH1D *tmp = new TH1D(name, title, 130, -10, 120);
+    tmp->SetXTitle("Pulse Height");
+    push_back(tmp);
+  }
+}
+
+
+void TBRBPH::UpdateHistograms(TDataContainer& dataContainer){
+  
+  TBRBRawData *dt743 = dataContainer.GetEventData<TBRBRawData>("BRB0");
+  
+  if(dt743){      
+     
+    std::vector<RawChannelMeasurement> measurements = dt743->GetMeasurements();
+    for(int i = 0; i < measurements.size(); i++){
+      
+      int chan = measurements[i].GetChannel();
+      int nsamples = measurements[i].GetNSamples();
+      int min_value = 4096;
+      for(int j = 262; j < 280; j++){
+	if(measurements[i].GetSample(j) < min_value){
+	  min_value = measurements[i].GetSample(j);
+	}
+      }
+      int pulse_height = 2045 - min_value;
+      std::cout << "Pulse height: " << chan << " " << pulse_height << std::endl;
+      GetHistogram(chan)->Fill(pulse_height);
+      
+    }  
   }
   
 }

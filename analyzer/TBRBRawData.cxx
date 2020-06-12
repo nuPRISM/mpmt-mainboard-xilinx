@@ -47,11 +47,12 @@ TBRBRawData::TBRBRawData(int bklen, int bktype, const char* name, void *pdata):
 
       int frameid = fData[istart + 4];
       int packetid = fData[istart + 2];
-      int cadc0 = fData[istart + 19];
-      int cadc1 = fData[istart + 20];
+      uint32_t cadc0 = fData[istart + 19];
+      uint32_t cadc1 = fData[istart + 20];
+      uint32_t cadc = (cadc0 << 16) + cadc1;
       std::cout << adc << " " << p << " istart=" << istart << " frame id " << frameid
 		<< "packet id " << packetid
-		<< " channel=0x" << std::hex << cadc0 << " " << cadc1 << std::dec  << std::endl;
+		<< " channel=0x" << std::hex << cadc0 << " " << cadc1 << " 0x" << cadc << std::dec  << std::endl;
 
 
       // Save data samples; data for 4 channels is interleaved
