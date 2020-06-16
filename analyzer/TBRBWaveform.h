@@ -79,6 +79,25 @@ public:
 
 };
 
+
+/// Pulse Times
+class TBRB_Time : public THistogramArrayBase {
+public:
+  TBRB_Time();
+  virtual ~TBRB_Time(){};
+
+  void UpdateHistograms(TDataContainer& dataContainer);
+
+  void CreateHistograms();
+  
+  /// Take actions at begin run
+  void BeginRun(int transition,int run,int time){ CreateHistograms(); }
+
+  std::vector<int> nhits;
+  int total_events;
+
+};
+
 #endif
 
 

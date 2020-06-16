@@ -260,7 +260,7 @@ void TBRBPH::CreateHistograms(){
     
     sprintf(title,"BRB Pulse Heigh for channel=%i",i);	
 
-    TH1D *tmp = new TH1D(name, title, 130, -10, 120);
+    TH1D *tmp = new TH1D(name, title, 60, -10, 110);
     tmp->SetXTitle("Pulse Height");
     push_back(tmp);
   }
@@ -292,6 +292,95 @@ void TBRBPH::UpdateHistograms(TDataContainer& dataContainer){
   }
   
 }
+
+
+
+
+/// Reset the histograms for this canvas
+TBRB_Time::TBRB_Time(){
+  SetSubTabName("BRB Pulse Times");  
+  CreateHistograms();
+
+  nhits = std::vector<int>(20,0);
+  total_events = 0;
+
+
+}
+
+const double time_offset = 270;
+void TBRB_Time::CreateHistograms(){
+
+  // check if we already have histogramss.
+  char tname[100];
+  sprintf(tname,"BRB_Time_%i",0);
+
+  TH1D *tmp = (TH1D*)gDirectory->Get(tname);
+  if (tmp) return;
+
+  // Otherwise make histograms
+  clear();
+  
+  for(int i = 0; i < 20; i++){ // loop over 2 channels
+    
+    char name[100];
+    char title[100];
+    sprintf(name,"BRB_Time_%i",i);
+    
+    sprintf(title,"BRB Pulse Time for channel=%i",i);	
+
+    TH1D *tmp = new TH1D(name, title, 1024, -(0.5 + time_offset)*8, (1023.5-time_offset)*8);
+    tmp->SetXTitle("Pulse Time (ns)");
+    push_back(tmp);
+  }
+}
+
+
+void TBRB_Time::UpdateHistograms(TDataContainer& dataContainer){
+  
+  TBRBRawData *dt743 = dataContainer.GetEventData<TBRBRawData>("BRB0");
+  
+  if(dt743){      
+     
+    std::vector<RawChannelMeasurement> measurements = dt743->GetMeasurements();
+    for(int i = 0; i < measurements.size(); i++){
+      
+      int chan = measurements[i].GetChannel();
+      int nsamples = measurements[i].GetNSamples();
+
+      int threshold = 2045 - 15;
+
+      bool in_pulse = false; // are we currently in a pulse?
+      bool laser_pulse = false;
+      std::vector<int> pulse_times;
+      for(int ib = 0; ib < nsamples; ib++){
+	int sample = measurements[i].GetSample(ib);
+
+	if(sample < threshold && !in_pulse){ // found a pulse
+	  in_pulse = true;
+	  
+	  int pulse_time = 8*(ib - time_offset);
+	  pulse_times.push_back(pulse_time);
+	  if(ib > 262 and ib < 280){ laser_pulse = true;}
+	}
+
+	if(sample >= threshold && in_pulse){ /// finished this pulse
+	  in_pulse = false;
+	}
+
+      }
+
+
+      for(int j = 0; j < pulse_times.size(); j++){
+	int pulse_time = pulse_times[j];
+	GetHistogram(chan)->Fill(pulse_time);
+      }
+    }  
+  }
+  
+}
+
+
+
 
 
 

@@ -9,6 +9,7 @@ TAnaManager::TAnaManager(){
   AddHistogram(new TBRBBaseline());
   AddHistogram(new TBRBRMS());
   AddHistogram(new TBRBPH());
+  AddHistogram(new TBRB_Time());
       
 };
 

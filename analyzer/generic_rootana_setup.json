@@ -1,0 +1,26 @@
+{ 
+  "BRB Waveform" : { 
+    "MaxChannels" : 20,
+    "WebserverName" : "BRB"
+  },  
+  "BRB Baseline" : { 
+    "MaxChannels" : 20,
+    "WebserverName" : "BRB_Baseline"
+  },
+  "BRB RMS" : { 
+    "MaxChannels" : 20,
+    "WebserverName" : "BRB_RMS"
+  },
+  "Pulse Height" : {
+    "MaxChannels" : 20,
+    "WebserverName" : "BRB_PH"
+  },
+  "Pulse Time" : {
+    "MaxChannels" : 20,
+    "WebserverName" : "BRB_Time"
+  },
+  "DisplaySettings" : {
+    "DisplayStyle" : "root",
+    "UpdatePeriod" : 1000
+  }
+} 
