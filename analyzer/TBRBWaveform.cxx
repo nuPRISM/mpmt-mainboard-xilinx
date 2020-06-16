@@ -285,7 +285,7 @@ void TBRBPH::UpdateHistograms(TDataContainer& dataContainer){
 	}
       }
       int pulse_height = 2045 - min_value;
-      std::cout << "Pulse height: " << chan << " " << pulse_height << std::endl;
+      //std::cout << "Pulse height: " << chan << " " << pulse_height << std::endl;
       GetHistogram(chan)->Fill(pulse_height);
       
     }  
@@ -326,7 +326,11 @@ void TBRB_Time::CreateHistograms(){
     char title[100];
     sprintf(name,"BRB_Time_%i",i);
     
-    sprintf(title,"BRB Pulse Time for channel=%i",i);	
+    if(i==1){
+      sprintf(title,"BRB Pulse Time (Normalized) for channel=0");	
+    }else{
+      sprintf(title,"BRB Pulse Time for channel=%i",i);	
+    }
 
     TH1D *tmp = new TH1D(name, title, 1024, -(0.5 + time_offset)*8, (1023.5-time_offset)*8);
     tmp->SetXTitle("Pulse Time (ns)");
@@ -360,7 +364,10 @@ void TBRB_Time::UpdateHistograms(TDataContainer& dataContainer){
 	  
 	  int pulse_time = 8*(ib - time_offset);
 	  pulse_times.push_back(pulse_time);
-	  if(ib > 262 and ib < 280){ laser_pulse = true;}
+	  if(ib > 262 and ib < 280){ // found a laser pulse
+	    total_events += 1;
+	    laser_pulse = true;
+	  }
 	}
 
 	if(sample >= threshold && in_pulse){ /// finished this pulse
@@ -369,12 +376,19 @@ void TBRB_Time::UpdateHistograms(TDataContainer& dataContainer){
 
       }
 
-
-      for(int j = 0; j < pulse_times.size(); j++){
-	int pulse_time = pulse_times[j];
-	GetHistogram(chan)->Fill(pulse_time);
+      if(laser_pulse){
+	for(int j = 0; j < pulse_times.size(); j++){
+	  int pulse_time = pulse_times[j];
+	  GetHistogram(chan)->Fill(pulse_time);
+	}
       }
-    }  
+
+      if(chan == 0){
+	double integral = GetHistogram(chan)->Integral(290,1000);
+	std::cout << "Afterpulse fraction: " << integral/((double)(total_events)) << " "
+		  << integral << " " << total_events << std::endl;
+      }  
+    }
   }
   
 }
