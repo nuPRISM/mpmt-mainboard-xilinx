@@ -32,7 +32,16 @@ public:
 
   bool CheckOption(std::string option);
     
-  void BeginRun(int transition,int run,int time) {};
+  void BeginRun(int transition,int run,int time) {
+    number_dark_pulses.clear();
+    number_samples.clear();
+
+    for(int i = 0; i < 20; i++){
+      number_dark_pulses.push_back(0.0);
+      number_samples.push_back(0.0);
+    }
+
+  };
   void EndRun(int transition,int run,int time) {};
 
   // Add a THistogramArrayBase object to the list
@@ -52,6 +61,9 @@ private:
 
   
   std::vector<THistogramArrayBase*> fHistos;
+
+  std::vector<double> number_dark_pulses;
+  std::vector<double> number_samples;
 
 };
 

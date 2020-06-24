@@ -279,14 +279,21 @@ void TBRBPH::UpdateHistograms(TDataContainer& dataContainer){
       int chan = measurements[i].GetChannel();
       int nsamples = measurements[i].GetNSamples();
       int min_value = 4096;
-      for(int j = 262; j < 280; j++){
+      //      for(int j = 262; j < 280; j++){
+      for(int j = 0; j < 512; j++){
 	if(measurements[i].GetSample(j) < min_value){
 	  min_value = measurements[i].GetSample(j);
 	}
       }
-      int pulse_height = 2045 - min_value;
+      int baseline = 2045;
+      if(chan == 1) baseline = 2041;
+      if(chan == 2) baseline = 2051;
+      if(chan == 3) baseline = 2044;
+
+      int pulse_height = baseline - min_value;
       //std::cout << "Pulse height: " << chan << " " << pulse_height << std::endl;
-      GetHistogram(chan)->Fill(pulse_height);
+      if(pulse_height > 1)
+	GetHistogram(chan)->Fill(pulse_height);
       
     }  
   }
@@ -351,7 +358,11 @@ void TBRB_Time::UpdateHistograms(TDataContainer& dataContainer){
       int chan = measurements[i].GetChannel();
       int nsamples = measurements[i].GetNSamples();
 
-      int threshold = 2045 - 15;
+      int baseline = 2045;
+      if(chan == 1) baseline = 2041;
+      if(chan == 2) baseline = 2051;
+      if(chan == 3) baseline = 2044;
+      int threshold = baseline - 12;
 
       bool in_pulse = false; // are we currently in a pulse?
       bool laser_pulse = false;
@@ -385,7 +396,7 @@ void TBRB_Time::UpdateHistograms(TDataContainer& dataContainer){
 
       if(chan == 0){
 	double integral = GetHistogram(chan)->Integral(290,1000);
-	std::cout << "Afterpulse fraction: " << integral/((double)(total_events)) << " "
+	if(0)std::cout << "Afterpulse fraction: " << integral/((double)(total_events)) << " "
 		  << integral << " " << total_events << std::endl;
       }  
     }

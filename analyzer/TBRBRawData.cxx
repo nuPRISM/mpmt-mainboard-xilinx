@@ -20,7 +20,7 @@ TBRBRawData::TBRBRawData(int bklen, int bktype, const char* name, void *pdata):
 
   int nwords = bklen;
   int npackets = bklen / 533;
-  std::cout << "Number of words: " << nwords
+  if(0)std::cout << "Number of words: " << nwords
             << ", number of packets : " << npackets << std::endl;
   
   // check for correct endian-ness
@@ -29,7 +29,6 @@ TBRBRawData::TBRBRawData(int bklen, int bktype, const char* name, void *pdata):
   //}
 
   
-  std::cout << "_________________________________________" << std::endl;
 
   int nadcs = ((npackets - 1))/8;
   
@@ -50,7 +49,7 @@ TBRBRawData::TBRBRawData(int bklen, int bktype, const char* name, void *pdata):
       uint32_t cadc0 = fData[istart + 19];
       uint32_t cadc1 = fData[istart + 20];
       uint32_t cadc = (cadc0 << 16) + cadc1;
-      std::cout << adc << " " << p << " istart=" << istart << " frame id " << frameid
+      if(0)std::cout << adc << " " << p << " istart=" << istart << " frame id " << frameid
 		<< "packet id " << packetid
 		<< " channel=0x" << std::hex << cadc0 << " " << cadc1 << " 0x" << cadc << std::dec  << std::endl;
 
