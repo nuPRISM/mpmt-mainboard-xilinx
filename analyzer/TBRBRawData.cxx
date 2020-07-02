@@ -60,6 +60,8 @@ TBRBRawData::TBRBRawData(int bklen, int bktype, const char* name, void *pdata):
       for(int i = 0; i < 512; i++){
 	int ch = chan_map[i%4];  // which channel?
 	int index = i+21+istart; 
+	uint32_t data = (fData[index] >> 4);
+	if(ch == 1 || ch == 3){ data = 4096 - data;}  // Swap polarity of data for channels 1 and 3.
 	Samples[ch].push_back((fData[index] >> 4));	
       }
 
