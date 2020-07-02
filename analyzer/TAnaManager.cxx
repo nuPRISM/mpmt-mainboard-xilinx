@@ -60,6 +60,8 @@ int TAnaManager::ProcessMidasEvent(TDataContainer& dataContainer){
       if(chan == 1) baseline = 2041;
       if(chan == 2) baseline = 2051;
       if(chan == 3) baseline = 2044;
+      if(chan == 4) baseline = 2028;
+      if(chan == 6) baseline = 2046;
       int threshold = baseline - 12;
       for(int ib = 0; ib < nsamples; ib++){
         int sample = measurements[i].GetSample(ib);
@@ -102,6 +104,7 @@ int TAnaManager::ProcessMidasEvent(TDataContainer& dataContainer){
       if(time > 0)
 	rate = number_dark_pulses[chan]/time;            
       o["Dark Rate"][chan] = rate;
+      if (chan < 8) std::cout << "Rate: " << chan << " " << rate << std::endl;
       number_dark_pulses[chan] = 0.0;
       number_samples[chan] = 0.0;      
     }

@@ -260,7 +260,7 @@ void TBRBPH::CreateHistograms(){
     
     sprintf(title,"BRB Pulse Heigh for channel=%i",i);	
 
-    TH1D *tmp = new TH1D(name, title, 60, -10, 110);
+    TH1D *tmp = new TH1D(name, title, 80, -50, 110);
     tmp->SetXTitle("Pulse Height");
     push_back(tmp);
   }
@@ -279,6 +279,7 @@ void TBRBPH::UpdateHistograms(TDataContainer& dataContainer){
       int chan = measurements[i].GetChannel();
       int nsamples = measurements[i].GetNSamples();
       int min_value = 4096;
+      //      int max_value = 0;
       //      for(int j = 262; j < 280; j++){
       for(int j = 0; j < 512; j++){
 	if(measurements[i].GetSample(j) < min_value){
@@ -289,10 +290,12 @@ void TBRBPH::UpdateHistograms(TDataContainer& dataContainer){
       if(chan == 1) baseline = 2041;
       if(chan == 2) baseline = 2051;
       if(chan == 3) baseline = 2044;
+      if(chan == 4) baseline = 2028;
+      if(chan == 6) baseline = 2046;
 
       int pulse_height = baseline - min_value;
       //std::cout << "Pulse height: " << chan << " " << pulse_height << std::endl;
-      if(pulse_height > 1)
+      if(pulse_height > 1 || pulse_height < -1)
 	GetHistogram(chan)->Fill(pulse_height);
       
     }  
@@ -362,6 +365,8 @@ void TBRB_Time::UpdateHistograms(TDataContainer& dataContainer){
       if(chan == 1) baseline = 2041;
       if(chan == 2) baseline = 2051;
       if(chan == 3) baseline = 2044;
+      if(chan == 4) baseline = 2028;
+      if(chan == 6) baseline = 2046;
       int threshold = baseline - 12;
 
       bool in_pulse = false; // are we currently in a pulse?
