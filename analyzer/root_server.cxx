@@ -51,7 +51,7 @@ public:
     if(anaManager){
       delete anaManager;
     }
-    anaManager = new TAnaManager();
+    anaManager = new TAnaManager(IsOffline());
     std::cout << "Finished initializating manager" << std::endl;
   }
   

@@ -15,7 +15,7 @@
 /// for storing different histograms.
 class TAnaManager  {
 public:
-  TAnaManager();
+  TAnaManager(bool isoffline);
   virtual ~TAnaManager(){
     for(unsigned int i = 0; i < fHistos.size(); i++){
       delete fHistos[i];
@@ -64,7 +64,8 @@ private:
 
   std::vector<double> number_dark_pulses;
   std::vector<double> number_samples;
-
+  bool fIsOffline;
+  
 };
 
 

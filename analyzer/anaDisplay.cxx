@@ -23,7 +23,7 @@ public:
   MyTestLoop() {
     SetOutputFilename("example_output");
     DisableRootOutput(false);
-    anaManager = new TAnaManager();
+    anaManager = new TAnaManager(IsOffline());
     // Number of events to skip before plotting one.
     //SetNumberSkipEvent(10);
     // Choose to use functionality to update after X seconds

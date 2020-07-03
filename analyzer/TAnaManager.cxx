@@ -5,7 +5,7 @@
 
 #include "odbxx.h"
 
-TAnaManager::TAnaManager(){
+TAnaManager::TAnaManager(bool isoffline){
 
   AddHistogram(new TBRBWaveform());
   AddHistogram(new TBRBBaseline());
@@ -16,7 +16,9 @@ TAnaManager::TAnaManager(){
   for(int i = 0; i < 20; i++){
     number_dark_pulses.push_back(0.0);
     number_samples.push_back(0.0);
-  }      
+  }
+
+  fIsOffline = isoffline;
 };
 
 
@@ -90,7 +92,7 @@ int TAnaManager::ProcessMidasEvent(TDataContainer& dataContainer){
 	      << time0*1000.0 << "ms" <<  " rate = " 
 	      << rate0 << std::endl;
   
-  if(time0 > 0.04){
+  if(time0 > 0.04 and !fIsOffline){
     
     midas::odb o = {
       {"Dark Rate", std::array<double, 20>{} }
