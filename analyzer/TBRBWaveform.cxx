@@ -260,7 +260,7 @@ void TBRBPH::CreateHistograms(){
     
     sprintf(title,"BRB Pulse Heigh for channel=%i",i);	
 
-    TH1D *tmp = new TH1D(name, title, 80, -50, 110);
+    TH1D *tmp = new TH1D(name, title, 160, -50, 270);
     tmp->SetXTitle("Pulse Height");
     push_back(tmp);
   }
@@ -287,9 +287,9 @@ void TBRBPH::UpdateHistograms(TDataContainer& dataContainer){
 	}
       }
       int baseline = 2045;
-      if(chan == 1) baseline = 2041;
-      if(chan == 2) baseline = 2051;
-      if(chan == 3) baseline = 2044;
+      if(chan == 1) baseline = 2054;
+      if(chan == 2) baseline = 2050;
+      if(chan == 3) baseline = 2051;
       if(chan == 4) baseline = 2028;
       if(chan == 6) baseline = 2046;
 
@@ -362,9 +362,9 @@ void TBRB_Time::UpdateHistograms(TDataContainer& dataContainer){
       int nsamples = measurements[i].GetNSamples();
 
       int baseline = 2045;
-      if(chan == 1) baseline = 2041;
-      if(chan == 2) baseline = 2051;
-      if(chan == 3) baseline = 2044;
+      if(chan == 1) baseline = 2054;
+      if(chan == 2) baseline = 2050;
+      if(chan == 3) baseline = 2051;
       if(chan == 4) baseline = 2028;
       if(chan == 6) baseline = 2046;
       int threshold = baseline - 12;
@@ -399,9 +399,10 @@ void TBRB_Time::UpdateHistograms(TDataContainer& dataContainer){
 	}
       }
 
-      if(chan == 0){
+      int serial = dataContainer.GetMidasData().GetSerialNumber();
+      if(chan == 0 and serial%2000 == 0){
 	double integral = GetHistogram(chan)->Integral(290,1000);
-	if(0)std::cout << "Afterpulse fraction: " << integral/((double)(total_events)) << " "
+	std::cout << "Afterpulse fraction: " << integral/((double)(total_events)) << " "
 		  << integral << " " << total_events << std::endl;
       }  
     }

@@ -57,12 +57,12 @@ int TAnaManager::ProcessMidasEvent(TDataContainer& dataContainer){
       bool in_pulse = false; // are we currently in a pulse?
       nsamples = 200;
       int baseline = 2045;
-      if(chan == 1) baseline = 2041;
-      if(chan == 2) baseline = 2051;
-      if(chan == 3) baseline = 2044;
+      if(chan == 1) baseline = 2054;
+      if(chan == 2) baseline = 2050;
+      if(chan == 3) baseline = 2051;
       if(chan == 4) baseline = 2028;
       if(chan == 6) baseline = 2046;
-      int threshold = baseline - 12;
+      int threshold = baseline - 10;
       for(int ib = 0; ib < nsamples; ib++){
         int sample = measurements[i].GetSample(ib);
 
@@ -85,7 +85,7 @@ int TAnaManager::ProcessMidasEvent(TDataContainer& dataContainer){
   double time0 = ((number_samples[0]*8.0)/1000000000.0);
   double rate0 = number_dark_pulses[0]/time0;
   int nnn = dataContainer.GetMidasData().GetSerialNumber();
-  if(nnn%200 == 0)
+  if(nnn%20000 == 0)
     std::cout << "dark noise pulse = " << number_dark_pulses[0] << " total_time " 
 	      << time0*1000.0 << "ms" <<  " rate = " 
 	      << rate0 << std::endl;
