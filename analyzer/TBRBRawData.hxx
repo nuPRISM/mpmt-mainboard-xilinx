@@ -6,8 +6,7 @@
 #include "TGenericData.hxx"
 
 /// Class for each channel measurement
-/// For the definition of obscure variables see the CAEN BRB manual.
-class RawChannelMeasurement {
+class RawBRBMeasurement {
 
   friend class TBRBRawData;
   
@@ -55,7 +54,7 @@ private:
   int fChan; // channel number
   
   /// Constructor; need to pass in header and measurement.
-  RawChannelMeasurement(int chan){
+  RawBRBMeasurement(int chan){
     fChan = chan;
   }
   
@@ -95,7 +94,7 @@ public:
   void Print();
 
   /// Get the Vector of TDC Measurements.
-  std::vector<RawChannelMeasurement>& GetMeasurements() {return fMeasurements;}
+  std::vector<RawBRBMeasurement>& GetMeasurements() {return fMeasurements;}
 
 
 
@@ -108,7 +107,7 @@ private:
   std::vector<uint32_t> fGlobalHeader;  
 
   /// Vector of BRB Measurements.
-  std::vector<RawChannelMeasurement> fMeasurements;
+  std::vector<RawBRBMeasurement> fMeasurements;
 
 };
 

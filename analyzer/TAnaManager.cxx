@@ -49,7 +49,7 @@ int TAnaManager::ProcessMidasEvent(TDataContainer& dataContainer){
 
   if(dt743){
 
-    std::vector<RawChannelMeasurement> measurements = dt743->GetMeasurements();
+    std::vector<RawBRBMeasurement> measurements = dt743->GetMeasurements();
 
     for(int i = 0; i < measurements.size(); i++){
       

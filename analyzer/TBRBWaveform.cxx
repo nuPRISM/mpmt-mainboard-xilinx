@@ -64,7 +64,7 @@ void TBRBWaveform::UpdateHistograms(TDataContainer& dataContainer){
   if(dt743){      
     
     
-    std::vector<RawChannelMeasurement> measurements = dt743->GetMeasurements();
+    std::vector<RawBRBMeasurement> measurements = dt743->GetMeasurements();
 
     bool changeHistogram = false; 
     for(unsigned int i = 0; i < measurements.size(); i++){
@@ -142,7 +142,7 @@ void TBRBBaseline::UpdateHistograms(TDataContainer& dataContainer){
   
   if(dt743){      
      
-    std::vector<RawChannelMeasurement> measurements = dt743->GetMeasurements();
+    std::vector<RawBRBMeasurement> measurements = dt743->GetMeasurements();
 
      for(int i = 0; i < measurements.size(); i++){
            
@@ -205,7 +205,7 @@ void TBRBRMS::UpdateHistograms(TDataContainer& dataContainer){
   
   if(dt743){      
      
-    std::vector<RawChannelMeasurement> measurements = dt743->GetMeasurements();
+    std::vector<RawBRBMeasurement> measurements = dt743->GetMeasurements();
 
      for(int i = 0; i < measurements.size(); i++){
            
@@ -260,7 +260,7 @@ void TBRBPH::CreateHistograms(){
     
     sprintf(title,"BRB Pulse Heigh for channel=%i",i);	
 
-    TH1D *tmp = new TH1D(name, title, 160, -50, 270);
+    TH1D *tmp = new TH1D(name, title, 80, -50, 110);
     tmp->SetXTitle("Pulse Height");
     push_back(tmp);
   }
@@ -273,7 +273,7 @@ void TBRBPH::UpdateHistograms(TDataContainer& dataContainer){
   
   if(dt743){      
      
-    std::vector<RawChannelMeasurement> measurements = dt743->GetMeasurements();
+    std::vector<RawBRBMeasurement> measurements = dt743->GetMeasurements();
     for(int i = 0; i < measurements.size(); i++){
       
       int chan = measurements[i].GetChannel();
@@ -355,7 +355,7 @@ void TBRB_Time::UpdateHistograms(TDataContainer& dataContainer){
   
   if(dt743){      
      
-    std::vector<RawChannelMeasurement> measurements = dt743->GetMeasurements();
+    std::vector<RawBRBMeasurement> measurements = dt743->GetMeasurements();
     for(int i = 0; i < measurements.size(); i++){
       
       int chan = measurements[i].GetChannel();

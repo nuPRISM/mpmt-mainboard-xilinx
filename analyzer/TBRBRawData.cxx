@@ -74,7 +74,7 @@ TBRBRawData::TBRBRawData(int bklen, int bktype, const char* name, void *pdata):
 
       int ch = adc*4 + ach;
       
-      RawChannelMeasurement meas = RawChannelMeasurement(ch);
+      RawBRBMeasurement meas = RawBRBMeasurement(ch);
       meas.AddSamples(Samples[ach]);
       fMeasurements.push_back(meas);
     }
