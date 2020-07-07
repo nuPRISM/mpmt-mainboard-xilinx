@@ -336,11 +336,8 @@ void TBRB_Time::CreateHistograms(){
     char title[100];
     sprintf(name,"BRB_Time_%i",i);
     
-    if(i==1){
-      sprintf(title,"BRB Pulse Time (Normalized) for channel=0");	
-    }else{
-      sprintf(title,"BRB Pulse Time for channel=%i",i);	
-    }
+    sprintf(title,"BRB Pulse Time for channel=%i",i);	
+
 
     TH1D *tmp = new TH1D(name, title, 1024, -(0.5 + time_offset)*8, (1023.5-time_offset)*8);
     tmp->SetXTitle("Pulse Time (ns)");
