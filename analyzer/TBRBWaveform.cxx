@@ -260,7 +260,7 @@ void TBRBPH::CreateHistograms(){
     
     sprintf(title,"BRB Pulse Heigh for channel=%i",i);	
 
-    TH1D *tmp = new TH1D(name, title, 80, -50, 110);
+    TH1D *tmp = new TH1D(name, title, 160, -50, 270);
     tmp->SetXTitle("Pulse Height");
     push_back(tmp);
   }
