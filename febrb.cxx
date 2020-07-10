@@ -142,6 +142,24 @@ int gSelectADC; // Which ADC to use?
 KOsocket *gSocket;
 PMTControl *pmts = 0;
 
+
+
+// Function for sending command to BRB and receiving requests
+void SendBrbCommand(std::string command){
+
+  char buffer[200];
+  char bigbuffer[500];
+  int size=sizeof(buffer);
+  int size2 = sizeof(bigbuffer);
+
+  sprintf(buffer,"%s",command.c_str());
+  gSocket->write(buffer,size);
+  int val = gSocket->read(bigbuffer,size2);
+  std::cout << command << " (" << val << ") : " << bigbuffer ;
+  usleep(150000);
+
+}
+
 /*-- Frontend Init -------------------------------------------------*/
 INT frontend_init()
 {
@@ -169,6 +187,8 @@ INT frontend_init()
   std::cout << "Finished;... " << gSocket->getErrorCode() << std::endl;  
   std::cout << "Socket status : " << gSocket->getErrorString() << std::endl;
 
+  SendBrbCommand("custom_command SET_PMT_UART_TIMEOUT_MS 50\r\n");
+
 
   // Setup control of PMTs
   pmts = new PMTControl(gSocket);
@@ -188,22 +208,6 @@ INT frontend_exit()
   return SUCCESS;
 }
 
-
-// Function for sending command to BRB and receiving requests
-void SendBrbCommand(std::string command){
-
-  char buffer[200];
-  char bigbuffer[500];
-  int size=sizeof(buffer);
-  int size2 = sizeof(bigbuffer);
-
-  sprintf(buffer,"%s",command.c_str());
-  gSocket->write(buffer,size);
-  int val = gSocket->read(bigbuffer,size2);
-  std::cout << command << " (" << val << ") : " << bigbuffer ;
-  usleep(150000);
-
-}
 
 /*-- Begin of Run --------------------------------------------------*/
 INT begin_of_run(INT run_number, char *error)
@@ -268,9 +272,12 @@ INT begin_of_run(INT run_number, char *error)
   usleep(200000);
   SendBrbCommand("custom_command CHANGE_STREAMING_PARAMS \r\n");
 
+  usleep(200000);
+  SendBrbCommand("custom_command SET_PMT_UART_TIMEOUT_MS 50\r\n");
+
 
   // Start the events
-  usleep(200000);
+  usleep(20000);
   BOOL software_trigger = (bool)(o["enableSoftwareTrigger"]);
   if(software_trigger){
       cm_msg(MINFO,"BOR","Enabling software trigger");
