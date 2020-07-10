@@ -6,22 +6,27 @@
 // Define what do do with callbacks from watch function
 void PMTControl::callback(midas::odb &o) {
 
+  //  int index_changed = o.get_last_index();
+
   // We set the selected channel for each command, because we don't know what the previous set channel was.
-  if(o.get_full_path().find("ChannelSelect") != std::string::npos){
-    std::cout << "Changed selected to channel:  \"" + o.get_full_path() + "\" changed to " << o << std::endl;
-    gSelectedChannel = (int)o;
-    SetCommand("SetChannel", gSelectedChannel);
-  }else if(o.get_full_path().find("HVset") != std::string::npos){
+  //if(o.get_full_path().find("ChannelSelect") != std::string::npos){
+    // I think doesn't do anything anymore
+    // std::cout << "Changed selected to channel:  \"" + o.get_full_path() + "\" changed to " << o << std::endl;
+    //gSelectedChannel = (int)o;
+    //SetCommand("SetChannel", gSelectedChannel);
+    // }else{
+
+  int gSelectedChannel = o.get_last_index();
+  SetCommand("SetChannel",gSelectedChannel);
+  
+  if(o.get_full_path().find("HVset") != std::string::npos){
     std::cout << "Channel " << gSelectedChannel << " HV changed to " << o[gSelectedChannel] << std::endl;
-    SetCommand("SetChannel", gSelectedChannel);
     SetCommand("SH", o[gSelectedChannel]);
   }else if(o.get_full_path().find("HVRampRate") != std::string::npos){
     std::cout << "Channel " << gSelectedChannel << " ramp rate changed to " << o[gSelectedChannel] << std::endl;
-    SetCommand("SetChannel", gSelectedChannel);
     SetCommand("SR", o[gSelectedChannel]);
   }else if(o.get_full_path().find("HVenable") != std::string::npos){
     int state = (int)o[gSelectedChannel];
-    SetCommand("SetChannel", gSelectedChannel);
     if(state){
       std::cout << "Turning on HV for channel " << gSelectedChannel << std::endl;
       SetCommand("HV", 1);
@@ -29,7 +34,7 @@ void PMTControl::callback(midas::odb &o) {
       std::cout << "Turning off HV for channel " << gSelectedChannel << std::endl;
       SetCommand("HV", 0);
     }
-  };
+  }
 
 }
 
@@ -89,7 +94,6 @@ PMTControl::PMTControl(KOsocket *socket){
   
   //Get ODB values (new C++ ODB!)                                                                                                                             
   midas::odb pmts = {
-    {"ChannelSelect", 0 },
     {"HVmax", std::array<double, 20>{} },
     {"HVenable", std::array<bool, 20>{} },
     {"HVset", std::array<double, 20>{} },
@@ -98,7 +102,6 @@ PMTControl::PMTControl(KOsocket *socket){
   };
 
   pmts.connect("/Equipment/PMTS/Settings");
-  gSelectedChannel = pmts["ChannelSelect"];
 
   // Setup the DB watch for the PMT settings
   pmt_watch.connect("/Equipment/PMTS/Settings");
@@ -188,9 +191,7 @@ int PMTControl::GetStatus(char *pevent, INT off)
   gettimeofday(&t2, NULL);
 
   double dtime = t2.tv_sec - t1.tv_sec + (t2.tv_usec - t1.tv_usec)/1000000.0;
-  //  std::cout << "Time to read PMT values: " << dtime*1000.0 << " ms " << std::endl;
-  SetCommand("SetChannel", gSelectedChannel);
-
+  
   float *pddata;  
   // Read currents from PMT
   bk_create(pevent, "PMI0", TID_FLOAT, (void**)&pddata);

@@ -30,10 +30,6 @@ class PMTControl {
   // Pointer to socket to BRB
   KOsocket *fSocket;
   
-  // Selected Channel
-  int gSelectedChannel;
-
-
 
 };
 
