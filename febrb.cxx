@@ -292,7 +292,8 @@ INT begin_of_run(INT run_number, char *error)
   SendBrbCommand("udp_stream_start 0 192.168.0.253 1500\r\n");
   usleep(200000);
 
-
+  // Check which PMTs are active.
+  pmts->CheckActivePMTs();
 
 
   //------ FINAL ACTIONS before BOR -----------
