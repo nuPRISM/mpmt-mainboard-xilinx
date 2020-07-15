@@ -3,20 +3,53 @@
 #include "time.h"
 #include "sys/time.h"
 
+// Check which PMTs are plugged in and responding
+int PMTControl::CheckActivePMTs(){
+  
+  int npmts_active = 0;
+  
+  for(int i = 0; i < 20; i++){
+    SetCommand("SetChannel", i);
+    char buffer[200];
+    sprintf(buffer,"custom_command exec_pmt_cmd 01LG \n");
+    int size=sizeof(buffer);
+    fSocket->write(buffer,size);
+    char bigbuffer[50];
+    size = sizeof(bigbuffer);
+    fSocket->read(bigbuffer,size);
+    std::string readback(bigbuffer);
+
+    if((readback.size() == 14) && (readback.substr(0,4) == std::string("01LG"))){
+      //std::cout << "Active... " << i << std::endl;
+      npmts_active++;
+      fActivePMTs[i] = true;
+    }else{
+      //      std::cout << "Not active: " << i << " " << readback.size()<< std::endl;
+      ///       << readback.compare(0,4,"01LG")
+      fActivePMTs[i] = false;
+    }
+
+    //    std::cout << "response: "  << " " << readback.size()<< std::endl;
+    ///	      << readback.compare(0,4,"01LG") <<  std::endl;
+    
+  }
+
+  cm_msg(MINFO,"PMTControl::SetCommand","Number of active PMTs: %i",npmts_active);
+
+  return npmts_active;
+}
+  
+
+
+
 // Define what do do with callbacks from watch function
 void PMTControl::callback(midas::odb &o) {
 
-  //  int index_changed = o.get_last_index();
-
-  // We set the selected channel for each command, because we don't know what the previous set channel was.
-  //if(o.get_full_path().find("ChannelSelect") != std::string::npos){
-    // I think doesn't do anything anymore
-    // std::cout << "Changed selected to channel:  \"" + o.get_full_path() + "\" changed to " << o << std::endl;
-    //gSelectedChannel = (int)o;
-    //SetCommand("SetChannel", gSelectedChannel);
-    // }else{
-
   int gSelectedChannel = o.get_last_index();
+  // check that the selected PMT is active
+  if(!fActivePMTs[gSelectedChannel])
+    std::cout << "Channel " << gSelectedChannel << " is inactive; ignoring set command " << std::endl;
+
   SetCommand("SetChannel",gSelectedChannel);
   
   if(o.get_full_path().find("HVset") != std::string::npos){
@@ -59,7 +92,7 @@ bool PMTControl::SetCommand(std::string command, int value){
   }
 
   int size=sizeof(buffer);
-  std::cout << "Command : " << buffer << " " << size << std::endl;
+  //  std::cout << "Command : " << buffer << " " << size << std::endl;
   fSocket->write(buffer,size);
   char bigbuffer[500];
   size = sizeof(bigbuffer);
@@ -67,6 +100,7 @@ bool PMTControl::SetCommand(std::string command, int value){
   
   std::string readback(bigbuffer);
   readback.pop_back();
+  readback.pop_back(); 
   readback.pop_back(); 
   readback.pop_back(); 
   readback.pop_back(); 
@@ -111,6 +145,9 @@ PMTControl::PMTControl(KOsocket *socket){
   // Need to add functionality to check if board was turned off... if board was turned off then find that
   // the enable don't match the board, then enables should be turned off in ODB...
 
+  // Check which PMTs are plugged in and responding.
+  fActivePMTs = std::vector<bool>(20,false);
+  int npmts = CheckActivePMTs();
 
 }
 
@@ -154,6 +191,8 @@ float PMTControl::ReadValue(std::string command,int chan){
   //  std::cout << "Time to read one value:: " << dtime*1000.0 << " ms " << std::endl;
   
   std::string readback(bigbuffer);
+  //  std::cout << "size: " << readback.size() << std::endl;
+  if(readback.size() < 4){ return -9999.0; }
   //  long int value = strtol(readback.substr(4,length).c_str(),NULL,0);
   long int value = atoi(readback.substr(4,length).c_str());
   float fvalue = ((float)value)*factor;
@@ -177,7 +216,9 @@ int PMTControl::GetStatus(char *pevent, INT off)
   gettimeofday(&t1, NULL);
   std::cout << "Start readout PMTs " << std::endl;
   // Only readout first 4 PMTs for now.
-  for(int i = 0; i < 4; i++){
+  for(int i = 0; i < 20; i++){
+    if(!fActivePMTs[i]) continue; // ignore inactive PMTs
+
     SetCommand("SetChannel", i);
     current[i] = ReadValue("01LI",0);
     read_volt[i] = ReadValue("01LV",0);

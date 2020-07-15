@@ -57,7 +57,8 @@ int TAnaManager::ProcessMidasEvent(TDataContainer& dataContainer){
       int chan = measurements[i].GetChannel();
       int nsamples = measurements[i].GetNSamples();
       bool in_pulse = false; // are we currently in a pulse?
-      nsamples = 200;
+      //nsamples = 240;
+      nsamples = 1000;
       int baseline = 2045;
       if(chan == 1) baseline = 2054;
       if(chan == 2) baseline = 2050;
@@ -91,8 +92,9 @@ int TAnaManager::ProcessMidasEvent(TDataContainer& dataContainer){
     std::cout << "dark noise pulse = " << number_dark_pulses[0] << " total_time " 
 	      << time0*1000.0 << "ms" <<  " rate = " 
 	      << rate0 << std::endl;
+  double min_time = 0.4;// seconds
   
-  if(time0 > 0.04 and !fIsOffline){
+  if(time0 > min_time and !fIsOffline){
     
     midas::odb o = {
       {"Dark Rate", std::array<double, 20>{} }

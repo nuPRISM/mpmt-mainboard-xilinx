@@ -17,7 +17,12 @@ class PMTControl {
   // callback function
   void callback(midas::odb &o);
 
+  // Check which PMTs are plugged in and responding
+  int CheckActivePMTs();
+
  private:
+  
+  std::vector<bool> fActivePMTs;
 
   // Read PMT value
   float ReadValue(std::string command,int chan);
