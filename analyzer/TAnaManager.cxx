@@ -112,7 +112,39 @@ int TAnaManager::ProcessMidasEvent(TDataContainer& dataContainer){
       number_dark_pulses[chan] = 0.0;
       number_samples[chan] = 0.0;      
     }
+
+    // Use opportunity to also calculate the baseline and store in ODB
+    // For the moment just use maximum bin
+
+    midas::odb o2 = {
+      {"Baseline", std::array<double, 20>{} }
+    };    
+    o2.connect("/Analyzer/Baselines");
+    
+    for(int chan = 0; chan < 20; chan++){      
+      
+      // Baseline histogram is histogram array number 1.
+      TH1 *baseh = ((TH1*)(fHistos[1]->GetHistogram(chan)));
+      if(baseh->GetEntries() > 5000){
+
+	
+	std::cout << "Number of baseline entries ("<<chan<<"): " << baseh->GetEntries() << " " 
+		  << baseh->GetMaximum() << " " << baseh->GetMaximumBin() 
+		  << " baseline=" << baseh->GetBinCenter(baseh->GetMaximumBin())
+		  << std::endl;
+	o2["Baseline"][chan] = baseh->GetBinCenter(baseh->GetMaximumBin());
+      
+	baseh->Reset();
+      }
+    }
+
   }
+
+
+
+  
+
+  
 
 
   return 1;

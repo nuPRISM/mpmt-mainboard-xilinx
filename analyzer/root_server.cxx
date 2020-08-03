@@ -76,7 +76,7 @@ public:
     gettimeofday(&nowTime, NULL);    
     double dtime = nowTime.tv_sec - LastUpdateTime.tv_sec + (nowTime.tv_usec - LastUpdateTime.tv_usec)/1000000.0;
     if(dtime > 1.0){ 
-      std::cout << "Update transient plot ... " << std::endl;
+      //std::cout << "Update transient plot ... " << std::endl;
       anaManager->UpdateTransientPlots(dataContainer); 
       LastUpdateTime = nowTime;
     }
