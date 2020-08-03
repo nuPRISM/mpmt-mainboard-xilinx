@@ -1,10 +1,8 @@
 #ifndef TAnaManager_h
 #define TAnaManager_h
 
-// Use this list here to decide which type of equipment to use.
-
-
 #include "TBRBWaveform.h"
+#include "TBaselineSing.hxx"
 
 /// This is an example of how to organize a set of different histograms
 /// so that we can access the same information in a display or a batch
@@ -41,6 +39,7 @@ public:
       number_samples.push_back(0.0);
     }
 
+    BSingleton::GetInstance()->UpdateBaselines();
   };
   void EndRun(int transition,int run,int time) {};
 

@@ -59,6 +59,7 @@ endif # MIDASSYS
 
 OBJS:=
 OBJS += TBRBRawData.o TBRBWaveform.o
+OBJS += TBaselineSing.o
 OBJS += TAnaManager.o
 
 all: $(OBJS) ana.exe anaDisplay.exe midas2root.exe root_server.exe

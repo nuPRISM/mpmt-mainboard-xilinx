@@ -2,7 +2,7 @@
 
 #include "TBRBRawData.hxx"
 #include "TDirectory.h"
-
+#include "TBaselineSing.hxx"
 
 /// Reset the histograms for this canvas
 TBRBWaveform::TBRBWaveform(){
@@ -260,7 +260,7 @@ void TBRBPH::CreateHistograms(){
     
     sprintf(title,"BRB Pulse Heigh for channel=%i",i);	
 
-    TH1D *tmp = new TH1D(name, title, 525, -100, 2000);
+    TH1D *tmp = new TH1D(name, title, 55, -5, 50);
     tmp->SetXTitle("Pulse Height");
     push_back(tmp);
   }
@@ -286,16 +286,10 @@ void TBRBPH::UpdateHistograms(TDataContainer& dataContainer){
 	  min_value = measurements[i].GetSample(j);
 	}
       }
-      int baseline = 2045;
-      if(chan == 1) baseline = 2054;
-      if(chan == 2) baseline = 2050;
-      if(chan == 3) baseline = 2051;
-      if(chan == 4) baseline = 2028;
-      if(chan == 6) baseline = 2046;
-
+      int baseline = (int)BSingleton::GetInstance()->GetBaseline(chan);
       int pulse_height = baseline - min_value;
       //std::cout << "Pulse height: " << chan << " " << pulse_height << std::endl;
-      if(pulse_height > 1)
+      if(pulse_height > 3)
 	GetHistogram(chan)->Fill(pulse_height);
       
     }  
@@ -358,12 +352,7 @@ void TBRB_Time::UpdateHistograms(TDataContainer& dataContainer){
       int chan = measurements[i].GetChannel();
       int nsamples = measurements[i].GetNSamples();
 
-      int baseline = 2045;
-      if(chan == 1) baseline = 2054;
-      if(chan == 2) baseline = 2050;
-      if(chan == 3) baseline = 2051;
-      if(chan == 4) baseline = 2028;
-      if(chan == 6) baseline = 2046;
+      int baseline = (int)BSingleton::GetInstance()->GetBaseline(chan);
       int threshold = baseline - 12;
 
       bool in_pulse = false; // are we currently in a pulse?

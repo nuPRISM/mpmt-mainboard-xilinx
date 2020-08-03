@@ -19,6 +19,9 @@ TAnaManager::TAnaManager(bool isoffline){
   }
 
   fIsOffline = isoffline;
+
+  BSingleton::GetInstance()->UpdateBaselines();
+
 };
 
 
@@ -57,14 +60,11 @@ int TAnaManager::ProcessMidasEvent(TDataContainer& dataContainer){
       int chan = measurements[i].GetChannel();
       int nsamples = measurements[i].GetNSamples();
       bool in_pulse = false; // are we currently in a pulse?
+      
+
       //nsamples = 240;
       nsamples = 1000;
-      int baseline = 2045;
-      if(chan == 1) baseline = 2054;
-      if(chan == 2) baseline = 2050;
-      if(chan == 3) baseline = 2051;
-      if(chan == 4) baseline = 2028;
-      if(chan == 6) baseline = 2046;
+      int baseline = (int)BSingleton::GetInstance()->GetBaseline(chan);
       int threshold = baseline - 10;
       for(int ib = 0; ib < nsamples; ib++){
         int sample = measurements[i].GetSample(ib);
