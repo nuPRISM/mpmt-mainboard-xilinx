@@ -3,6 +3,7 @@
 
 #include "TBRBWaveform.h"
 #include "TBaselineSing.hxx"
+#include "TTree.h"
 
 /// This is an example of how to organize a set of different histograms
 /// so that we can access the same information in a display or a batch
@@ -15,9 +16,9 @@ class TAnaManager  {
 public:
   TAnaManager(bool isoffline);
   virtual ~TAnaManager(){
-    for(unsigned int i = 0; i < fHistos.size(); i++){
-      delete fHistos[i];
-    }
+    //for(unsigned int i = 0; i < fHistos.size(); i++){
+    //delete fHistos[i];
+    //}
   };
 
   /// Processes the midas event, fills histograms, etc.
@@ -64,6 +65,8 @@ private:
   std::vector<double> number_dark_pulses;
   std::vector<double> number_samples;
   bool fIsOffline;
+
+  TTree *fTree; // tree just to save HV settings
   
 };
 

@@ -26,7 +26,7 @@ public:
     //DisableAutoMainWindow();
     UseBatchMode();
     anaManager = 0;
-    DisableRootOutput(true);
+    DisableRootOutput(false);
     SetOnlineName("jsroot_server");
     gettimeofday(&LastUpdateTime, NULL);
 

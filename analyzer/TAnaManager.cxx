@@ -22,6 +22,35 @@ TAnaManager::TAnaManager(bool isoffline){
 
   BSingleton::GetInstance()->UpdateBaselines();
 
+  fTree = new TTree("settings","settings");
+  int hv_set[20];
+  int hv_enable[20];
+  fTree->Branch("hv_set",&hv_set,"hv_set[20]/Int_t");
+  fTree->Branch("hv_enable",&hv_enable,"hv_enable[20]/Int_t");
+
+  midas::odb o2 = {
+    {"HVEnable", std::array<bool, 20>{} },
+    {"HVSet", std::array<double, 20>{} }
+  };
+  o2.connect("/Equipment/PMTS/Settings");
+  for(int i = 0; i < 20; i++){
+    hv_set[i] = o2["HVset"][i];
+    hv_enable[i] = o2["HVenable"][i];
+  }
+  std::cout << "Get HV from ODB: First 8 channel: "
+	    << hv_set[0] << " " << hv_enable[0] << "\n " 
+	    << hv_set[1] << " " << hv_enable[1] << "\n " 
+	    << hv_set[2] << " " << hv_enable[2] << "\n " 
+	    << hv_set[3] << " " << hv_enable[3] << "\n " 
+	    << hv_set[4] << " " << hv_enable[4] << "\n " 
+	    << hv_set[5] << " " << hv_enable[5] << "\n " 
+	    << hv_set[6] << " " << hv_enable[6] << "\n " 
+	    << hv_set[7] << " " << hv_enable[7] << "\n " 
+	    << hv_set[8] << " " << hv_enable[8] << "\n " 
+	    << std::endl;
+  
+  fTree->Fill();
+
 };
 
 
