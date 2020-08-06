@@ -4,7 +4,7 @@ odbedit -c "set /Equipment/PMTS/Settings/HVset[1] 1461"
 sleep 2
 odbedit -c "set /Equipment/PMTS/Settings/HVset[2] 1375"
 sleep 2
-odbedit -c "set /Equipment/PMTS/Settings/HVset[3] 1315"
+odbedit -c "set /Equipment/PMTS/Settings/HVset[3] 1305"
 sleep 2
 odbedit -c "set /Equipment/PMTS/Settings/HVset[4] 1352"
 sleep 2

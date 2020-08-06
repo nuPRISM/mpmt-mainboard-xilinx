@@ -18,13 +18,13 @@ int PMTControl::CheckActivePMTs(){
     size = sizeof(bigbuffer);
     fSocket->read(bigbuffer,size);
     std::string readback(bigbuffer);
-
-    if((readback.size() == 14) && (readback.substr(0,4) == std::string("01LG"))){
+    std::cout << "Readback from PMT: " << i << " " << readback << " |  " <<  readback.size() << std::endl;
+    if((readback.size() == 14 or readback.size() == 11) && (readback.substr(0,4) == std::string("01LG"))){
       //std::cout << "Active... " << i << std::endl;
       npmts_active++;
       fActivePMTs[i] = true;
     }else{
-      //      std::cout << "Not active: " << i << " " << readback.size()<< std::endl;
+            std::cout << "Not active: " << i << " " << readback.size()<< std::endl;
       ///       << readback.compare(0,4,"01LG")
       fActivePMTs[i] = false;
     }
@@ -98,7 +98,9 @@ bool PMTControl::SetCommand(std::string command, int value){
   size = sizeof(bigbuffer);
   fSocket->read(bigbuffer,size);
   
+  
   std::string readback(bigbuffer);
+  std::cout << "readback: " << readback << " | " << readback.size() << std::endl;
   readback.pop_back();
   readback.pop_back(); 
   readback.pop_back(); 
