@@ -170,6 +170,8 @@ float PMTControl::ReadValue(std::string command,int chan){
     length = 1;
   }else if(command.compare("01LR")== 0){
     length = 3;
+  }else if(command.compare("01LH")== 0){
+    length = 4;
   }else if(command.compare("01LD")== 0){
     length = 3;
   }else{
@@ -224,10 +226,11 @@ int PMTControl::GetStatus(char *pevent, INT off)
     SetCommand("SetChannel", i);
     current[i] = ReadValue("01LI",0);
     read_volt[i] = ReadValue("01LV",0);
-    set_volt[i] = ReadValue("01LS",0);
+    set_volt[i] = ReadValue("01LH",0);
     state[i] = ReadValue("01LG",0);
     //    trip_state[i] = ReadValue("01LD",0);
-    ramp_rate[i] = ReadValue("01LR",0);
+    //    ramp_rate[i] = ReadValue("01LR",0);
+    //    ramp_rate[i] = ReadValue("01LR",0);
   }
 
   struct timeval t2;
@@ -248,8 +251,8 @@ int PMTControl::GetStatus(char *pevent, INT off)
   bk_close(pevent, pddata2);
   
   float *pddata3;
-  // Setpoint voltages from PMT
-  bk_create(pevent, "PMS0", TID_FLOAT, (void**)&pddata3);  
+  // measured voltages from PMT
+  bk_create(pevent, "PMH0", TID_FLOAT, (void**)&pddata3);  
   for(int i = 0; i < 20; i++){ *pddata3++ = set_volt[i];}  
   bk_close(pevent, pddata3);
 
@@ -259,11 +262,11 @@ int PMTControl::GetStatus(char *pevent, INT off)
   for(int i = 0; i < 20; i++){ *pddata4++ = (int)state[i];} 
   bk_close(pevent, pddata4);
 
-  int *pddata5;
+  //int *pddata5;
   // ramp rate  from PMT
-  bk_create(pevent, "PMR0", TID_INT, (void**)&pddata5);
-  for(int i = 0; i < 20; i++){ *pddata5++ = (int)ramp_rate[i];} 
-  bk_close(pevent, pddata5);
+  //bk_create(pevent, "PMR0", TID_INT, (void**)&pddata5);
+  //for(int i = 0; i < 20; i++){ *pddata5++ = (int)ramp_rate[i];} 
+  //bk_close(pevent, pddata5);
 
   //int *pddata5;
   // trip state  from PMT
@@ -271,7 +274,11 @@ int PMTControl::GetStatus(char *pevent, INT off)
   //for(int i = 0; i < 20; i++){ *pddata5++ = (int)trip_state[i];} 
   //bk_close(pevent, pddata5);
 
-
+  int *pddata5;
+  // HV setpoint  from PMT
+  //bk_create(pevent, "PMR0", TID_INT, (void**)&pddata5);
+  //for(int i = 0; i < 20; i++){ *pddata5++ = (int)ramp_rate[i];} 
+  //bk_close(pevent, pddata5);
 
 
 
