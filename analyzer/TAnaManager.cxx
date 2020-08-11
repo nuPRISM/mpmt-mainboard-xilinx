@@ -8,14 +8,15 @@
 TAnaManager::TAnaManager(bool isoffline){
 
   AddHistogram(new TBRBWaveform());
-  AddHistogram(new TBRBWaveformHit());
   AddHistogram(new TBRBBaseline());
   AddHistogram(new TBRBRMS());
   AddHistogram(new TBRBPH());
   AddHistogram(new TBRB_Time());
+  AddHistogram(new TBRBWaveformHit());
 
   for(int i = 0; i < 20; i++){
     number_dark_pulses.push_back(0.0);
+    number_dark_pulses_single.push_back(0.0);
     number_samples.push_back(0.0);
   }
 
@@ -94,6 +95,7 @@ int TAnaManager::ProcessMidasEvent(TDataContainer& dataContainer){
 
       //nsamples = 240;
       nsamples = 1000;
+      bool found_pulse = false;
       int baseline = (int)BSingleton::GetInstance()->GetBaseline(chan);
       int threshold = baseline - 8;
       for(int ib = 0; ib < nsamples; ib++){
@@ -103,6 +105,7 @@ int TAnaManager::ProcessMidasEvent(TDataContainer& dataContainer){
           in_pulse = true;
 	  number_dark_pulses[chan] += 1.0;
 	  //  if(chan == 8) std::cout << "Found dark noise pulse: " << ib << " " << sample << " " << threshold <<  std::endl;
+	  found_pulse = true;
         }
 
         if(sample >= threshold && in_pulse){ /// finished this pulse
@@ -111,6 +114,8 @@ int TAnaManager::ProcessMidasEvent(TDataContainer& dataContainer){
 
       }
       number_samples[chan] += (double)nsamples;
+
+      if(found_pulse) number_dark_pulses_single[chan] += 1.0; // keep separate track of number of uncorrelated dark noise.
 
     }
   }
@@ -128,7 +133,8 @@ int TAnaManager::ProcessMidasEvent(TDataContainer& dataContainer){
   if(time0 > min_time and !fIsOffline){
     
     midas::odb o = {
-      {"Dark Rate", std::array<double, 20>{} }
+      {"Dark Rate", std::array<double, 20>{} },
+      {"Dark Rate Single", std::array<double, 20>{} }
     };
     
     o.connect("/Analyzer/DarkNoiseRate");
@@ -136,11 +142,16 @@ int TAnaManager::ProcessMidasEvent(TDataContainer& dataContainer){
     for(int chan = 0; chan < 20; chan++){      
       double time = ((number_samples[chan]*8.0)/1000000000.0);
       double rate = 0;
-      if(time > 0)
+      double rate_single = 0;
+      if(time > 0){
 	rate = number_dark_pulses[chan]/time;            
+	rate_single = number_dark_pulses_single[chan]/time;            
+      }
       o["Dark Rate"][chan] = rate;
+      o["Dark Rate Single"][chan] = rate_single;
       if (chan == 8) std::cout << "Rate: " << chan << " " << rate << std::endl;
       number_dark_pulses[chan] = 0.0;
+      number_dark_pulses_single[chan] = 0.0;
       number_samples[chan] = 0.0;      
     }
 
@@ -156,7 +167,8 @@ int TAnaManager::ProcessMidasEvent(TDataContainer& dataContainer){
       
       // Baseline histogram is histogram array number 1.
       TH1 *baseh = ((TH1*)(fHistos[1]->GetHistogram(chan)));
-      if(baseh->GetEntries() > 5000){
+      std::cout << "Baseline: " << chan << baseh->GetEntries() <<  " "<< baseh->GetBinCenter(baseh->GetMaximumBin()) << std::endl;
+      if(baseh->GetEntries() > 500){
 
 	
 	std::cout << "Number of baseline entries ("<<chan<<"): " << baseh->GetEntries() << " " 

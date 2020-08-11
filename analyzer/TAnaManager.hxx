@@ -63,6 +63,7 @@ private:
   std::vector<THistogramArrayBase*> fHistos;
 
   std::vector<double> number_dark_pulses;
+  std::vector<double> number_dark_pulses_single;
   std::vector<double> number_samples;
   bool fIsOffline;
 
