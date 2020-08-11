@@ -8,6 +8,7 @@
 TAnaManager::TAnaManager(bool isoffline){
 
   AddHistogram(new TBRBWaveform());
+  AddHistogram(new TBRBWaveformHit());
   AddHistogram(new TBRBBaseline());
   AddHistogram(new TBRBRMS());
   AddHistogram(new TBRBPH());
@@ -101,6 +102,7 @@ int TAnaManager::ProcessMidasEvent(TDataContainer& dataContainer){
         if(sample < threshold && !in_pulse){ // found a pulse
           in_pulse = true;
 	  number_dark_pulses[chan] += 1.0;
+	  //  if(chan == 8) std::cout << "Found dark noise pulse: " << ib << " " << sample << " " << threshold <<  std::endl;
         }
 
         if(sample >= threshold && in_pulse){ /// finished this pulse
@@ -137,7 +139,7 @@ int TAnaManager::ProcessMidasEvent(TDataContainer& dataContainer){
       if(time > 0)
 	rate = number_dark_pulses[chan]/time;            
       o["Dark Rate"][chan] = rate;
-      if (chan < 8) std::cout << "Rate: " << chan << " " << rate << std::endl;
+      if (chan == 8) std::cout << "Rate: " << chan << " " << rate << std::endl;
       number_dark_pulses[chan] = 0.0;
       number_samples[chan] = 0.0;      
     }

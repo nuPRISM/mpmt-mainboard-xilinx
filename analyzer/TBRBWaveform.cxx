@@ -99,6 +99,112 @@ void TBRBWaveform::Reset(){
 }
 
 
+TBRBWaveformHit::TBRBWaveformHit(){
+
+  SetSubTabName("BRB Waveforms Hit");
+  
+  CreateHistograms();
+  FrequencySetting = -1;
+}
+
+
+void TBRBWaveformHit::CreateHistograms(){
+
+
+  // check if we already have histogramss.
+  char tname[100];
+  sprintf(tname,"BRB_Hit_%i",0);
+
+
+  int fWFLength = 7; // Need a better way of detecting this...
+  int numSamples = fWFLength / 1;
+  
+  // Otherwise make histograms
+  clear();
+  
+  for(int i = 0; i < 20; i++){ // loop over 2 channels
+    
+    char name[100];
+    char title[100];
+    sprintf(name,"BRB_Hit_%i",i);
+    sprintf(title,"BRB Waveform for channel=%i (hit)",i);	
+
+    
+    TH1D *tmp = new TH1D(name, title, 1024, -0.5*8, 1023.5*8);
+    tmp->SetXTitle("ns");
+    tmp->SetYTitle("ADC value");
+    
+    push_back(tmp);
+  }
+  std::cout << "TBRBWaveform done init...... " << std::endl;
+  FrequencySetting = -1;
+}
+
+
+void TBRBWaveformHit::UpdateHistograms(TDataContainer& dataContainer){
+  
+  int eventid = dataContainer.GetMidasData().GetEventId();
+  int timestamp = dataContainer.GetMidasData().GetTimeStamp();
+  
+  TBRBRawData *dt743 = dataContainer.GetEventData<TBRBRawData>("BRB0");
+  
+  if(dt743){      
+    
+    
+    std::vector<RawBRBMeasurement> measurements = dt743->GetMeasurements();
+
+
+
+
+    for(unsigned int i = 0; i < measurements.size(); i++){
+      
+      int chan = measurements[i].GetChannel();
+      
+      // Check for hits in this waveform
+      
+      int nsamples = 1000;
+      int baseline = (int)BSingleton::GetInstance()->GetBaseline(chan);
+      int threshold = baseline - 8;
+      bool found_hit = false;
+      for(int ib = 0; ib < nsamples; ib++){
+	int sample = measurements[i].GetSample(ib);
+	if(sample < threshold){ // found a pulse                                                                                
+	  found_hit = true;
+	}
+      }
+      
+      
+      if(found_hit){
+	int nsamples = measurements[i].GetNSamples();
+	for(int ib = 0; ib < nsamples; ib++){
+	  GetHistogram(chan)->SetBinContent(ib+1, measurements[i].GetSample(ib));
+	}
+      }      
+    }
+    
+  }
+  
+}
+
+
+
+void TBRBWaveformHit::Reset(){
+  
+  
+  for(int i = 0; i < 8; i++){ // loop over channels
+    int index =  i;
+    
+    // Reset the histogram...
+    for(int ib = 0; ib < GetHistogram(index)->GetNbinsX(); ib++) {
+      GetHistogram(index)->SetBinContent(ib, 0);
+    }
+    
+    GetHistogram(index)->Reset();
+    
+  }
+}
+
+
 
 
 
@@ -354,10 +460,10 @@ void TBRB_Time::UpdateHistograms(TDataContainer& dataContainer){
       int nsamples = measurements[i].GetNSamples();
 
       int baseline = (int)BSingleton::GetInstance()->GetBaseline(chan);
-      int threshold = baseline - 12;
+      int threshold = baseline - 8;
 
       bool in_pulse = false; // are we currently in a pulse?
-      bool laser_pulse = false;
+      bool laser_pulse = true; // always save hits
       std::vector<int> pulse_times;
       for(int ib = 0; ib < nsamples; ib++){
 	int sample = measurements[i].GetSample(ib);

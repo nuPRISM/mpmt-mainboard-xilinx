@@ -2,6 +2,10 @@
   "BRB Waveform" : { 
     "MaxChannels" : 20,
     "WebserverName" : "BRB"
+  },
+  "BRB Waveform Hit" : {
+    "MaxChannels" : 20,
+    "WebserverName" : "BRB_Hit"
   },  
   "BRB Baseline" : { 
     "MaxChannels" : 20,
