@@ -49,6 +49,7 @@ std::vector<uint16_t> event_data;
 // Last frame ID
 uint16_t fLastFrameID;
 bool fGotFirstPacket = false; 
+int fBadEvents = 0;
 
 #ifndef EQ_NAME
 #define EQ_NAME "UDP"
@@ -372,7 +373,7 @@ int begin_of_run(int run_number, char *error)
 {
    gUnknownPacketCount = 0;
    gSkipUnknownPackets = false;
-
+   fBadEvents = 0;
 
    event_data.clear();
    fLastFrameID = 0;
@@ -389,6 +390,11 @@ int begin_of_run(int run_number, char *error)
 
 int end_of_run(int run_number, char *error)
 {
+
+   if(fBadEvents > 0){
+      cm_msg(MERROR, "end_of_run", "There was at least %i suppressed events with missing UDP packets in this run.",fBadEvents);
+   }
+   fBadEvents = 0;
 
    event_data.clear();
    fLastFrameID = 0;
@@ -442,37 +448,46 @@ int read_event(char *pevent, int off)
    uint16_t *data = (uint16_t*)buf;
    int packetID = (((data[2] & 0xff00)>>8) | ((data[2] & 0xff)<<8));
    int frameID = (((data[4] & 0xff00)>>8) | ((data[4] & 0xff)<<8));
-   std::cout << "frameID: " << frameID << " packetID: " << packetID << " with length: " << length << std::endl;
+   //   std::cout << "frameID: " << frameID << " packetID: " << packetID << " with length: " << length << std::endl;
    for(int i = 0; i < 40; i++){
       int tttt = (((data[i] & 0xff00)>>8) | ((data[i] & 0xff)<<8));
       unsigned int ttt = (tttt >> 4);
-      printf("%4i ",ttt);
-      if(i%4==3) std::cout << std::endl;
+      //printf("%4i ",ttt);
+      //if(i%4==3) std::cout << std::endl;
    }
 
 
    bool saveEvent = false;
    if(frameID != fLastFrameID && fGotFirstPacket){
-      std::cout << "Frame IDs differ ("<<frameID <<"/" << fLastFrameID 
-                << "): saving last event." << std::endl;
-      std::cout << "Number of packets: " << npackets << std::endl;
-      npackets = 0;
-      std::cout << "Saving " << event_data.size() << " words." << std::endl;
-      printf("%4i %4i %4i %4i\n",(event_data[21]>>4),(event_data[22]>>4),(event_data[23]>>4),(event_data[24]>>4));
-      printf("%4i %4i %4i %4i\n",(event_data[554]>>4),(event_data[555]>>4),(event_data[556]>>4),(event_data[557]>>4));
-      printf("%4i %4i %4i %4i\n",(event_data[1087]>>4),(event_data[1088]>>4),(event_data[1089]>>4),(event_data[1090]>>4));
-      printf("%4i %4i %4i %4i\n",(event_data[1620]>>4),(event_data[1621]>>4),(event_data[1622]>>4),(event_data[1623]>>4));
+      if(0)      std::cout << "Frame IDs differ ("<<frameID <<"/" << fLastFrameID 
+                           << "): saving last event." << std::endl;
 
-      saveEvent = true;
+      if(npackets%4 != 1){ // The number of packets should be 1 + multiple of 4.  Don't save if not the right number of packets
+         std::cout << "Failure! Number of packets: " << npackets << std::endl;
+         npackets = 0;
+         event_data.clear();
+         fBadEvents++;
+      }else{
 
-      bk_init32(pevent);
-      uint16_t* pdata;
-      bk_create(pevent, bankname, TID_WORD, (void**)&pdata);
-      for(int i = 0; i < event_data.size(); i++) *pdata++ = event_data[i];
-      bk_close(pevent, pdata);
-
-
-      event_data.clear();
+         npackets = 0;
+         
+         if(0)std::cout << "Saving " << event_data.size() << " words." << std::endl;
+         //printf("%4i %4i %4i %4i\n",(event_data[21]>>4),(event_data[22]>>4),(event_data[23]>>4),(event_data[24]>>4));
+         //printf("%4i %4i %4i %4i\n",(event_data[554]>>4),(event_data[555]>>4),(event_data[556]>>4),(event_data[557]>>4));
+         //printf("%4i %4i %4i %4i\n",(event_data[1087]>>4),(event_data[1088]>>4),(event_data[1089]>>4),(event_data[1090]>>4));
+         //printf("%4i %4i %4i %4i\n",(event_data[1620]>>4),(event_data[1621]>>4),(event_data[1622]>>4),(event_data[1623]>>4));
+         
+         saveEvent = true;
+         
+         bk_init32(pevent);
+         uint16_t* pdata;
+         bk_create(pevent, bankname, TID_WORD, (void**)&pdata);
+         for(int i = 0; i < event_data.size(); i++) *pdata++ = event_data[i];
+         bk_close(pevent, pdata);
+         
+         
+         event_data.clear();
+      }
 
    }
 
