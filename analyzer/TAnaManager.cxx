@@ -17,7 +17,10 @@ TAnaManager::TAnaManager(bool isoffline){
   for(int i = 0; i < 20; i++){
     number_dark_pulses.push_back(0.0);
     number_dark_pulses_single.push_back(0.0);
+    number_dark_pulses_long.push_back(0.0);
+    number_dark_pulses_single_long.push_back(0.0);
     number_samples.push_back(0.0);
+    number_samples_long.push_back(0.0);
   }
 
   fIsOffline = isoffline;
@@ -104,6 +107,7 @@ int TAnaManager::ProcessMidasEvent(TDataContainer& dataContainer){
         if(sample < threshold && !in_pulse){ // found a pulse
           in_pulse = true;
 	  number_dark_pulses[chan] += 1.0;
+	  number_dark_pulses_long[chan] += 1.0;
 	  //  if(chan == 8) std::cout << "Found dark noise pulse: " << ib << " " << sample << " " << threshold <<  std::endl;
 	  found_pulse = true;
         }
@@ -114,20 +118,19 @@ int TAnaManager::ProcessMidasEvent(TDataContainer& dataContainer){
 
       }
       number_samples[chan] += (double)nsamples;
+      number_samples_long[chan] += (double)nsamples;
 
-      if(found_pulse) number_dark_pulses_single[chan] += 1.0; // keep separate track of number of uncorrelated dark noise.
-
+      if(found_pulse){
+	number_dark_pulses_single[chan] += 1.0; // keep separate track of number of uncorrelated dark noise.
+	number_dark_pulses_single_long[chan] += 1.0; // keep separate track of number of uncorrelated dark noise.
+      }
     }
   }
 
-  bool do_update =false;
+
+  // Save the measured dark rate on a short and long timescale; long timescale gives better statistics
+
   double time0 = ((number_samples[0]*8.0)/1000000000.0);
-  double rate0 = number_dark_pulses[0]/time0;
-  int nnn = dataContainer.GetMidasData().GetSerialNumber();
-  if(nnn%20000 == 0)
-    std::cout << "dark noise pulse = " << number_dark_pulses[0] << " total_time " 
-	      << time0*1000.0 << "ms" <<  " rate = " 
-	      << rate0 << std::endl;
   double min_time = 0.4;// seconds
   
   if(time0 > min_time and !fIsOffline){
@@ -163,20 +166,12 @@ int TAnaManager::ProcessMidasEvent(TDataContainer& dataContainer){
     };    
     o2.connect("/Analyzer/Baselines");
     
-    for(int chan = 0; chan < 20; chan++){      
-      
+    for(int chan = 0; chan < 20; chan++){            
       // Baseline histogram is histogram array number 1.
       TH1 *baseh = ((TH1*)(fHistos[1]->GetHistogram(chan)));
       std::cout << "Baseline: " << chan << baseh->GetEntries() <<  " "<< baseh->GetBinCenter(baseh->GetMaximumBin()) << std::endl;
       if(baseh->GetEntries() > 500){
-
-	
-	std::cout << "Number of baseline entries ("<<chan<<"): " << baseh->GetEntries() << " " 
-		  << baseh->GetMaximum() << " " << baseh->GetMaximumBin() 
-		  << " baseline=" << baseh->GetBinCenter(baseh->GetMaximumBin())
-		  << std::endl;
-	o2["Baseline"][chan] = baseh->GetBinCenter(baseh->GetMaximumBin());
-      
+	o2["Baseline"][chan] = baseh->GetBinCenter(baseh->GetMaximumBin());      
 	baseh->Reset();
       }
     }
@@ -184,10 +179,36 @@ int TAnaManager::ProcessMidasEvent(TDataContainer& dataContainer){
   }
 
 
+  // Recalculate dark rate with longer timescale
+  time0 = ((number_samples_long[0]*8.0)/1000000000.0);
+  min_time = 5.0; // seconds
+  if(time0 > min_time and !fIsOffline){
+    
+    midas::odb o = {
+      {"Dark Rate Long", std::array<double, 20>{} },
+      {"Dark Rate Single Long", std::array<double, 20>{} }
+    };
+    
+    o.connect("/Analyzer/DarkNoiseRatePrecise");
+    
+    for(int chan = 0; chan < 20; chan++){      
+      double time = ((number_samples_long[chan]*8.0)/1000000000.0);
+      double rate = 0;
+      double rate_single = 0;
+      if(time > 0){
+	rate = number_dark_pulses_long[chan]/time;            
+	rate_single = number_dark_pulses_single_long[chan]/time;            
+      }
+      std::cout << "Precise rate: " << chan << " " << number_dark_pulses_single_long[chan] 
+		<< " " << time << " " << rate_single << std::endl;
+      o["Dark Rate Long"][chan] = rate;
+      o["Dark Rate Single Long"][chan] = rate_single;
+      number_dark_pulses_long[chan] = 0.0;
+      number_dark_pulses_single_long[chan] = 0.0;
+      number_samples_long[chan] = 0.0;      
+    }
 
-  
-
-  
+  }  
 
 
   return 1;
