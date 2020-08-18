@@ -86,7 +86,7 @@ EQUIPMENT equipment[] = {
     },
     read_slow_control,       /* readout routine */
   }, 
-  { "PMTS",                 /* equipment name */
+  { "PMTS"  "%02d",                 /* equipment name */
     {
       EQ_EVID, EQ_TRGMSK,     /* event ID, trigger mask */
       "SYSTEM",              /* event buffer */
