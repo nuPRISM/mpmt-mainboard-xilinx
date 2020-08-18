@@ -388,6 +388,41 @@ int Nloop, Ncount;
 int dummy_counter = 0;
 struct timeval last_event_time;  
 
+
+// Function for returning a BRB value
+float get_brb_value(std::string command){
+
+  // Read temperature                                                                                                                                                                               
+  char buffer[200];
+  sprintf(buffer,"%s\r\n",command.c_str());
+  int size=sizeof(buffer);
+  gSocket->write(buffer,size);
+
+  char bigbuffer[500];
+  size = sizeof(bigbuffer);
+  gSocket->read(bigbuffer,size);
+
+  std::string readback(bigbuffer);
+  std::vector<std::string> values;
+  std::size_t current, previous = 0;
+  current = readback.find("\r");
+  while (current != std::string::npos) {
+    values.push_back(readback.substr(previous, current - previous));
+    previous = current + 1;
+    current = readback.find("\r", previous);
+  }
+  values.push_back(readback.substr(previous, current - previous));
+
+  float value = strtof (values[0].c_str(), NULL);
+
+  if(0)  std::cout << "get brb value: " << command << " " << buffer 
+	    << " " << readback << " | " << value << std::endl;
+  
+  return value;
+
+
+}
+
 /*-- Event readout -------------------------------------------------*/
 INT read_slow_control(char *pevent, INT off)
 {
@@ -396,6 +431,7 @@ INT read_slow_control(char *pevent, INT off)
   bk_init32(pevent);
 
   float *pddata;
+  char command[200];
   
   // Bank names must be exactly four char
   bk_create(pevent, "BRV0", TID_FLOAT, (void**)&pddata);
@@ -403,118 +439,37 @@ INT read_slow_control(char *pevent, INT off)
   for(int j = 0; j < 8; j++){
 
     double resistor = 1.0;
-    if(j==0){
-      //      std::cout << "LDO1: " ;//" << std::endl;
-      resistor = 0.1;
-    }
-    ///    if(j==1) std::cout << "LDO2: " ;//" << std::endl;
-    if(j==2){
-      //std::cout << "LDO3: " ;//" << std::endl;
-      resistor =200;
-    }
-    if(j==3){
-      //std::cout << "LDO4: " ;//" << std::endl;
-    }
-    if(j==4){
-      //std::cout << "LDO5: " ;//" << std::endl;
-    }
-    if(j==5){
-      //std::cout << "LDO6: " ;//" << std::endl;
-      resistor =0.1;
-    }
-    if(j==6){
-      //std::cout << "reg 77: " ;//" << std::endl;                                                                                              
-      resistor =0.05;
-    }
-    if(j==7){
-      //std::cout << "reg 78: " ;//" << std::endl;                                                                                              
-      resistor =0.05;
-    }
+    if(j==0){ resistor = 0.1; }
+    if(j==2){ resistor =200; }
+    if(j==5){ resistor =0.1; }
+    if(j==6){ resistor =0.05; }
+    if(j==7){ resistor =0.05;}
 
 
     struct timeval t1;  
     gettimeofday(&t1, NULL);
 
-    // Read a current/voltage sensor
-    char buffer[200];
-    sprintf(buffer,"uart_read_all_ctrl %i 0\r\n",j+72);
-    int size=sizeof(buffer);
-    gSocket->write(buffer,size);
+    // Read voltage
+    sprintf(command,"custom_command ldo_get_voltage %i",j+1);
+    double voltage = get_brb_value(command);
+    sprintf(command,"custom_command ldo_get_power %i",j+1);
+    double shunt_voltage = get_brb_value(command);
     
-    int counter = 0;
-    bool notdone = true;
-    if(0)    while(counter < 10000 && notdone){
-      //    std::cout << "Checking counter" << counter <<  std::endl;
-      if(gSocket->available()){
-	notdone = false;
-      }else{
-	usleep(10000);
-      }
-      counter++;      
+    float shunt_current = 1000.0*shunt_voltage/resistor;
+    if(j==2){
+      shunt_current = 1000.0*(shunt_voltage/resistor)/0.0004;
     }
-    struct timeval t2;  
-    gettimeofday(&t2, NULL);
-      
-    //    double dtime = t2.tv_sec - t1.tv_sec + (t2.tv_usec - t1.tv_usec)/1000000.0;
-
-    char bigbuffer[500];
-    size = sizeof(bigbuffer);
-    gSocket->read(bigbuffer,size);
-
-    struct timeval t3;  
-    gettimeofday(&t3, NULL);
-      
-    //    double dtime2 = t3.tv_sec - t1.tv_sec + (t3.tv_usec - t1.tv_usec)/1000000.0;
-    //    std::cout << bigbuffer << std::endl;
-    std::string readback(bigbuffer);
-    std::vector<std::string> values;
-    std::size_t current, previous = 0;
-    current = readback.find("+");
-    while (current != std::string::npos) {
-      values.push_back(readback.substr(previous, current - previous));
-      previous = current + 1;
-      current = readback.find("+", previous);
-    }
-    values.push_back(readback.substr(previous, current - previous));
+    *pddata++ = shunt_current;
     
-    //for(int i = 0; i < values.size()-3; i++){
-    //        std::cout << values[i] << ", ";
-    // }
-    //std::cout << " |  resistance / current / voltage : ";
-    for(int i = 0; i < ((int)values.size())-2; i++){
-      //      std::cout << values[i] << ", ";
-      if(i == 3){
-	long int ivolt = strtol(values[i].c_str(),NULL,0);
-	uint32_t svolt_ = (ivolt & 0x7fff);
-	if((ivolt & 0x8000)){ // handle twos complement encoding
-	  svolt_ = 0x7fff - svolt_;
-	}
-	double shunt_volt = ((double)(svolt_)) *0.00001; 
-	float shunt_current = 1000.0*shunt_volt/resistor;
-	//std::cout << resistor << "ohm, ";
-	///std::cout << shunt_volt << "V, ";
-	//std::cout << shunt_current << "mA, ";
-	if(j==2){
-	  shunt_current = 1000.0*(shunt_volt/resistor)/0.0004;
-	  //std::cout << "Special LDO3 current = "  << shunt_current << "mA, ";
-	}
-	*pddata++ = shunt_current;
-      }
-      if(i == 5){
-	long int ivolt = strtol(values[i].c_str(),NULL,0);
-	double bus_volt = ((double)(ivolt >>3)) *0.004; 
-	//std::cout << bus_volt <<"V ";
-	*pddata++ = bus_volt;
-      }
-    }
-    //std::cout << " dt=" << dtime << " " << dtime2 << std::endl;
+    *pddata++ = voltage;
+
 
   }
     
 
   bk_close(pevent, pddata);	
   
-
+  // Get temperatures
 
   float *pddata2;
   
@@ -523,40 +478,11 @@ INT read_slow_control(char *pevent, INT off)
   std::cout << "Temp: ";
   for(int j = 1; j < 4; j++){
 
-    //std::cout << "temp: " << j << std::endl;
-
-    struct timeval t1;  
-    gettimeofday(&t1, NULL);
-
     // Read temperature
-    char buffer[200];
-    sprintf(buffer,"custom_command get_temp %i\r\n",j);
-    int size=sizeof(buffer);
-    gSocket->write(buffer,size);
-    
-    char bigbuffer[500];
-    size = sizeof(bigbuffer);
-    gSocket->read(bigbuffer,size);
-
-    struct timeval t3;  
-    gettimeofday(&t3, NULL);
-      
-
-    std::string readback(bigbuffer);
-    std::vector<std::string> values;
-    std::size_t current, previous = 0;
-    current = readback.find("\r");
-    while (current != std::string::npos) {
-      values.push_back(readback.substr(previous, current - previous));
-      previous = current + 1;
-      current = readback.find("\r", previous);
-    }
-    values.push_back(readback.substr(previous, current - previous));
-    
-    float temperature = strtof (values[0].c_str(), NULL);
+    sprintf(command,"custom_command get_temp %i",j);
+    float temperature = get_brb_value(command);
     std::cout << temperature << " " ; 
     *pddata2++ = temperature;
-
 
   }
   std::cout << std::endl;
