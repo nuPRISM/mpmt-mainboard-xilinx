@@ -9,7 +9,7 @@ class PMTControl {
 
  public:
  
-  PMTControl(KOsocket *socket); 
+  PMTControl(KOsocket *socket, int index); 
 
 
   int GetStatus(char *pevent, INT off);  
@@ -34,7 +34,9 @@ class PMTControl {
 
   // Pointer to socket to BRB
   KOsocket *fSocket;
-  
+
+  int get_frontend_index(){return fe_index;};
+  int fe_index;
 
 };
 

@@ -121,10 +121,13 @@ bool PMTControl::SetCommand(std::string command, int value){
   return true;
 }
 
-PMTControl::PMTControl(KOsocket *socket){
+PMTControl::PMTControl(KOsocket *socket, int index){
 
   // Save connection to socket.
   fSocket = socket;
+
+  // Save frontend index
+  fe_index = index;
 
   midas::odb::set_debug(true); 
   
@@ -137,10 +140,13 @@ PMTControl::PMTControl(KOsocket *socket){
 
   };
 
-  pmts.connect("/Equipment/PMTS/Settings");
+
+  char eq_dir[200];
+  sprintf(eq_dir,"/Equipment/PMTS%02i/Settings",get_frontend_index());
+  pmts.connect(eq_dir);
 
   // Setup the DB watch for the PMT settings
-  pmt_watch.connect("/Equipment/PMTS/Settings");
+  pmt_watch.connect(eq_dir);
   std::function<void(midas::odb &o)> f = [=](midas::odb &o) {  this->callback(o);  };
   pmt_watch.watch(f);
 
@@ -149,7 +155,7 @@ PMTControl::PMTControl(KOsocket *socket){
 
   // Check which PMTs are plugged in and responding.
   fActivePMTs = std::vector<bool>(20,false);
-  int npmts = CheckActivePMTs();
+  CheckActivePMTs();
 
 }
 
@@ -191,7 +197,7 @@ float PMTControl::ReadValue(std::string command,int chan){
   fSocket->read(bigbuffer,size);
   struct timeval t2;
   gettimeofday(&t2, NULL);
-  double dtime = t2.tv_sec - t1.tv_sec + (t2.tv_usec - t1.tv_usec)/1000000.0;
+  //double dtime = t2.tv_sec - t1.tv_sec + (t2.tv_usec - t1.tv_usec)/1000000.0;
   //  std::cout << "Time to read one value:: " << dtime*1000.0 << " ms " << std::endl;
   
   std::string readback(bigbuffer);
@@ -236,7 +242,7 @@ int PMTControl::GetStatus(char *pevent, INT off)
   struct timeval t2;
   gettimeofday(&t2, NULL);
 
-  double dtime = t2.tv_sec - t1.tv_sec + (t2.tv_usec - t1.tv_usec)/1000000.0;
+  ///  double dtime = t2.tv_sec - t1.tv_sec + (t2.tv_usec - t1.tv_usec)/1000000.0;
   
   float *pddata;  
   // Read currents from PMT
@@ -274,7 +280,7 @@ int PMTControl::GetStatus(char *pevent, INT off)
   //for(int i = 0; i < 20; i++){ *pddata5++ = (int)trip_state[i];} 
   //bk_close(pevent, pddata5);
 
-  int *pddata5;
+  //  int *pddata5;
   // HV setpoint  from PMT
   //bk_create(pevent, "PMR0", TID_INT, (void**)&pddata5);
   //for(int i = 0; i < 20; i++){ *pddata5++ = (int)ramp_rate[i];} 

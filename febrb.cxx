@@ -69,7 +69,7 @@ INT read_pmt_status(char *pevent, INT off);
 #undef USE_INT
 EQUIPMENT equipment[] = {
 
-  { EQ_NAME,                 /* equipment name */
+  { EQ_NAME "%02d",                 /* equipment name */
     {
       EQ_EVID, EQ_TRGMSK,     /* event ID, trigger mask */
       "SYSTEM",              /* event buffer */
@@ -171,10 +171,13 @@ INT frontend_init()
   midas::odb::set_debug(true);
   midas::odb o = {
     {"host", "brb00"},
-    {"port", 35},
+    {"port", 40},
   };
 
-  o.connect("/Equipment/BRB/Settings");
+
+  char eq_dir[200];
+  sprintf(eq_dir,"/Equipment/BRB%02i/Settings",get_frontend_index());
+  o.connect(eq_dir);
 
   // Open socket to BRB
   std::cout << "Opening socket to  " << o["host"] << ":" << o["port"] << std::endl;
@@ -191,7 +194,7 @@ INT frontend_init()
 
 
   // Setup control of PMTs
-  pmts = new PMTControl(gSocket);
+  pmts = new PMTControl(gSocket, get_frontend_index());
 
 
 
@@ -225,7 +228,10 @@ INT begin_of_run(INT run_number, char *error)
     {"channel mask", 0x1f }
   };
   
-  o.connect("/Equipment/BRB/Settings");
+  //  o.connect("/Equipment/BRB/Settings");
+  char eq_dir[200];
+  sprintf(eq_dir,"/Equipment/BRB%02i/Settings",get_frontend_index());
+  o.connect(eq_dir);
 
   // Use the test pattern, if requested
   BOOL testPattern = o["testPatternAdc"];
@@ -449,7 +455,7 @@ INT read_slow_control(char *pevent, INT off)
     struct timeval t2;  
     gettimeofday(&t2, NULL);
       
-    double dtime = t2.tv_sec - t1.tv_sec + (t2.tv_usec - t1.tv_usec)/1000000.0;
+    //    double dtime = t2.tv_sec - t1.tv_sec + (t2.tv_usec - t1.tv_usec)/1000000.0;
 
     char bigbuffer[500];
     size = sizeof(bigbuffer);
@@ -458,7 +464,7 @@ INT read_slow_control(char *pevent, INT off)
     struct timeval t3;  
     gettimeofday(&t3, NULL);
       
-    double dtime2 = t3.tv_sec - t1.tv_sec + (t3.tv_usec - t1.tv_usec)/1000000.0;
+    //    double dtime2 = t3.tv_sec - t1.tv_sec + (t3.tv_usec - t1.tv_usec)/1000000.0;
     //    std::cout << bigbuffer << std::endl;
     std::string readback(bigbuffer);
     std::vector<std::string> values;
@@ -475,7 +481,7 @@ INT read_slow_control(char *pevent, INT off)
     //        std::cout << values[i] << ", ";
     // }
     //std::cout << " |  resistance / current / voltage : ";
-    for(int i = 0; i < values.size()-2; i++){
+    for(int i = 0; i < ((int)values.size())-2; i++){
       //      std::cout << values[i] << ", ";
       if(i == 3){
 	long int ivolt = strtol(values[i].c_str(),NULL,0);
