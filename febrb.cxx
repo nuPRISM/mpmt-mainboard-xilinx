@@ -434,7 +434,9 @@ INT read_slow_control(char *pevent, INT off)
   char command[200];
   
   // Bank names must be exactly four char
-  bk_create(pevent, "BRV0", TID_FLOAT, (void**)&pddata);
+  char bank_name[20];
+  sprintf(bank_name,"BRV%i",get_frontend_index());
+  bk_create(pevent, bank_name, TID_FLOAT, (void**)&pddata);
 
   for(int j = 0; j < 8; j++){
 
@@ -473,7 +475,8 @@ INT read_slow_control(char *pevent, INT off)
 
   float *pddata2;
   
-  bk_create(pevent, "BRT0", TID_FLOAT, (void**)&pddata2);
+  sprintf(bank_name,"BRT%i",get_frontend_index());
+  bk_create(pevent, bank_name, TID_FLOAT, (void**)&pddata2);
 
   std::cout << "Temp: ";
   for(int j = 1; j < 4; j++){

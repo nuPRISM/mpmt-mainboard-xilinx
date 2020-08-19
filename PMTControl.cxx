@@ -18,13 +18,13 @@ int PMTControl::CheckActivePMTs(){
     size = sizeof(bigbuffer);
     fSocket->read(bigbuffer,size);
     std::string readback(bigbuffer);
-    std::cout << "Readback from PMT: " << i << " " << readback << " |  " <<  readback.size() << std::endl;
+    //    std::cout << "Readback from PMT: " << i << " " << readback << " |  " <<  readback.size() << std::endl;
     if((readback.size() == 14 or readback.size() == 11) && (readback.substr(0,4) == std::string("01LG"))){
-      //std::cout << "Active... " << i << std::endl;
+      std::cout << "Active... " << i << std::endl;
       npmts_active++;
       fActivePMTs[i] = true;
     }else{
-            std::cout << "Not active: " << i << " " << readback.size()<< std::endl;
+            std::cout << "Not active: " << i << std::endl;
       ///       << readback.compare(0,4,"01LG")
       fActivePMTs[i] = false;
     }
@@ -100,7 +100,7 @@ bool PMTControl::SetCommand(std::string command, int value){
   
   
   std::string readback(bigbuffer);
-  std::cout << "readback: " << readback << " | " << readback.size() << std::endl;
+  //  std::cout << "readback: " << readback << " | " << readback.size() << std::endl;
   readback.pop_back();
   readback.pop_back(); 
   readback.pop_back(); 
@@ -246,25 +246,30 @@ int PMTControl::GetStatus(char *pevent, INT off)
   
   float *pddata;  
   // Read currents from PMT
-  bk_create(pevent, "PMI0", TID_FLOAT, (void**)&pddata);
+  char bank_name[20];
+  sprintf(bank_name,"PMI%i",get_frontend_index());
+  bk_create(pevent, bank_name, TID_FLOAT, (void**)&pddata);
   for(int i = 0; i < 20; i++){ *pddata++ = current[i];  }
   bk_close(pevent, pddata);
 
   float *pddata2;
   // Readback voltages from PMT
-  bk_create(pevent, "PMV0", TID_FLOAT, (void**)&pddata2);
+  sprintf(bank_name,"PMV%i",get_frontend_index());
+  bk_create(pevent, bank_name, TID_FLOAT, (void**)&pddata2);
   for(int i = 0; i < 20; i++){ *pddata2++ = read_volt[i];} 
   bk_close(pevent, pddata2);
   
   float *pddata3;
   // measured voltages from PMT
-  bk_create(pevent, "PMH0", TID_FLOAT, (void**)&pddata3);  
+  sprintf(bank_name,"PMH%i",get_frontend_index());
+  bk_create(pevent, bank_name, TID_FLOAT, (void**)&pddata3);  
   for(int i = 0; i < 20; i++){ *pddata3++ = set_volt[i];}  
   bk_close(pevent, pddata3);
 
   int *pddata4;
   // ON/OFF  from PMT
-  bk_create(pevent, "PMG0", TID_INT, (void**)&pddata4);
+  sprintf(bank_name,"PMG%i",get_frontend_index());
+  bk_create(pevent, bank_name, TID_INT, (void**)&pddata4);
   for(int i = 0; i < 20; i++){ *pddata4++ = (int)state[i];} 
   bk_close(pevent, pddata4);
 
