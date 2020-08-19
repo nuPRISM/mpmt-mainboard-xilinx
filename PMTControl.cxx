@@ -129,7 +129,7 @@ PMTControl::PMTControl(KOsocket *socket, int index){
   // Save frontend index
   fe_index = index;
 
-  midas::odb::set_debug(true); 
+  //  midas::odb::set_debug(true); 
   
   //Get ODB values (new C++ ODB!)                                                                                                                             
   midas::odb pmts = {

@@ -168,7 +168,7 @@ INT frontend_init()
   // Setup the socket connection
   // using new C++ ODB!
   
-  midas::odb::set_debug(true);
+  //  midas::odb::set_debug(true);
   midas::odb o = {
     {"host", "brb00"},
     {"port", 40},
@@ -286,11 +286,11 @@ INT begin_of_run(INT run_number, char *error)
   usleep(20000);
   BOOL software_trigger = (bool)(o["enableSoftwareTrigger"]);
   if(software_trigger){
-      cm_msg(MINFO,"BOR","Enabling software trigger");
-      SendBrbCommand("uart_regfile_ctrl_write 0 1 1 0\r\n");
+    cm_msg(MINFO,"BOR","Enabling software trigger");
+    SendBrbCommand("custom_command ENABLE_EMULATED_TRIGGER\r\n");
   }else{
-      cm_msg(MINFO,"BOR","Disabling software trigger");
-    SendBrbCommand("uart_regfile_ctrl_write 0 1 0 0\r\n");
+    cm_msg(MINFO,"BOR","Disabling software trigger");
+    SendBrbCommand("custom_command DISABLE_EMULATED_TRIGGER\r\n");
   }
   usleep(200000);
   SendBrbCommand("custom_command enable_dsp_processing \n");
@@ -390,7 +390,7 @@ struct timeval last_event_time;
 
 
 // Function for returning a BRB value
-float get_brb_value(std::string command){
+float get_brb_value(std::string command, bool with_ok=false){
 
   // Read temperature                                                                                                                                                                               
   char buffer[200];
@@ -414,9 +414,24 @@ float get_brb_value(std::string command){
   values.push_back(readback.substr(previous, current - previous));
 
   float value = strtof (values[0].c_str(), NULL);
+  if(with_ok){
+    std::vector<std::string> values2;
+    std::size_t current, previous = 0;
+    current = values[0].find("+");
+    while (current != std::string::npos) {
+      values2.push_back(values[0].substr(previous, current - previous));
+      previous = current + 1;
+      current = values[0].find("+", previous);
+    }
+    values2.push_back(values[0].substr(previous, current - previous));
+    
+    //    std::cout << "with ok Values: " << values2.size() << " " << values2[0] << " " << values2[2] << std::endl;
+    if(values2.size() == 3) value = strtof (values2[2].c_str(), NULL);
 
-  if(0)  std::cout << "get brb value: " << command << " " << buffer 
-	    << " " << readback << " | " << value << std::endl;
+  }
+
+  //   std::cout << "get brb value: " << command << " " << buffer 
+  //	     << " readback=" << readback << " | values="  << values[0] << " value=" << value << std::endl;
   
   return value;
 
@@ -488,10 +503,30 @@ INT read_slow_control(char *pevent, INT off)
     *pddata2++ = temperature;
 
   }
-  std::cout << std::endl;
+
+  float temperature = get_brb_value("custom_command get_pressure_sensor_temp",true);
+  *pddata2++ = temperature;
+  
+  std::cout << " " << temperature << std::endl;
 
   bk_close(pevent, pddata2);	
 
+
+  // Save humidity and pressure
+  float *pddata3;
+
+  sprintf(bank_name,"BRH%i",get_frontend_index());
+  bk_create(pevent, bank_name, TID_FLOAT, (void**)&pddata3);
+
+  float humidity = 0.0;
+  float pressure = get_brb_value("custom_command get_pressure",true);
+  
+  *pddata3++ = humidity;
+  *pddata3++ = pressure;
+
+  std::cout << "Pressure/Humidity : " << pressure << " " << humidity << std::endl;
+
+  bk_close(pevent, pddata3);
   
 
 
