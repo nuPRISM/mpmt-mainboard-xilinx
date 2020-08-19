@@ -240,25 +240,25 @@ INT begin_of_run(INT run_number, char *error)
   for(int i = 61; i < 66; i++){
     
     // Use offset binary encoding (rathers than twos complement)
-    sprintf(buffer,"uart_regfile_ctrl_write %i 9 1 0\r\n",i);
+    sprintf(buffer,"custom_command set_adc_data_format %i 1\r\n",i);
     SendBrbCommand(buffer);
 
-    if(testPattern && i == 61){
-      cm_msg(MINFO,"BOR","Using test pattern for ADC");
-      sprintf(buffer,"uart_regfile_ctrl_write %i a 99 0\r\n",i);
+    if(testPattern){
+      cm_msg(MINFO,"BOR","Using test pattern for ADC %i",i);
+      sprintf(buffer,"custom_command enable_adc_test_signals %i\r\n",i);
       SendBrbCommand(buffer);
-      sprintf(buffer,"uart_regfile_ctrl_write %i b 99 0\r\n",i);
-      SendBrbCommand(buffer);
-      sprintf(buffer,"uart_regfile_ctrl_write %i 6 2 0\r\n",i);
-      SendBrbCommand(buffer);
+      for(int j = 0; j < 5; j++){
+	sprintf(buffer,"custom_command set_adc_test_signal_type %i %i 9 \r\n",i,j);
+	SendBrbCommand(buffer);
+      }
     }else{
       std::cout << "Not using test pattern " << std::endl;
-      sprintf(buffer,"uart_regfile_ctrl_write %i a 0 0\r\n",i);
+      sprintf(buffer,"custom_command disable_adc_test_signals %i\r\n",i);
       SendBrbCommand(buffer);
-      sprintf(buffer,"uart_regfile_ctrl_write %i b 0 0\r\n",i);
-      SendBrbCommand(buffer);
-      sprintf(buffer,"uart_regfile_ctrl_write %i 6 0 0\r\n",i);
-      SendBrbCommand(buffer);    
+      for(int j = 0; j < 5; j++){
+	sprintf(buffer,"custom_command set_adc_test_signal_type %i %i 0 \r\n",i,j);
+	SendBrbCommand(buffer);
+      }
     }
   }
 
