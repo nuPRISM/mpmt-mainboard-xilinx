@@ -71,8 +71,15 @@ void TBRBWaveform::UpdateHistograms(TDataContainer& dataContainer){
 
       int chan = measurements[i].GetChannel();
       int nsamples = measurements[i].GetNSamples();
+      int baseline = (int)BSingleton::GetInstance()->GetBaseline(chan);
       for(int ib = 0; ib < nsamples; ib++){
-	GetHistogram(chan)->SetBinContent(ib+1, measurements[i].GetSample(ib));
+	if(i != 1){
+	  GetHistogram(chan)->SetBinContent(ib+1, measurements[i].GetSample(ib));
+	}else{ // scale up channel 1
+	  int sample = measurements[i].GetSample(ib);
+	  sample = ((sample-baseline) * 60) + baseline; 
+	  GetHistogram(chan)->SetBinContent(ib+1, sample);
+	}
       }
       
     }
