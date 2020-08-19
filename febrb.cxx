@@ -169,11 +169,46 @@ INT frontend_init()
   // using new C++ ODB!
   
   //  midas::odb::set_debug(true);
+  char names1[200], names2[200], names3[200];
+  sprintf(names1,"Names BRV%i",get_frontend_index());
+  sprintf(names2,"Names BRT%i",get_frontend_index());
+  sprintf(names3,"Names BRH%i",get_frontend_index());
+ 
   midas::odb o = {
     {"host", "brb00"},
     {"port", 40},
+    {names1, std::array<std::string, 16>{}},
+    {names2, std::array<std::string, 4>{}},
+    {names3, std::array<std::string, 2>{}},
   };
 
+  std::cout << "Names : " << names2 << std::endl;
+
+  // Set the names for the ODB keys
+  o[names1][0] = "+5V Amp Current";
+  o[names1][1] = "+5V Amp Voltage";
+  o[names1][2] = "-5V PMT Current";
+  o[names1][3] = "-5V PMT Voltage";
+  o[names1][4] = "+1.8V ADC Current";
+  o[names1][5] = "+1.8V ADC Voltage";
+  o[names1][6] = "+5V PMT Current";
+  o[names1][7] = "+5V PMT Voltage";
+  o[names1][8] = "+3.3V PMT Current";
+  o[names1][9] = "+3.3V PMT Voltage";
+  o[names1][10] = "-4V Amp Current";
+  o[names1][11] = "-4V Amp Voltage";
+  o[names1][12] = "+12V POE Current";
+  o[names1][13] = "+12V POE Voltage";
+  o[names1][14] = "+3.3V non-SoM Current";
+  o[names1][15] = "+3.3V non-SoM Voltage";
+
+  o[names2][0] = "ADC3 Temp";
+  o[names2][1] = "Temp2";
+  o[names2][2] = "Temp3";
+  o[names2][3] = "Pressure Sensor Temp";
+
+  o[names3][0] = "Humidity";
+  o[names3][1] = "Pressure";
 
   char eq_dir[200];
   sprintf(eq_dir,"/Equipment/BRB%02i/Settings",get_frontend_index());
