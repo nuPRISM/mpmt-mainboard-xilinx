@@ -268,11 +268,13 @@ INT begin_of_run(INT run_number, char *error)
   sprintf(eq_dir,"/Equipment/BRB%02i/Settings",get_frontend_index());
   o.connect(eq_dir);
 
+  std::cout << "Connected?  " << o.is_connected_odb() << std::endl;
+
   // Use the test pattern, if requested
-  BOOL testPattern = o["testPatternAdc"];
+  BOOL testPattern = o["testPatternADC"];
   
   // Do settings for each ADC
-  for(int i = 61; i < 66; i++){
+  for(int i = 0; i < 5; i++){
     
     // Use offset binary encoding (rathers than twos complement)
     sprintf(buffer,"custom_command set_adc_data_format %i 1\r\n",i);
@@ -282,7 +284,7 @@ INT begin_of_run(INT run_number, char *error)
       cm_msg(MINFO,"BOR","Using test pattern for ADC %i",i);
       sprintf(buffer,"custom_command enable_adc_test_signals %i\r\n",i);
       SendBrbCommand(buffer);
-      for(int j = 0; j < 5; j++){
+      for(int j = 0; j < 4; j++){
 	sprintf(buffer,"custom_command set_adc_test_signal_type %i %i 9 \r\n",i,j);
 	SendBrbCommand(buffer);
       }
@@ -290,7 +292,7 @@ INT begin_of_run(INT run_number, char *error)
       std::cout << "Not using test pattern " << std::endl;
       sprintf(buffer,"custom_command disable_adc_test_signals %i\r\n",i);
       SendBrbCommand(buffer);
-      for(int j = 0; j < 5; j++){
+      for(int j = 0; j < 4; j++){
 	sprintf(buffer,"custom_command set_adc_test_signal_type %i %i 0 \r\n",i,j);
 	SendBrbCommand(buffer);
       }

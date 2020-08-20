@@ -46,9 +46,12 @@ int PMTControl::CheckActivePMTs(){
 void PMTControl::callback(midas::odb &o) {
 
   int gSelectedChannel = o.get_last_index();
+  std::cout << "Change value for " << gSelectedChannel << " " << o.get_full_path() << std::endl;
   // check that the selected PMT is active
-  if(!fActivePMTs[gSelectedChannel])
+  if(!fActivePMTs[gSelectedChannel]){
     std::cout << "Channel " << gSelectedChannel << " is inactive; ignoring set command " << std::endl;
+    return; 
+  }
 
   SetCommand("SetChannel",gSelectedChannel);
   
