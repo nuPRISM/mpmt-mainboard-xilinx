@@ -63,7 +63,11 @@ private:
   std::vector<THistogramArrayBase*> fHistos;
 
   std::vector<double> number_dark_pulses;
+  std::vector<double> number_dark_pulses_single;
+  std::vector<double> number_dark_pulses_long;
+  std::vector<double> number_dark_pulses_single_long;
   std::vector<double> number_samples;
+  std::vector<double> number_samples_long;
   bool fIsOffline;
 
   TTree *fTree; // tree just to save HV settings
