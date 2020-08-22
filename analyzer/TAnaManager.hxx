@@ -32,12 +32,22 @@ public:
   bool CheckOption(std::string option);
     
   void BeginRun(int transition,int run,int time) {
+
     number_dark_pulses.clear();
+    number_dark_pulses_single.clear();
+    number_dark_pulses_long.clear();
+    number_dark_pulses_single_long.clear();
     number_samples.clear();
+    number_samples_long.clear();
 
     for(int i = 0; i < 20; i++){
+
       number_dark_pulses.push_back(0.0);
+      number_dark_pulses_single.push_back(0.0);
+      number_dark_pulses_long.push_back(0.0);
+      number_dark_pulses_single_long.push_back(0.0);
       number_samples.push_back(0.0);
+      number_samples_long.push_back(0.0);
     }
 
     BSingleton::GetInstance()->UpdateBaselines();
