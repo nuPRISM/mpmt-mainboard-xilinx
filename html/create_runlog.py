@@ -26,6 +26,10 @@ class runlog:
         " <html>\n "
         "\n"
         "<head>\n"
+        "<link rel='stylesheet' href='midas.css'>"
+        "<script src='controls.js'></script>\n"
+        "<script src='midas.js'></script>\n"
+        "<script src='mhttpd.js'></script>\n"
 	"<meta http-equiv='refresh' content='60'>\n "
         "<style>\n"
         "table {\n"
@@ -52,14 +56,20 @@ class runlog:
         "</style>\n"
         "</head>\n"
         "\n"
-        "<body>\n"        
+        '<body class="mcss" onload="mhttpd_init(\'Runlog\');">\n'
+        "<div id='mheader'></div>\n"
+        "<div id='msidenav'></div>\n"
+        "<div id='mmain'>\n"
+
+
         )
 
-    htmlfile.write('<table id="nicetable">\n')
+    htmlfile.write('<table id="nicetable" class="mtable">\n')
     htmlfile.write('<tr> <td> Run # </td>  <td> Start </td> <td> End Time </td>\n')
     #htmlfile.write('<tr> <td> Run </td>  <td> Start </td>\n')
     htmlfile.write('<td> <pre> # BRB \n events</pre> </td> \n')
-    htmlfile.write('<td> Comments </td> </tr>\n')
+    htmlfile.write('<td> Comments </td>\n')
+    htmlfile.write('<td> Laser on? </td> </tr>\n')
     
     txtfile.write("Run number, Start Time, Beamline enabled?, Beam on time, UCN Valve Open, ")
     txtfile.write("He-3 events, Li-6 events, UCN Experiment, Shifter, Comments")
@@ -85,9 +95,11 @@ class runlog:
     comment = "*NO COMMENT FIELD*"
     ucn_experiment = ""
     shifters = ""
+    laser = False
     if "Edit on start" in odb['Experiment']:
       comment = odb['Experiment']['Edit on start']['Description']
-
+      if "Laser on" in odb['Experiment']['Edit on start']:
+        laser = odb['Experiment']['Edit on start']['Laser on']
 
     htmlfile.write("<tr>")
     self.writecolumn(htmlfile,txtfile,str(run_number))
@@ -95,6 +107,7 @@ class runlog:
     self.writecolumn(htmlfile,txtfile,str(stop_time))
     self.writecolumn(htmlfile,txtfile,str(brb_events))
     self.writecolumn(htmlfile,txtfile,comment)
+    self.writecolumn(htmlfile,txtfile,str(laser))
     htmlfile.write("</tr>\n")
 
     txtfile.write("\n")
@@ -135,7 +148,7 @@ class runlog:
       self.odb2html(odb,htmlfile,txtfile)
 
     htmlfile.write('</table>\n')
-    htmlfile.write("</body>\n"
+    htmlfile.write("</div> </body>\n"
                   "</html>\n")
 
 
