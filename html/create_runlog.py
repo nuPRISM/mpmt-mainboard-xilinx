@@ -68,6 +68,7 @@ class runlog:
     htmlfile.write('<tr> <td> Run # </td>  <td> Start </td> <td> End Time </td>\n')
     #htmlfile.write('<tr> <td> Run </td>  <td> Start </td>\n')
     htmlfile.write('<td> <pre> # BRB \n events</pre> </td> \n')
+    htmlfile.write('<td> Chan 0 HV </td> \n')
     htmlfile.write('<td> Comments </td>\n')
     htmlfile.write('<td> Laser on? </td> </tr>\n')
     
@@ -91,10 +92,8 @@ class runlog:
     beamon_time = 0
     brb_events = odb['Equipment']['UDP']['Statistics']['Events sent']
 
-
+    hv_set = odb['Equipment']['PMTS']['Settings']['HVset'][0]
     comment = "*NO COMMENT FIELD*"
-    ucn_experiment = ""
-    shifters = ""
     laser = False
     if "Edit on start" in odb['Experiment']:
       comment = odb['Experiment']['Edit on start']['Description']
@@ -106,6 +105,7 @@ class runlog:
     self.writecolumn(htmlfile,txtfile,str(start_time))
     self.writecolumn(htmlfile,txtfile,str(stop_time))
     self.writecolumn(htmlfile,txtfile,str(brb_events))
+    self.writecolumn(htmlfile,txtfile,str(hv_set))
     self.writecolumn(htmlfile,txtfile,comment)
     self.writecolumn(htmlfile,txtfile,str(laser))
     htmlfile.write("</tr>\n")
