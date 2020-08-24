@@ -2,6 +2,7 @@
 #define TBaselineSing_h
 
 #include <vector>
+#include <array>
 #include "odbxx.h"
 
 // Singleton for saving baselines
