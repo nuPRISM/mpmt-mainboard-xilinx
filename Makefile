@@ -29,7 +29,7 @@ endif
 OS_DIR = linux-m64
 OSFLAGS = -DOS_LINUX
 CFLAGS = -g -O2 -Wall -fpermissive -std=c++11
-LIBS = -lm -lz -lutil -lnsl -lpthread -lrt -ldl
+LIBS = -lm -lz -lutil  -lpthread  -ldl
 #endif
 
 
@@ -100,7 +100,7 @@ LIBMIDAS = -L$(MIDAS_LIB) -lmidas
 #
 # All includes
 INCS = -I. -I$(MIDAS_INC) -I$(MIDAS_DRV) 
-all: $(UFE).exe  feudp.exe feodbxx_test.exe
+all: $(UFE).exe  feudp.exe 
 
 
 feudp.exe: $(LIB) $(MIDAS_LIB)/mfe.o $(DRIVERS) feudp.o

@@ -2,6 +2,7 @@
 #include "PMTControl.h"
 #include "time.h"
 #include "sys/time.h"
+#include <array>
 
 // Check which PMTs are plugged in and responding
 int PMTControl::CheckActivePMTs(){

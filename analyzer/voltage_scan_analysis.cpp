@@ -4,8 +4,8 @@
   {
 
 
-    int first_run = 305;
-    int last_run = 324;
+    int first_run = 442;
+    int last_run = 452;
 
     int all_runs = 0;
     TH1D *stack_ph[20][20];// = new TH1D("stack_ph","Pulse Heights vs Voltage",
@@ -33,9 +33,9 @@
       hv[all_runs] = hv_set[0];
       
       // Get pulse height histograms
-      for(int i = 0; i < 10; i++){
-        int ch = i;
-        if(i > 1) ch = i + 2;
+      for(int i = 0; i < 12; i++){
+        int ch = i+4;        
+        //if(i > 7) ch = i + 1;
         
         sprintf(name,"BRB_PH_%i;1",ch);
         TH1D *tmp = (TH1D*)f->Get(name);
@@ -44,7 +44,9 @@
         //
         int max_bin = 8;
         int max_value = 0;
-        for(int i = 11; i < 40; i++){
+        int start_bin = 11;
+        if(tmp->GetMean() > 20) start_bin = 20;
+        for(int i = start_bin; i < 40; i++){
           if(tmp->GetBinContent(i) > max_value){
             max_value = (tmp->GetBinContent(i));
             max_bin = tmp->GetBinCenter(i);
@@ -74,6 +76,7 @@
 
     std::cout << "Total number of runs: " << all_runs << std::endl;
 
+    
 
     for(int j = 0; j < 9; j++){
 
@@ -85,15 +88,15 @@
       
       for(int i = all_runs-1; i >= 0; i--){
         
-        //if(hv[i] % 50 != 0) continue;
+        if(hv[i] % 50 != 0) continue;
         
         if(i == all_runs-1){
           stack_ph[j][i]->Draw();
         }else{
           stack_ph[j][i]->Draw("SAME");
         }
-        stack_ph[j][i]->SetLineColor(i+1);
-        stack_ph[j][i]->GetFunction("gaus")->SetLineColor(i+1);
+        stack_ph[j][i]->SetLineColor(i);
+        stack_ph[j][i]->GetFunction("gaus")->SetLineColor(i);
         sprintf(name,"%iV",hv[i]);
         leg->AddEntry(stack_ph[j][i],name);
         
@@ -102,12 +105,17 @@
 
     }
 
+    std::cout << "Full plot " << std::endl;
     TCanvas *c2 = new TCanvas("Cvolt");
     TLegend *leg2 = new TLegend(0.1,0.6,0.4,0.89);
-    for(int i = 0; i < 9; i++){
+    for(int i = 0; i < 12; i++){
       char name[100];
-      if(i < 2){ sprintf(name,"Channel %i",i); }
-      else{ sprintf(name,"Channel %i",i+2); }
+
+      int ch = i+4; 
+
+
+      sprintf(name,"Channel %i",ch); 
+
       
       
       if(i == 0){
@@ -130,6 +138,33 @@
       }
       leg2->AddEntry(ph_vs_volt[i],name,"P");
 
+
+      // calculate operating HV
+      double target_ph = 16.0;
+      double x1,y1;
+      double x2,y2;
+      for(int j = 0; j < ph_vs_volt[i]->GetN() - 1; j++){
+        
+        ph_vs_volt[i]->GetPoint(j, x1, y1);
+        ph_vs_volt[i]->GetPoint(j+1, x2, y2);
+        if(y1 < target_ph && y2 > target_ph){
+          double b=y1;
+          double m=(y2-y1)/(x2-x1);
+	  
+          // y = m * (x-x1) + b
+          // (y - b)/m + x1 = x
+          double set_point = (target_ph - b)/m + x1;
+
+          std::cout << " Ch  " << ch  
+                    << " setpoint=" << set_point 
+                    << std::endl;
+
+          
+          break;
+        }
+
+      }
+      
     }
     leg2->Draw("SAME");
 
