@@ -19,13 +19,14 @@ int PMTControl::CheckActivePMTs(){
     fSocket->read(bigbuffer,size);
     std::string readback(bigbuffer);
     //    std::cout << "Readback from PMT: " << i << " " << readback << " |  " <<  readback.size() << std::endl;
-    if((readback.size() == 14 or readback.size() == 11) && (readback.substr(0,4) == std::string("01LG"))){
+    if((readback.size() == 14 or readback.size() == 11 or readback.size() == 10) 
+       && (readback.substr(0,4) == std::string("01LG"))){
       std::cout << "Active... " << i << std::endl;
       npmts_active++;
       fActivePMTs[i] = true;
     }else{
-            std::cout << "Not active: " << i << std::endl;
-      ///       << readback.compare(0,4,"01LG")
+      std::cout << "Not active: " << i << " " << readback.size() << std::endl;
+      std::cout       << readback << std::endl;
       fActivePMTs[i] = false;
     }
 
