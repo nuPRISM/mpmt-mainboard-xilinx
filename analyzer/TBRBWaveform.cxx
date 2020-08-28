@@ -71,8 +71,15 @@ void TBRBWaveform::UpdateHistograms(TDataContainer& dataContainer){
 
       int chan = measurements[i].GetChannel();
       int nsamples = measurements[i].GetNSamples();
+      int baseline = (int)BSingleton::GetInstance()->GetBaseline(chan);
       for(int ib = 0; ib < nsamples; ib++){
-	GetHistogram(chan)->SetBinContent(ib+1, measurements[i].GetSample(ib));
+	if(i != 1 || 1){
+	  GetHistogram(chan)->SetBinContent(ib+1, measurements[i].GetSample(ib));
+	}else{ // scale up channel 1
+	  int sample = measurements[i].GetSample(ib);
+	  sample = ((sample-baseline) * 60) + baseline; 
+	  GetHistogram(chan)->SetBinContent(ib+1, sample);
+	}
       }
       
     }
@@ -164,17 +171,23 @@ void TBRBWaveformHit::UpdateHistograms(TDataContainer& dataContainer){
       
       int nsamples = 1000;
       int baseline = (int)BSingleton::GetInstance()->GetBaseline(chan);
-      int threshold = baseline - 8;
+      int threshold = baseline - 5;
+      int threshold2 = baseline - 10;
       bool found_hit = false;
+      int pulse_height = 0;
       for(int ib = 0; ib < nsamples; ib++){
 	int sample = measurements[i].GetSample(ib);
 	if(sample < threshold){ // found a pulse                                                                                
+
+	  int ph = baseline-sample;
+	  if(ph > pulse_height) pulse_height = ph;
 	  found_hit = true;
 	}
       }
       
       
       if(found_hit){
+	//	std::cout << "Pulse height: " << pulse_height << std::endl;
 	int nsamples = measurements[i].GetNSamples();
 	for(int ib = 0; ib < nsamples; ib++){
 	  GetHistogram(chan)->SetBinContent(ib+1, measurements[i].GetSample(ib));
@@ -392,16 +405,18 @@ void TBRBPH::UpdateHistograms(TDataContainer& dataContainer){
       int min_value = 4096;
       //      int max_value = 0;
       //      for(int j = 262; j < 280; j++){
+      int min_bin = 0;
       for(int j = 0; j < 1000; j++){
 	if(measurements[i].GetSample(j) < min_value){
 	  min_value = measurements[i].GetSample(j);
+	  min_bin = j;
 	}
       }
       int baseline = (int)BSingleton::GetInstance()->GetBaseline(chan);
       int pulse_height = baseline - min_value;
       if(pulse_height > 5){
 	GetHistogram(chan)->Fill(pulse_height);
-	//if(chan == 4) std::cout << "Pulse height: " << chan << " " << pulse_height << " " << baseline << " " << min_value << std::endl;
+	//	if(chan == 1) std::cout << "Pulse height: " << chan << " " << pulse_height << " " << baseline << " " << min_value << " " << min_bin << std::endl;
       }
       
     }  

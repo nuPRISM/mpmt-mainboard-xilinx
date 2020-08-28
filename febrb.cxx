@@ -69,7 +69,7 @@ INT read_pmt_status(char *pevent, INT off);
 #undef USE_INT
 EQUIPMENT equipment[] = {
 
-  { EQ_NAME,                 /* equipment name */
+  { EQ_NAME "%02d",                 /* equipment name */
     {
       EQ_EVID, EQ_TRGMSK,     /* event ID, trigger mask */
       "SYSTEM",              /* event buffer */
@@ -86,7 +86,7 @@ EQUIPMENT equipment[] = {
     },
     read_slow_control,       /* readout routine */
   }, 
-  { "PMTS",                 /* equipment name */
+  { "PMTS"  "%02d",                 /* equipment name */
     {
       EQ_EVID, EQ_TRGMSK,     /* event ID, trigger mask */
       "SYSTEM",              /* event buffer */
@@ -168,13 +168,51 @@ INT frontend_init()
   // Setup the socket connection
   // using new C++ ODB!
   
-  midas::odb::set_debug(true);
+  //  midas::odb::set_debug(true);
+  char names1[200], names2[200], names3[200];
+  sprintf(names1,"Names BRV%i",get_frontend_index());
+  sprintf(names2,"Names BRT%i",get_frontend_index());
+  sprintf(names3,"Names BRH%i",get_frontend_index());
+ 
   midas::odb o = {
     {"host", "brb00"},
-    {"port", 35},
+    {"port", 40},
+    {names1, std::array<std::string, 16>{}},
+    {names2, std::array<std::string, 4>{}},
+    {names3, std::array<std::string, 2>{}},
   };
 
-  o.connect("/Equipment/BRB/Settings");
+  std::cout << "Names : " << names2 << std::endl;
+
+  // Set the names for the ODB keys
+  o[names1][0] = "+5V Amp Current";
+  o[names1][1] = "+5V Amp Voltage";
+  o[names1][2] = "-5V PMT Current";
+  o[names1][3] = "-5V PMT Voltage";
+  o[names1][4] = "+1.8V ADC Current";
+  o[names1][5] = "+1.8V ADC Voltage";
+  o[names1][6] = "+5V PMT Current";
+  o[names1][7] = "+5V PMT Voltage";
+  o[names1][8] = "+3.3V PMT Current";
+  o[names1][9] = "+3.3V PMT Voltage";
+  o[names1][10] = "-4V Amp Current";
+  o[names1][11] = "-4V Amp Voltage";
+  o[names1][12] = "+12V POE Current";
+  o[names1][13] = "+12V POE Voltage";
+  o[names1][14] = "+3.3V non-SoM Current";
+  o[names1][15] = "+3.3V non-SoM Voltage";
+
+  o[names2][0] = "ADC3 Temp";
+  o[names2][1] = "Temp2";
+  o[names2][2] = "Temp3";
+  o[names2][3] = "Pressure Sensor Temp";
+
+  o[names3][0] = "Humidity";
+  o[names3][1] = "Pressure";
+
+  char eq_dir[200];
+  sprintf(eq_dir,"/Equipment/BRB%02i/Settings",get_frontend_index());
+  o.connect(eq_dir);
 
   // Open socket to BRB
   std::cout << "Opening socket to  " << o["host"] << ":" << o["port"] << std::endl;
@@ -191,7 +229,7 @@ INT frontend_init()
 
 
   // Setup control of PMTs
-  pmts = new PMTControl(gSocket);
+  pmts = new PMTControl(gSocket, get_frontend_index());
 
 
 
@@ -225,34 +263,39 @@ INT begin_of_run(INT run_number, char *error)
     {"channel mask", 0x1f }
   };
   
-  o.connect("/Equipment/BRB/Settings");
+  //  o.connect("/Equipment/BRB/Settings");
+  char eq_dir[200];
+  sprintf(eq_dir,"/Equipment/BRB%02i/Settings",get_frontend_index());
+  o.connect(eq_dir);
+
+  std::cout << "Connected?  " << o.is_connected_odb() << std::endl;
 
   // Use the test pattern, if requested
-  BOOL testPattern = o["testPatternAdc"];
+  BOOL testPattern = o["testPatternADC"];
   
   // Do settings for each ADC
-  for(int i = 61; i < 66; i++){
+  for(int i = 0; i < 5; i++){
     
     // Use offset binary encoding (rathers than twos complement)
-    sprintf(buffer,"uart_regfile_ctrl_write %i 9 1 0\r\n",i);
+    sprintf(buffer,"custom_command set_adc_data_format %i 1\r\n",i);
     SendBrbCommand(buffer);
 
-    if(testPattern && i == 61){
-      cm_msg(MINFO,"BOR","Using test pattern for ADC");
-      sprintf(buffer,"uart_regfile_ctrl_write %i a 99 0\r\n",i);
+    if(testPattern){
+      cm_msg(MINFO,"BOR","Using test pattern for ADC %i",i);
+      sprintf(buffer,"custom_command enable_adc_test_signals %i\r\n",i);
       SendBrbCommand(buffer);
-      sprintf(buffer,"uart_regfile_ctrl_write %i b 99 0\r\n",i);
-      SendBrbCommand(buffer);
-      sprintf(buffer,"uart_regfile_ctrl_write %i 6 2 0\r\n",i);
-      SendBrbCommand(buffer);
+      for(int j = 0; j < 4; j++){
+	sprintf(buffer,"custom_command set_adc_test_signal_type %i %i 9 \r\n",i,j);
+	SendBrbCommand(buffer);
+      }
     }else{
       std::cout << "Not using test pattern " << std::endl;
-      sprintf(buffer,"uart_regfile_ctrl_write %i a 0 0\r\n",i);
+      sprintf(buffer,"custom_command disable_adc_test_signals %i\r\n",i);
       SendBrbCommand(buffer);
-      sprintf(buffer,"uart_regfile_ctrl_write %i b 0 0\r\n",i);
-      SendBrbCommand(buffer);
-      sprintf(buffer,"uart_regfile_ctrl_write %i 6 0 0\r\n",i);
-      SendBrbCommand(buffer);    
+      for(int j = 0; j < 4; j++){
+	sprintf(buffer,"custom_command set_adc_test_signal_type %i %i 0 \r\n",i,j);
+	SendBrbCommand(buffer);
+      }
     }
   }
 
@@ -280,11 +323,11 @@ INT begin_of_run(INT run_number, char *error)
   usleep(20000);
   BOOL software_trigger = (bool)(o["enableSoftwareTrigger"]);
   if(software_trigger){
-      cm_msg(MINFO,"BOR","Enabling software trigger");
-      SendBrbCommand("uart_regfile_ctrl_write 0 1 1 0\r\n");
+    cm_msg(MINFO,"BOR","Enabling software trigger");
+    SendBrbCommand("custom_command ENABLE_EMULATED_TRIGGER\r\n");
   }else{
-      cm_msg(MINFO,"BOR","Disabling software trigger");
-    SendBrbCommand("uart_regfile_ctrl_write 0 1 0 0\r\n");
+    cm_msg(MINFO,"BOR","Disabling software trigger");
+    SendBrbCommand("custom_command DISABLE_EMULATED_TRIGGER\r\n");
   }
   usleep(200000);
   SendBrbCommand("custom_command enable_dsp_processing \n");
@@ -382,6 +425,56 @@ int Nloop, Ncount;
 int dummy_counter = 0;
 struct timeval last_event_time;  
 
+
+// Function for returning a BRB value
+float get_brb_value(std::string command, bool with_ok=false){
+
+  // Read temperature                                                                                                                                                                               
+  char buffer[200];
+  sprintf(buffer,"%s\r\n",command.c_str());
+  int size=sizeof(buffer);
+  gSocket->write(buffer,size);
+
+  char bigbuffer[500];
+  size = sizeof(bigbuffer);
+  gSocket->read(bigbuffer,size);
+
+  std::string readback(bigbuffer);
+  std::vector<std::string> values;
+  std::size_t current, previous = 0;
+  current = readback.find("\r");
+  while (current != std::string::npos) {
+    values.push_back(readback.substr(previous, current - previous));
+    previous = current + 1;
+    current = readback.find("\r", previous);
+  }
+  values.push_back(readback.substr(previous, current - previous));
+
+  float value = strtof (values[0].c_str(), NULL);
+  if(with_ok){
+    std::vector<std::string> values2;
+    std::size_t current, previous = 0;
+    current = values[0].find("+");
+    while (current != std::string::npos) {
+      values2.push_back(values[0].substr(previous, current - previous));
+      previous = current + 1;
+      current = values[0].find("+", previous);
+    }
+    values2.push_back(values[0].substr(previous, current - previous));
+    
+    //    std::cout << "with ok Values: " << values2.size() << " " << values2[0] << " " << values2[2] << std::endl;
+    if(values2.size() == 3) value = strtof (values2[2].c_str(), NULL);
+
+  }
+
+  //   std::cout << "get brb value: " << command << " " << buffer 
+  //	     << " readback=" << readback << " | values="  << values[0] << " value=" << value << std::endl;
+  
+  return value;
+
+
+}
+
 /*-- Event readout -------------------------------------------------*/
 INT read_slow_control(char *pevent, INT off)
 {
@@ -390,173 +483,87 @@ INT read_slow_control(char *pevent, INT off)
   bk_init32(pevent);
 
   float *pddata;
+  char command[200];
   
   // Bank names must be exactly four char
-  bk_create(pevent, "BRV0", TID_FLOAT, (void**)&pddata);
+  char bank_name[20];
+  sprintf(bank_name,"BRV%i",get_frontend_index());
+  bk_create(pevent, bank_name, TID_FLOAT, (void**)&pddata);
 
   for(int j = 0; j < 8; j++){
 
     double resistor = 1.0;
-    if(j==0){
-      //      std::cout << "LDO1: " ;//" << std::endl;
-      resistor = 0.1;
-    }
-    ///    if(j==1) std::cout << "LDO2: " ;//" << std::endl;
-    if(j==2){
-      //std::cout << "LDO3: " ;//" << std::endl;
-      resistor =200;
-    }
-    if(j==3){
-      //std::cout << "LDO4: " ;//" << std::endl;
-    }
-    if(j==4){
-      //std::cout << "LDO5: " ;//" << std::endl;
-    }
-    if(j==5){
-      //std::cout << "LDO6: " ;//" << std::endl;
-      resistor =0.1;
-    }
-    if(j==6){
-      //std::cout << "reg 77: " ;//" << std::endl;                                                                                              
-      resistor =0.05;
-    }
-    if(j==7){
-      //std::cout << "reg 78: " ;//" << std::endl;                                                                                              
-      resistor =0.05;
-    }
+    if(j==0){ resistor = 0.1; }
+    if(j==2){ resistor =200; }
+    if(j==5){ resistor =0.1; }
+    if(j==6){ resistor =0.05; }
+    if(j==7){ resistor =0.05;}
 
 
     struct timeval t1;  
     gettimeofday(&t1, NULL);
 
-    // Read a current/voltage sensor
-    char buffer[200];
-    sprintf(buffer,"uart_read_all_ctrl %i 0\r\n",j+72);
-    int size=sizeof(buffer);
-    gSocket->write(buffer,size);
+    // Read voltage
+    sprintf(command,"custom_command ldo_get_voltage %i",j+1);
+    double voltage = get_brb_value(command);
+    sprintf(command,"custom_command ldo_get_power %i",j+1);
+    double shunt_voltage = get_brb_value(command);
     
-    int counter = 0;
-    bool notdone = true;
-    if(0)    while(counter < 10000 && notdone){
-      //    std::cout << "Checking counter" << counter <<  std::endl;
-      if(gSocket->available()){
-	notdone = false;
-      }else{
-	usleep(10000);
-      }
-      counter++;      
+    float shunt_current = 1000.0*shunt_voltage/resistor;
+    if(j==2){
+      shunt_current = 1000.0*(shunt_voltage/resistor)/0.0004;
     }
-    struct timeval t2;  
-    gettimeofday(&t2, NULL);
-      
-    double dtime = t2.tv_sec - t1.tv_sec + (t2.tv_usec - t1.tv_usec)/1000000.0;
-
-    char bigbuffer[500];
-    size = sizeof(bigbuffer);
-    gSocket->read(bigbuffer,size);
-
-    struct timeval t3;  
-    gettimeofday(&t3, NULL);
-      
-    double dtime2 = t3.tv_sec - t1.tv_sec + (t3.tv_usec - t1.tv_usec)/1000000.0;
-    //    std::cout << bigbuffer << std::endl;
-    std::string readback(bigbuffer);
-    std::vector<std::string> values;
-    std::size_t current, previous = 0;
-    current = readback.find("+");
-    while (current != std::string::npos) {
-      values.push_back(readback.substr(previous, current - previous));
-      previous = current + 1;
-      current = readback.find("+", previous);
-    }
-    values.push_back(readback.substr(previous, current - previous));
+    *pddata++ = shunt_current;
     
-    //for(int i = 0; i < values.size()-3; i++){
-    //        std::cout << values[i] << ", ";
-    // }
-    //std::cout << " |  resistance / current / voltage : ";
-    for(int i = 0; i < values.size()-2; i++){
-      //      std::cout << values[i] << ", ";
-      if(i == 3){
-	long int ivolt = strtol(values[i].c_str(),NULL,0);
-	uint32_t svolt_ = (ivolt & 0x7fff);
-	if((ivolt & 0x8000)){ // handle twos complement encoding
-	  svolt_ = 0x7fff - svolt_;
-	}
-	double shunt_volt = ((double)(svolt_)) *0.00001; 
-	float shunt_current = 1000.0*shunt_volt/resistor;
-	//std::cout << resistor << "ohm, ";
-	///std::cout << shunt_volt << "V, ";
-	//std::cout << shunt_current << "mA, ";
-	if(j==2){
-	  shunt_current = 1000.0*(shunt_volt/resistor)/0.0004;
-	  //std::cout << "Special LDO3 current = "  << shunt_current << "mA, ";
-	}
-	*pddata++ = shunt_current;
-      }
-      if(i == 5){
-	long int ivolt = strtol(values[i].c_str(),NULL,0);
-	double bus_volt = ((double)(ivolt >>3)) *0.004; 
-	//std::cout << bus_volt <<"V ";
-	*pddata++ = bus_volt;
-      }
-    }
-    //std::cout << " dt=" << dtime << " " << dtime2 << std::endl;
+    *pddata++ = voltage;
+
 
   }
     
 
   bk_close(pevent, pddata);	
   
-
+  // Get temperatures
 
   float *pddata2;
   
-  bk_create(pevent, "BRT0", TID_FLOAT, (void**)&pddata2);
+  sprintf(bank_name,"BRT%i",get_frontend_index());
+  bk_create(pevent, bank_name, TID_FLOAT, (void**)&pddata2);
 
   std::cout << "Temp: ";
   for(int j = 1; j < 4; j++){
 
-    //std::cout << "temp: " << j << std::endl;
-
-    struct timeval t1;  
-    gettimeofday(&t1, NULL);
-
     // Read temperature
-    char buffer[200];
-    sprintf(buffer,"custom_command get_temp %i\r\n",j);
-    int size=sizeof(buffer);
-    gSocket->write(buffer,size);
-    
-    char bigbuffer[500];
-    size = sizeof(bigbuffer);
-    gSocket->read(bigbuffer,size);
-
-    struct timeval t3;  
-    gettimeofday(&t3, NULL);
-      
-
-    std::string readback(bigbuffer);
-    std::vector<std::string> values;
-    std::size_t current, previous = 0;
-    current = readback.find("\r");
-    while (current != std::string::npos) {
-      values.push_back(readback.substr(previous, current - previous));
-      previous = current + 1;
-      current = readback.find("\r", previous);
-    }
-    values.push_back(readback.substr(previous, current - previous));
-    
-    float temperature = strtof (values[0].c_str(), NULL);
+    sprintf(command,"custom_command get_temp %i",j);
+    float temperature = get_brb_value(command);
     std::cout << temperature << " " ; 
     *pddata2++ = temperature;
 
-
   }
-  std::cout << std::endl;
+
+  float temperature = get_brb_value("custom_command get_pressure_sensor_temp",true);
+  *pddata2++ = temperature;
+  
+  std::cout << " " << temperature << std::endl;
 
   bk_close(pevent, pddata2);	
 
+
+  // Save humidity and pressure
+  float *pddata3;
+
+  sprintf(bank_name,"BRH%i",get_frontend_index());
+  bk_create(pevent, bank_name, TID_FLOAT, (void**)&pddata3);
+
+  float humidity = 0.0;
+  float pressure = get_brb_value("custom_command get_pressure",true);
+  
+  *pddata3++ = humidity;
+  *pddata3++ = pressure;
+
+  std::cout << "Pressure/Humidity : " << pressure << " " << humidity << std::endl;
+
+  bk_close(pevent, pddata3);
   
 
 

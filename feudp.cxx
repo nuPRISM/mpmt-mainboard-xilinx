@@ -368,7 +368,6 @@ int frontend_loop()
    return SUCCESS;
 }
 
-int gSelectADC;
 int begin_of_run(int run_number, char *error)
 {
    gUnknownPacketCount = 0;
@@ -379,11 +378,6 @@ int begin_of_run(int run_number, char *error)
    fLastFrameID = 0;
    fGotFirstPacket = false; 
 
-   // Get selected ADC from ODB
-   gSelectADC = 0;
-   int size = sizeof(gSelectADC);
-   int status = db_get_value(hDB, 0, "/Equipment/BRB/Settings/selectADC", &gSelectADC, &size, TID_INT, TRUE);
-   std::cout << "Using ADC: "<< gSelectADC << std::endl;
 
    return SUCCESS;
 }
@@ -494,7 +488,6 @@ int read_event(char *pevent, int off)
    // save the data in overall packet.  Endian flip
    for(int i  = 0; i < length/2; i++){
       uint16_t tmp = (((data[i] & 0xff00)>>8) | ((data[i] & 0xff)<<8));
-      //if(i == 19) tmp += gSelectADC * 4; // fix the channel number
       
       event_data.push_back(tmp);
    }

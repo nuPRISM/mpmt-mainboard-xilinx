@@ -19,14 +19,15 @@ int PMTControl::CheckActivePMTs(){
     size = sizeof(bigbuffer);
     fSocket->read(bigbuffer,size);
     std::string readback(bigbuffer);
-    std::cout << "Readback from PMT: " << i << " " << readback << " |  " <<  readback.size() << std::endl;
-    if((readback.size() == 14 or readback.size() == 11 or readback.size() == 10 ) && (readback.substr(0,4) == std::string("01LG"))){
-      //std::cout << "Active... " << i << std::endl;
+    //    std::cout << "Readback from PMT: " << i << " " << readback << " |  " <<  readback.size() << std::endl;
+    if((readback.size() == 14 or readback.size() == 11 or readback.size() == 10) 
+       && (readback.substr(0,4) == std::string("01LG"))){
+      std::cout << "Active... " << i << std::endl;
       npmts_active++;
       fActivePMTs[i] = true;
     }else{
-            std::cout << "Not active: " << i << " " << readback.size()<< std::endl;
-      ///       << readback.compare(0,4,"01LG")
+      std::cout << "Not active: " << i << " " << readback.size() << std::endl;
+      std::cout       << readback << std::endl;
       fActivePMTs[i] = false;
     }
 
@@ -47,9 +48,12 @@ int PMTControl::CheckActivePMTs(){
 void PMTControl::callback(midas::odb &o) {
 
   int gSelectedChannel = o.get_last_index();
+  std::cout << "Change value for " << gSelectedChannel << " " << o.get_full_path() << std::endl;
   // check that the selected PMT is active
-  if(!fActivePMTs[gSelectedChannel])
+  if(!fActivePMTs[gSelectedChannel]){
     std::cout << "Channel " << gSelectedChannel << " is inactive; ignoring set command " << std::endl;
+    return; 
+  }
 
   SetCommand("SetChannel",gSelectedChannel);
   
@@ -101,7 +105,7 @@ bool PMTControl::SetCommand(std::string command, int value){
   
   
   std::string readback(bigbuffer);
-  std::cout << "readback: " << readback << " | " << readback.size() << std::endl;
+  //  std::cout << "readback: " << readback << " | " << readback.size() << std::endl;
   readback.pop_back();
   readback.pop_back(); 
   readback.pop_back(); 
@@ -122,12 +126,15 @@ bool PMTControl::SetCommand(std::string command, int value){
   return true;
 }
 
-PMTControl::PMTControl(KOsocket *socket){
+PMTControl::PMTControl(KOsocket *socket, int index){
 
   // Save connection to socket.
   fSocket = socket;
 
-  midas::odb::set_debug(true); 
+  // Save frontend index
+  fe_index = index;
+
+  //  midas::odb::set_debug(true); 
   
   //Get ODB values (new C++ ODB!)                                                                                                                             
   midas::odb pmts = {
@@ -138,10 +145,13 @@ PMTControl::PMTControl(KOsocket *socket){
 
   };
 
-  pmts.connect("/Equipment/PMTS/Settings");
+
+  char eq_dir[200];
+  sprintf(eq_dir,"/Equipment/PMTS%02i/Settings",get_frontend_index());
+  pmts.connect(eq_dir);
 
   // Setup the DB watch for the PMT settings
-  pmt_watch.connect("/Equipment/PMTS/Settings");
+  pmt_watch.connect(eq_dir);
   std::function<void(midas::odb &o)> f = [=](midas::odb &o) {  this->callback(o);  };
   pmt_watch.watch(f);
 
@@ -150,7 +160,7 @@ PMTControl::PMTControl(KOsocket *socket){
 
   // Check which PMTs are plugged in and responding.
   fActivePMTs = std::vector<bool>(20,false);
-  int npmts = CheckActivePMTs();
+  CheckActivePMTs();
 
 }
 
@@ -192,7 +202,7 @@ float PMTControl::ReadValue(std::string command,int chan){
   fSocket->read(bigbuffer,size);
   struct timeval t2;
   gettimeofday(&t2, NULL);
-  double dtime = t2.tv_sec - t1.tv_sec + (t2.tv_usec - t1.tv_usec)/1000000.0;
+  //double dtime = t2.tv_sec - t1.tv_sec + (t2.tv_usec - t1.tv_usec)/1000000.0;
   //  std::cout << "Time to read one value:: " << dtime*1000.0 << " ms " << std::endl;
   
   std::string readback(bigbuffer);
@@ -237,29 +247,34 @@ int PMTControl::GetStatus(char *pevent, INT off)
   struct timeval t2;
   gettimeofday(&t2, NULL);
 
-  double dtime = t2.tv_sec - t1.tv_sec + (t2.tv_usec - t1.tv_usec)/1000000.0;
+  ///  double dtime = t2.tv_sec - t1.tv_sec + (t2.tv_usec - t1.tv_usec)/1000000.0;
   
   float *pddata;  
   // Read currents from PMT
-  bk_create(pevent, "PMI0", TID_FLOAT, (void**)&pddata);
+  char bank_name[20];
+  sprintf(bank_name,"PMI%i",get_frontend_index());
+  bk_create(pevent, bank_name, TID_FLOAT, (void**)&pddata);
   for(int i = 0; i < 20; i++){ *pddata++ = current[i];  }
   bk_close(pevent, pddata);
 
   float *pddata2;
   // Readback voltages from PMT
-  bk_create(pevent, "PMV0", TID_FLOAT, (void**)&pddata2);
+  sprintf(bank_name,"PMV%i",get_frontend_index());
+  bk_create(pevent, bank_name, TID_FLOAT, (void**)&pddata2);
   for(int i = 0; i < 20; i++){ *pddata2++ = read_volt[i];} 
   bk_close(pevent, pddata2);
   
   float *pddata3;
   // measured voltages from PMT
-  bk_create(pevent, "PMH0", TID_FLOAT, (void**)&pddata3);  
+  sprintf(bank_name,"PMH%i",get_frontend_index());
+  bk_create(pevent, bank_name, TID_FLOAT, (void**)&pddata3);  
   for(int i = 0; i < 20; i++){ *pddata3++ = set_volt[i];}  
   bk_close(pevent, pddata3);
 
   int *pddata4;
   // ON/OFF  from PMT
-  bk_create(pevent, "PMG0", TID_INT, (void**)&pddata4);
+  sprintf(bank_name,"PMG%i",get_frontend_index());
+  bk_create(pevent, bank_name, TID_INT, (void**)&pddata4);
   for(int i = 0; i < 20; i++){ *pddata4++ = (int)state[i];} 
   bk_close(pevent, pddata4);
 
@@ -275,7 +290,7 @@ int PMTControl::GetStatus(char *pevent, INT off)
   //for(int i = 0; i < 20; i++){ *pddata5++ = (int)trip_state[i];} 
   //bk_close(pevent, pddata5);
 
-  int *pddata5;
+  //  int *pddata5;
   // HV setpoint  from PMT
   //bk_create(pevent, "PMR0", TID_INT, (void**)&pddata5);
   //for(int i = 0; i < 20; i++){ *pddata5++ = (int)ramp_rate[i];} 
