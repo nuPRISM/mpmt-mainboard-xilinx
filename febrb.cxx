@@ -185,8 +185,8 @@ INT frontend_init()
   std::cout << "Names : " << names2 << std::endl;
 
   // Set the names for the ODB keys
-  o[names1][0] = "+5V Amp Current";
-  o[names1][1] = "+5V Amp Voltage";
+  o[names1][0] = "+6V Amp Current";
+  o[names1][1] = "+6V Amp Voltage";
   o[names1][2] = "-5V PMT Current";
   o[names1][3] = "-5V PMT Voltage";
   o[names1][4] = "+1.8V ADC Current";
