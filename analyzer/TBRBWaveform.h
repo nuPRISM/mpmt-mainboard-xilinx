@@ -103,6 +103,22 @@ public:
 };
 
 
+/// Class for making histograms of big pulseheights;
+class TBRBPHBig : public THistogramArrayBase {
+public:
+  TBRBPHBig();
+  virtual ~TBRBPHBig(){};
+
+  void UpdateHistograms(TDataContainer& dataContainer);
+
+  void CreateHistograms();
+  
+  /// Take actions at begin run
+  void BeginRun(int transition,int run,int time){ CreateHistograms(); }
+
+};
+
+
 /// Pulse Times
 class TBRB_Time : public THistogramArrayBase {
 public:

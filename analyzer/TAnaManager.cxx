@@ -11,6 +11,7 @@ TAnaManager::TAnaManager(bool isoffline){
   AddHistogram(new TBRBBaseline());
   AddHistogram(new TBRBRMS());
   AddHistogram(new TBRBPH());
+  AddHistogram(new TBRBPHBig());
   AddHistogram(new TBRB_Time());
   AddHistogram(new TBRBWaveformHit());
 

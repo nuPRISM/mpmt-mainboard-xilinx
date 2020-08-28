@@ -379,12 +379,7 @@ void TBRBPH::CreateHistograms(){
     
     sprintf(title,"BRB Pulse Height for channel=%i",i);	
 
-    TH1D *tmp;
-    if(i == 0){
-      tmp= new TH1D(name, title, 500, 0.5, 2000.5);
-    }else{
-      tmp= new TH1D(name, title, 500, 0.5, 500.5);
-    }
+    TH1D *tmp= new TH1D(name, title, 50, 0.5, 50.5);
     tmp->SetXTitle("Pulse Height");
     push_back(tmp);
   }
@@ -392,6 +387,76 @@ void TBRBPH::CreateHistograms(){
 
 
 void TBRBPH::UpdateHistograms(TDataContainer& dataContainer){
+  
+  TBRBRawData *dt743 = dataContainer.GetEventData<TBRBRawData>("BRB0");
+  
+  if(dt743){      
+     
+    std::vector<RawBRBMeasurement> measurements = dt743->GetMeasurements();
+    for(int i = 0; i < measurements.size(); i++){
+      
+      int chan = measurements[i].GetChannel();
+      int nsamples = measurements[i].GetNSamples();
+      int min_value = 4096;
+      //      int max_value = 0;
+      //      for(int j = 262; j < 280; j++){
+      int min_bin = 0;
+      for(int j = 0; j < 1000; j++){
+	if(measurements[i].GetSample(j) < min_value){
+	  min_value = measurements[i].GetSample(j);
+	  min_bin = j;
+	}
+      }
+      int baseline = (int)BSingleton::GetInstance()->GetBaseline(chan);
+      int pulse_height = baseline - min_value;
+      if(pulse_height > 5){
+	GetHistogram(chan)->Fill(pulse_height);
+	//	if(chan == 1) std::cout << "Pulse height: " << chan << " " << pulse_height << " " << baseline << " " << min_value << " " << min_bin << std::endl;
+      }
+      
+    }  
+  }
+  
+}
+
+
+
+/// Reset the histograms for this canvas
+TBRBPHBig::TBRBPHBig(){
+  SetSubTabName("BRB Pulse Height Big");  
+  CreateHistograms();
+}
+
+
+void TBRBPHBig::CreateHistograms(){
+
+  // check if we already have histogramss.
+  char tname[100];
+  sprintf(tname,"BRB_PH_Big_%i",0);
+
+  TH1D *tmp = (TH1D*)gDirectory->Get(tname);
+  if (tmp) return;
+
+  // Otherwise make histograms
+  clear();
+  
+  for(int i = 0; i < 20; i++){ // loop over 2 channels
+    
+    char name[100];
+    char title[100];
+    sprintf(name,"BRB_PH_Big_%i",i);
+    
+    sprintf(title,"BRB Pulse Height (Big) for channel=%i",i);	
+
+    TH1D *tmp= new TH1D(name, title, 500, 0.5, 2000.5);
+
+    tmp->SetXTitle("Pulse Height");
+    push_back(tmp);
+  }
+}
+
+
+void TBRBPHBig::UpdateHistograms(TDataContainer& dataContainer){
   
   TBRBRawData *dt743 = dataContainer.GetEventData<TBRBRawData>("BRB0");
   

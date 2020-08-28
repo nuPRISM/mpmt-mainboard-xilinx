@@ -19,6 +19,10 @@
     "MaxChannels" : 20,
     "WebserverName" : "BRB_PH"
   },
+  "Pulse Height Big" : {
+    "MaxChannels" : 20,
+    "WebserverName" : "BRB_PH_Big"
+  },
   "Pulse Time" : {
     "MaxChannels" : 20,
     "WebserverName" : "BRB_Time"
