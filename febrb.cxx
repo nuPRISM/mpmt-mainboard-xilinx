@@ -263,7 +263,6 @@ INT begin_of_run(INT run_number, char *error)
     {"channel mask", 0x1f }
   };
   
-  //  o.connect("/Equipment/BRB/Settings");
   char eq_dir[200];
   sprintf(eq_dir,"/Equipment/BRB%02i/Settings",get_frontend_index());
   o.connect(eq_dir);
