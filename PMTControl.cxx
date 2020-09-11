@@ -278,11 +278,17 @@ int PMTControl::GetStatus(char *pevent, INT off)
   for(int i = 0; i < 20; i++){ *pddata4++ = (int)state[i];} 
   bk_close(pevent, pddata4);
 
-  //int *pddata5;
+  int *pddata5; // is channel plugged in?
   // ramp rate  from PMT
-  //bk_create(pevent, "PMR0", TID_INT, (void**)&pddata5);
-  //for(int i = 0; i < 20; i++){ *pddata5++ = (int)ramp_rate[i];} 
-  //bk_close(pevent, pddata5);
+  bk_create(pevent, "PMA0", TID_INT, (void**)&pddata5);
+  for(int i = 0; i < 20; i++){
+    if(fActivePMTs[i])
+      *pddata5++ = 1;
+    else
+      *pddata5++ = 0;
+  }
+
+  bk_close(pevent, pddata5);
 
   //int *pddata5;
   // trip state  from PMT
