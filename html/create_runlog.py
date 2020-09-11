@@ -92,7 +92,12 @@ class runlog:
     beamon_time = 0
     brb_events = odb['Equipment']['UDP']['Statistics']['Events sent']
 
-    hv_set = odb['Equipment']['PMTS']['Settings']['HVset'][0]
+    hv_set = 0
+    if "PMTS00" in odb['Equipment']:
+      hv_set = odb['Equipment']['PMTS00']['Settings']['HVset'][0]
+    if "PMTS" in odb['Equipment']:
+      hv_set = odb['Equipment']['PMTS00']['Settings']['HVset'][0]
+      
     comment = "*NO COMMENT FIELD*"
     laser = False
     if "Edit on start" in odb['Experiment']:
