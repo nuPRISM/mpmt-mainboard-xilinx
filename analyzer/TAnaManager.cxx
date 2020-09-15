@@ -14,6 +14,10 @@ TAnaManager::TAnaManager(bool isoffline){
   AddHistogram(new TBRBPHBig());
   AddHistogram(new TBRB_Time());
   AddHistogram(new TBRBWaveformHit());
+  rate_histos = new TBRB_Rates();
+  AddHistogram(rate_histos);
+  rate_single_histos = new TBRB_Rates_Single();
+  AddHistogram(rate_single_histos);
 
   for(int i = 0; i < 20; i++){
     number_dark_pulses.push_back(0.0);
@@ -151,8 +155,14 @@ int TAnaManager::ProcessMidasEvent(TDataContainer& dataContainer){
 	rate = number_dark_pulses[chan]/time;            
 	rate_single = number_dark_pulses_single[chan]/time;            
       }
+      // Save rate in ODB
       o["Dark Rate"][chan] = rate;
       o["Dark Rate Single"][chan] = rate_single;
+
+      // Fill histograms with rate as well.
+      rate_histos->GetHistogram(chan)->Fill(rate);
+      rate_single_histos->GetHistogram(chan)->Fill(rate_single);
+      
       if (chan == 8) std::cout << "Rate: " << chan << " " << rate << std::endl;
       number_dark_pulses[chan] = 0.0;
       number_dark_pulses_single[chan] = 0.0;

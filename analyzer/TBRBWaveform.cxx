@@ -592,5 +592,82 @@ void TBRB_Time::UpdateHistograms(TDataContainer& dataContainer){
 
 
 
+/// Reset the histograms for this canvas
+TBRB_Rates::TBRB_Rates(){
+  SetSubTabName("BRB Dark Rates");  
+  CreateHistograms();
+
+}
+
+void TBRB_Rates::CreateHistograms(){
+
+  // check if we already have histogramss.
+  char tname[100];
+  sprintf(tname,"BRB_Rates_%i",0);
+
+  TH1D *tmp = (TH1D*)gDirectory->Get(tname);
+  if (tmp) return;
+
+  // Otherwise make histograms
+  clear();
+  
+  for(int i = 0; i < 20; i++){ // loop over 2 channels
+    
+    char name[100];
+    char title[100];
+    sprintf(name,"BRB_Rates_%i",i);
+    
+    sprintf(title,"PMT Dark Noise Rate for channel=%i",i);	
+
+
+    TH1D *tmp = new TH1D(name, title, 400,0,2000);
+    tmp->SetXTitle("Pulse Time (ns)");
+    push_back(tmp);
+  }
+}
+
+
+
+
+/// Reset the histograms for this canvas
+TBRB_Rates_Single::TBRB_Rates_Single(){
+  SetSubTabName("BRB Dark Rates");  
+  CreateHistograms();
+
+}
+
+void TBRB_Rates_Single::CreateHistograms(){
+
+  // check if we already have histogramss.
+  char tname[100];
+  sprintf(tname,"BRB_Rates_Single_%i",0);
+
+  TH1D *tmp = (TH1D*)gDirectory->Get(tname);
+  if (tmp) return;
+
+  // Otherwise make histograms
+  clear();
+  
+  for(int i = 0; i < 20; i++){ // loop over 2 channels
+    
+    char name[100];
+    char title[100];
+    sprintf(name,"BRB_Rates_Single_%i",i);
+    
+    sprintf(title,"PMT Dark Noise Rate (uncorrelated) for channel=%i",i);	
+
+
+    TH1D *tmp = new TH1D(name, title, 400,0,2000);
+    tmp->SetXTitle("Pulse Time (ns)");
+    push_back(tmp);
+  }
+}
+
+
+
+
+
+
+
 
 

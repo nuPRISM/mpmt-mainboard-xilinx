@@ -81,6 +81,9 @@ private:
   bool fIsOffline;
 
   TTree *fTree; // tree just to save HV settings
+
+  TBRB_Rates *rate_histos;
+  TBRB_Rates_Single *rate_single_histos;
   
 };
 

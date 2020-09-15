@@ -137,6 +137,37 @@ public:
 
 };
 
+
+/// Dark Noise Rates
+class TBRB_Rates : public THistogramArrayBase {
+public:
+  TBRB_Rates();
+  virtual ~TBRB_Rates(){};
+
+  void UpdateHistograms(TDataContainer& dataContainer){}
+
+  void CreateHistograms();
+  
+  /// Take actions at begin run
+  void BeginRun(int transition,int run,int time){ CreateHistograms(); }
+
+};
+
+/// Dark Noise Rates
+class TBRB_Rates_Single : public THistogramArrayBase {
+public:
+  TBRB_Rates_Single();
+  virtual ~TBRB_Rates_Single(){};
+
+  void UpdateHistograms(TDataContainer& dataContainer){}
+
+  void CreateHistograms();
+  
+  /// Take actions at begin run
+  void BeginRun(int transition,int run,int time){ CreateHistograms(); }
+
+};
+
 #endif
 
 

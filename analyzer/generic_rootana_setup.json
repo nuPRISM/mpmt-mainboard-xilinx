@@ -27,6 +27,14 @@
     "MaxChannels" : 20,
     "WebserverName" : "BRB_Time"
   },
+  "PMT Rate" : {
+    "MaxChannels" : 20,
+    "WebserverName" : "BRB_Rates"
+  },
+  "PMT Rate (uncorrelated)" : {
+    "MaxChannels" : 20,
+    "WebserverName" : "BRB_Rates_Single"
+  },
   "DisplaySettings" : {
     "DisplayStyle" : "root",
     "UpdatePeriod" : 1000
