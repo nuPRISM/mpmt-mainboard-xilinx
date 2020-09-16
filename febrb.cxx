@@ -260,7 +260,8 @@ INT begin_of_run(INT run_number, char *error)
     {"testPatternADC", false},
     {"enableSoftwareTrigger", false },
     {"soft trigger rate", 450.0f },
-    {"channel mask", 0x1f }
+    {"channel mask", 0x1f },
+    {"trigger delay", 250 }
   };
   
   char eq_dir[200];
@@ -298,6 +299,11 @@ INT begin_of_run(INT run_number, char *error)
     }
   }
 
+
+  // Set the trigger delay as per ODB
+  sprintf(buffer,"custom_command SET_PRE_TRIGGER_DELAY 0 %i\r\n",(int)(o["trigger delay"]));
+  cm_msg(MINFO,"BOR","Setting pre-trigger delay to %i",(int)(o["trigger delay"]));
+  SendBrbCommand(buffer);
 
   // Set the trigger rate as per ODB
   sprintf(buffer,"custom_command SET_EMULATED_TRIGGER_SPEED %f\r\n",(float)(o["soft trigger rate"]));
