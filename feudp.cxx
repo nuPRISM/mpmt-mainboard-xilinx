@@ -20,6 +20,7 @@
 
 #include <string>
 #include <vector>
+#include <map>
 
 #include "midas.h"
 #include "mfe.h"
@@ -44,12 +45,20 @@ const char *frontend_file_name = __FILE__;               /* The frontend file na
   int frontend_loop();
   int read_event(char *pevent, INT off);
 
+
+// Last frame ID
+std::map<std::string, std::vector<uint16_t> > event_datas;
+std::map<std::string, uint16_t> fLastFrameIDs;
+std::map<std::string, bool> fGotFirstPackets;
+std::map<std::string, int> fBadEventCounts;
+std::map<std::string, int> nUDPpackets;
+
 // container for storing event packets
 std::vector<uint16_t> event_data;
-// Last frame ID
 uint16_t fLastFrameID;
 bool fGotFirstPacket = false; 
 int fBadEvents = 0;
+int npackets = 0;
 
 #ifndef EQ_NAME
 #define EQ_NAME "UDP"
@@ -73,12 +82,14 @@ EQUIPMENT equipment[] = {
 
 #include <sys/time.h>
 
+#if 0
 static double GetTimeSec()
 {
    struct timeval tv;
    gettimeofday(&tv,NULL);
    return tv.tv_sec + 0.000001*tv.tv_usec;
 }
+#endif
 
 struct Source
 {
@@ -358,6 +369,23 @@ int frontend_init()
       return FE_ERR_HW;
    }
 
+   // Initialize the counters and structure needed for combining data packets.
+   // Assume we have only two boards for now.
+   event_datas["BRB0"] = std::vector<uint16_t>();
+   event_datas["BRB1"] = std::vector<uint16_t>();
+  
+   fLastFrameIDs["BRB0"] = 0;
+   fLastFrameIDs["BRB1"] = 0;
+
+   fGotFirstPackets["BRB0"] = false;
+   fGotFirstPackets["BRB1"] = false;
+
+   fBadEventCounts["BRB0"] = 0;
+   fBadEventCounts["BRB1"] = 0;
+
+   nUDPpackets["BRB0"] = 0;
+   nUDPpackets["BRB1"] = 0;
+
    cm_msg(MINFO, "frontend_init", "Frontend equipment \"%s\" is ready, listening on UDP port %d", EQ_NAME, udp_port);
    return SUCCESS;
 }
@@ -378,6 +406,22 @@ int begin_of_run(int run_number, char *error)
    fLastFrameID = 0;
    fGotFirstPacket = false; 
 
+   // Initialize the counters and structure needed for combining data packets.
+   // Assume we have only two boards for now.
+   event_datas["BRB0"].clear();
+   event_datas["BRB1"].clear();
+  
+   fLastFrameIDs["BRB0"] = 0;
+   fLastFrameIDs["BRB1"] = 0;
+
+   fGotFirstPackets["BRB0"] = false;
+   fGotFirstPackets["BRB1"] = false;
+
+   fBadEventCounts["BRB0"] = 0;
+   fBadEventCounts["BRB1"] = 0;
+
+   nUDPpackets["BRB0"] = 0;
+   nUDPpackets["BRB1"] = 0;
 
    return SUCCESS;
 }
@@ -385,14 +429,33 @@ int begin_of_run(int run_number, char *error)
 int end_of_run(int run_number, char *error)
 {
 
-   if(fBadEvents > 0){
-      cm_msg(MERROR, "end_of_run", "There was at least %i suppressed events with missing UDP packets in this run.",fBadEvents);
+   if(fBadEventCounts["BRB0"] > 0){
+      cm_msg(MERROR, "end_of_run", "There was at least %i suppressed events with missing UDP packets for BRB0 in this run.",fBadEventCounts["BRB0"]);
    }
-   fBadEvents = 0;
+   if(fBadEventCounts["BRB1"] > 0){
+      cm_msg(MERROR, "end_of_run", "There was at least %i suppressed events with missing UDP packets for BRB1 in this run.",fBadEventCounts["BRB1"]);
+   }
+   fBadEventCounts["BRB0"] = 0;
+   fBadEventCounts["BRB1"] = 0;
 
    event_data.clear();
    fLastFrameID = 0;
    fGotFirstPacket = false; 
+
+   // Initialize the counters and structure needed for combining data packets.
+   // Assume we have only two boards for now.
+   event_datas["BRB0"].clear();
+   event_datas["BRB1"].clear();
+  
+   fLastFrameIDs["BRB0"] = 0;
+   fLastFrameIDs["BRB1"] = 0;
+
+   fGotFirstPackets["BRB0"] = false;
+   fGotFirstPackets["BRB1"] = false;
+
+   fBadEventCounts["BRB0"] = 0;
+   fBadEventCounts["BRB1"] = 0;
+
 
    return SUCCESS;
 }
@@ -427,7 +490,6 @@ INT poll_event(INT source, INT count, BOOL test)
 
 #define MAX_UDP_SIZE (0x10000)
 
-int npackets = 0;
 int read_event(char *pevent, int off)
 {
    char buf[MAX_UDP_SIZE];
@@ -437,10 +499,12 @@ int read_event(char *pevent, int off)
    if (length <= 0)
       return 0;
 
+   std::string bname(bankname);
+
    // Check the frame ID
    if(length < 100) std::cerr << "Error packet too short!!! " << length << std::endl;
    uint16_t *data = (uint16_t*)buf;
-   int packetID = (((data[2] & 0xff00)>>8) | ((data[2] & 0xff)<<8));
+   //int packetID = (((data[2] & 0xff00)>>8) | ((data[2] & 0xff)<<8));
    int frameID = (((data[4] & 0xff00)>>8) | ((data[4] & 0xff)<<8));
    //   std::cout << "frameID: " << frameID << " packetID: " << packetID << " with length: " << length << std::endl;
    for(int i = 0; i < 40; i++){
@@ -452,20 +516,26 @@ int read_event(char *pevent, int off)
 
 
    bool saveEvent = false;
-   if(frameID != fLastFrameID && fGotFirstPacket){
-      if(0)      std::cout << "Frame IDs differ ("<<frameID <<"/" << fLastFrameID 
+   
+   //   std::cout << "FrameIds out (" << bname << "): " << frameID << " " << fLastFrameIDs[std::string("BRB0")] << " " << fLastFrameIDs[std::string("BRB1")] << std::endl;
+
+   if(frameID != fLastFrameIDs[bname] && fGotFirstPackets[bname]){
+      if(0)      std::cout << "Frame IDs differ ("<<frameID <<"/" << fLastFrameIDs[bname] 
                            << "): saving last event." << std::endl;
 
-      if(npackets%4 != 1){ // The number of packets should be 1 + multiple of 4.  Don't save if not the right number of packets
-         std::cout << "Failure! Number of packets: " << npackets << std::endl;
-         npackets = 0;
-         event_data.clear();
-         fBadEvents++;
+      if(nUDPpackets[bname]%4 != 1){ // The number of packets should be 1 + multiple of 4.  Don't save if not the right number of packets
+         std::cout << "Failure! Number of packets: " << nUDPpackets[bname] << " for bank " << bname << std::endl;
+         
+         std::cout << "npackets: " << nUDPpackets[std::string("BRB0")] << " " << nUDPpackets[std::string("BRB1")] << std::endl;
+         std::cout << "frameIDs: " << frameID << " " << fLastFrameIDs[std::string("BRB0")] << " " << fLastFrameIDs[std::string("BRB1")] << std::endl;
+         nUDPpackets[bname] = 0;
+         event_datas[bname].clear();
+         fBadEventCounts[bname]++;
       }else{
 
-         npackets = 0;
+         nUDPpackets[bname] = 0;
          
-         if(0)std::cout << "Saving " << event_data.size() << " words." << std::endl;
+         if(0)std::cout << "Saving " << event_datas[bname].size() << " words." << std::endl;
          //printf("%4i %4i %4i %4i\n",(event_data[21]>>4),(event_data[22]>>4),(event_data[23]>>4),(event_data[24]>>4));
          //printf("%4i %4i %4i %4i\n",(event_data[554]>>4),(event_data[555]>>4),(event_data[556]>>4),(event_data[557]>>4));
          //printf("%4i %4i %4i %4i\n",(event_data[1087]>>4),(event_data[1088]>>4),(event_data[1089]>>4),(event_data[1090]>>4));
@@ -476,11 +546,11 @@ int read_event(char *pevent, int off)
          bk_init32(pevent);
          uint16_t* pdata;
          bk_create(pevent, bankname, TID_WORD, (void**)&pdata);
-         for(int i = 0; i < event_data.size(); i++) *pdata++ = event_data[i];
+         for(int i = 0; i < event_datas[bname].size(); i++) *pdata++ = event_datas[bname][i];
          bk_close(pevent, pdata);
          
          
-         event_data.clear();
+         event_datas[bname].clear();
       }
 
    }
@@ -489,12 +559,14 @@ int read_event(char *pevent, int off)
    for(int i  = 0; i < length/2; i++){
       uint16_t tmp = (((data[i] & 0xff00)>>8) | ((data[i] & 0xff)<<8));
       
-      event_data.push_back(tmp);
+      event_datas[bname].push_back(tmp);
    }
-   npackets++;
+   nUDPpackets[bname]++;
 
-   fLastFrameID = frameID;
-   fGotFirstPacket = true; 
+   //   std::cout << "FrameIds out1 (" << bname << "): " << frameID << " " << fLastFrameIDs[std::string("BRB0")] << " " << fLastFrameIDs[std::string("BRB1")] << std::endl;
+   fLastFrameIDs[bname] = frameID;
+   //std::cout << "FrameIds out2 (" << bname << "): " << frameID << " " << fLastFrameIDs[std::string("BRB0")] << " " << fLastFrameIDs[std::string("BRB1")] << std::endl;
+   fGotFirstPackets[bname] = true; 
 
    if(!saveEvent) return 0;
 
