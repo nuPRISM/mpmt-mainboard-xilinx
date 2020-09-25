@@ -270,7 +270,7 @@ void TBRBBaseline::UpdateHistograms(TDataContainer& dataContainer){
 
       // Use the first 100 samples for baseline
       double avg = 0.0;
-      for(int ib = 0; ib < 100; ib++){
+      for(int ib = 0; ib < 100; ib++){ // <<<<--------
 	avg += measurements[i].GetSample(ib);
       }
       avg /= 100.0;

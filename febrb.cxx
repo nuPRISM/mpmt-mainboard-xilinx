@@ -178,7 +178,7 @@ INT frontend_init()
     {"host", "brb00"},
     {"port", 40},
     {names1, std::array<std::string, 16>{}},
-    {names2, std::array<std::string, 4>{}},
+    {names2, std::array<std::string, 6>{}},
     {names3, std::array<std::string, 2>{}},
   };
 
@@ -206,6 +206,8 @@ INT frontend_init()
   o[names2][1] = "Temp2";
   o[names2][2] = "Temp3";
   o[names2][3] = "Pressure Sensor Temp";
+  o[names2][4] = "RTC Temp";
+  o[names2][5] = "Humidity Sensor Temp";
 
   o[names3][0] = "Humidity";
   o[names3][1] = "Pressure";
@@ -546,10 +548,19 @@ INT read_slow_control(char *pevent, INT off)
 
   }
 
-  float temperature = get_brb_value("custom_command get_pressure_sensor_temp",true);
-  *pddata2++ = temperature;
+  float temperature1 = get_brb_value("custom_command get_pressure_sensor_temp",true);
+  *pddata2++ = temperature1;
+
+  float temperature2 = get_brb_value("custom_command get_rtc_temp",true);
+  *pddata2++ = temperature2;
+
+  float temperature3 = get_brb_value("custom_command get_hdc1080_temp",true);
+  *pddata2++ = temperature3;
   
-  std::cout << " " << temperature << std::endl;
+  std::cout << " " << temperature1 << " " 
+	    << temperature2 << " "
+	    << temperature3 << " "
+	    << std::endl;
 
   bk_close(pevent, pddata2);	
 
@@ -560,7 +571,7 @@ INT read_slow_control(char *pevent, INT off)
   sprintf(bank_name,"BRH%i",get_frontend_index());
   bk_create(pevent, bank_name, TID_FLOAT, (void**)&pddata3);
 
-  float humidity = 0.0;
+  float humidity = get_brb_value("custom_command get_humidity",true);
   float pressure = get_brb_value("custom_command get_pressure",true);
   
   *pddata3++ = humidity;
