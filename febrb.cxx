@@ -160,6 +160,35 @@ void SendBrbCommand(std::string command){
 
 }
 
+// Function for reading return from  command to BRB and receiving requests
+std::string ReadBrbCommand(std::string command){
+
+  char buffer[200];
+  char bigbuffer[500];
+  int size=sizeof(buffer);
+  int size2 = sizeof(bigbuffer);
+
+  sprintf(buffer,"%s",command.c_str());
+  gSocket->write(buffer,size);
+  int val = gSocket->read(bigbuffer,size2);
+  //std::cout << command << " (" << val << ") : " << bigbuffer ;
+  usleep(150000);
+
+
+
+  std::string rstring(bigbuffer);
+
+  std::size_t current;
+  current = rstring.find("\r");
+  std::string rstring2 = rstring.substr(0, current);
+  //  std::cout << "\n before=" << rstring << "\n after="
+  //	    << rstring2 << "\n";
+
+  return rstring2;
+
+
+}
+
 /*-- Frontend Init -------------------------------------------------*/
 INT frontend_init()
 {
@@ -229,6 +258,11 @@ INT frontend_init()
 
   SendBrbCommand("custom_command SET_PMT_UART_TIMEOUT_MS 50\r\n");
 
+  std::string hw_version = ReadBrbCommand("get_hw_version\r\n");
+  std::string sw_version = ReadBrbCommand("get_sw_version\r\n");
+
+  cm_msg(MINFO,"init","BRB Firmware HW version: %s",hw_version.c_str()); 
+  cm_msg(MINFO,"init","BRB Firmware SW version: %s",sw_version.c_str()); 
 
   // Setup control of PMTs
   pmts = new PMTControl(gSocket, get_frontend_index());
