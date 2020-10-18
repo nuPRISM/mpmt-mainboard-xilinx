@@ -227,10 +227,10 @@ INT frontend_init()
 
   SendBrbCommand("custom_command SET_PMT_UART_TIMEOUT_MS 50\r\n");
 
-
+  std::cout << "Setting up PMTs" <<std::endl;
   // Setup control of PMTs
   pmts = new PMTControl(gSocket, get_frontend_index());
-
+  std::cout << "Finished setting up PMTs" << std::endl;
 
 
   return SUCCESS;
@@ -511,7 +511,7 @@ INT read_slow_control(char *pevent, INT off)
     // Read voltage
     sprintf(command,"custom_command ldo_get_voltage %i",j+1);
     double voltage = get_brb_value(command);
-    sprintf(command,"custom_command ldo_get_power %i",j+1);
+    sprintf(command,"custom_command ldo_get_shunt_voltage %i",j+1);
     double shunt_voltage = get_brb_value(command);
     
     float shunt_current = 1000.0*shunt_voltage/resistor;
