@@ -206,7 +206,7 @@ INT frontend_init()
   midas::odb o = {
     {"host", "brb00"},
     {"port", 40},
-    {names1, std::array<std::string, 16>{}},
+    {names1, std::array<std::string, 18>{}},
     {names2, std::array<std::string, 6>{}},
     {names3, std::array<std::string, 2>{}},
   };
@@ -230,6 +230,8 @@ INT frontend_init()
   o[names1][13] = "+12V POE Voltage";
   o[names1][14] = "+3.3V non-SoM Current";
   o[names1][15] = "+3.3V non-SoM Voltage";
+  o[names1][16] = "+12V SoM Current";
+  o[names1][17] = "+12V SoM Voltage";
 
   o[names2][0] = "ADC3 Temp";
   o[names2][1] = "Temp2";
@@ -264,9 +266,10 @@ INT frontend_init()
   cm_msg(MINFO,"init","BRB Firmware HW version: %s",hw_version.c_str()); 
   cm_msg(MINFO,"init","BRB Firmware SW version: %s",sw_version.c_str()); 
 
+  std::cout << "Setting up PMTs" <<std::endl;
   // Setup control of PMTs
   pmts = new PMTControl(gSocket, get_frontend_index());
-
+  std::cout << "Finished setting up PMTs" << std::endl;
 
 
   return SUCCESS;
@@ -523,7 +526,7 @@ INT read_slow_control(char *pevent, INT off)
 
   bk_init32(pevent);
 
-  float *pddata;
+  float *pddata, *ptmp;
   char command[200];
   
   // Bank names must be exactly four char
@@ -531,6 +534,7 @@ INT read_slow_control(char *pevent, INT off)
   sprintf(bank_name,"BRV%i",get_frontend_index());
   bk_create(pevent, bank_name, TID_FLOAT, (void**)&pddata);
 
+  ptmp = pddata;
   for(int j = 0; j < 8; j++){
 
     double resistor = 1.0;
@@ -547,7 +551,7 @@ INT read_slow_control(char *pevent, INT off)
     // Read voltage
     sprintf(command,"custom_command ldo_get_voltage %i",j+1);
     double voltage = get_brb_value(command);
-    sprintf(command,"custom_command ldo_get_power %i",j+1);
+    sprintf(command,"custom_command ldo_get_shunt_voltage %i",j+1);
     double shunt_voltage = get_brb_value(command);
     
     float shunt_current = 1000.0*shunt_voltage/resistor;
@@ -560,7 +564,27 @@ INT read_slow_control(char *pevent, INT off)
 
 
   }
+
+  // Calculate the 12V power used by SoM
+  double power_12VPOE = -ptmp[12] * 12.0 / 1000.0;
+  double power_6Vamp  = ptmp[0] * 6.0 / 1000.0;
+  double power_n5Vpmt = ptmp[2] * 5.0 / 1000.0;
+  double power_1_8Vadc = ptmp[4] * 1.8 / 1000.0;
+  double power_n4Vamp = ptmp[10] * 4.0 / 1000.0;
+  double power_3_3Vclock = ptmp[14] * 3.3 / 1000.0;
+  double power_som = power_12VPOE - power_6Vamp - power_n5Vpmt - power_1_8Vadc - power_n4Vamp - power_3_3Vclock;
+
+  std::cout << "POE = " << power_12VPOE 
+	    << "W, 6V(amp) = " << power_6Vamp
+	    << "W, -5V(PMT) = " << power_n5Vpmt 
+	    << "W, 1.8V(ADC) = " << power_1_8Vadc
+	    << "W, -4V(amp) = " << power_n4Vamp
+	    << "W, 3.3V(clock) = " << power_3_3Vclock
+	    << "W, 12V(SOM) = " << power_som << "W" << std::endl;
     
+  *pddata++ = power_som / 12.0;
+  *pddata++ = 12.0;
+
 
   bk_close(pevent, pddata);	
   
