@@ -367,7 +367,7 @@ INT begin_of_run(INT run_number, char *error)
   usleep(20000);
   BOOL software_trigger = (bool)(o["enableSoftwareTrigger"]);
   if(software_trigger){
-    cm_msg(MINFO,"BOR","Enabling software trigger");
+    cm_msg(MINFO,"BOR","Enabling software trigger with rate = %f", (float)(o["soft trigger rate"]));
     SendBrbCommand("custom_command ENABLE_EMULATED_TRIGGER\r\n");
   }else{
     cm_msg(MINFO,"BOR","Disabling software trigger");
