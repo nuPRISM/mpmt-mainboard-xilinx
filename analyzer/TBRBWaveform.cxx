@@ -175,6 +175,7 @@ void TBRBWaveformHit::UpdateHistograms(TDataContainer& dataContainer){
       int threshold2 = baseline - 10;
       bool found_hit = false;
       int pulse_height = 0;
+      int pulse_time = 0;
       for(int ib = 0; ib < nsamples; ib++){
 	int sample = measurements[i].GetSample(ib);
 	if(sample < threshold){ // found a pulse                                                                                
@@ -182,12 +183,15 @@ void TBRBWaveformHit::UpdateHistograms(TDataContainer& dataContainer){
 	  int ph = baseline-sample;
 	  if(ph > pulse_height) pulse_height = ph;
 	  found_hit = true;
+	  pulse_time = ib;
 	}
       }
       
       
       if(found_hit){
 	//	std::cout << "Pulse height: " << pulse_height << std::endl;
+	if(chan == 10) std::cout << "ch 8 : Pulse hit: " << " " << pulse_height << " " 
+				<< pulse_time << std::endl;
 	int nsamples = measurements[i].GetNSamples();
 	for(int ib = 0; ib < nsamples; ib++){
 	  GetHistogram(chan)->SetBinContent(ib+1, measurements[i].GetSample(ib));
@@ -379,7 +383,7 @@ void TBRBPH::CreateHistograms(){
     
     sprintf(title,"BRB Pulse Height for channel=%i",i);	
 
-    TH1D *tmp= new TH1D(name, title, 50, 0.5, 50.5);
+    TH1D *tmp= new TH1D(name, title, 80, 0.5, 80.5);
     tmp->SetXTitle("Pulse Height");
     push_back(tmp);
   }
@@ -402,16 +406,16 @@ void TBRBPH::UpdateHistograms(TDataContainer& dataContainer){
       //      for(int j = 262; j < 280; j++){
       int min_bin = 0;
       for(int j = 0; j < 1000; j++){
-	if(measurements[i].GetSample(j) < min_value){
+	if(measurements[i].GetSample(j) < min_value  & (j > 1 && j < 1000) ){
 	  min_value = measurements[i].GetSample(j);
 	  min_bin = j;
 	}
       }
       int baseline = (int)BSingleton::GetInstance()->GetBaseline(chan);
       int pulse_height = baseline - min_value;
-      if(pulse_height > 5){
+      if(pulse_height > 3){
 	GetHistogram(chan)->Fill(pulse_height);
-	//	if(chan == 1) std::cout << "Pulse height: " << chan << " " << pulse_height << " " << baseline << " " << min_value << " " << min_bin << std::endl;
+	if(chan == 10) std::cout << "Pulse height: " << chan << " " << pulse_height << " " << baseline << " " << min_value << " " << min_bin << std::endl;
       }
       
     }  
@@ -448,7 +452,7 @@ void TBRBPHBig::CreateHistograms(){
     
     sprintf(title,"BRB Pulse Height (Big) for channel=%i",i);	
 
-    TH1D *tmp= new TH1D(name, title, 500, 0.5, 2000.5);
+    TH1D *tmp= new TH1D(name, title, 600, 0.5, 2500.5);
 
     tmp->SetXTitle("Pulse Height");
     push_back(tmp);

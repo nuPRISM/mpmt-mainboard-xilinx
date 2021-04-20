@@ -105,7 +105,7 @@ int TAnaManager::ProcessMidasEvent(TDataContainer& dataContainer){
       nsamples = 1000;
       bool found_pulse = false;
       int baseline = (int)BSingleton::GetInstance()->GetBaseline(chan);
-      int threshold = baseline - 8;
+      int threshold = baseline - 5;
       for(int ib = 0; ib < nsamples; ib++){
         int sample = measurements[i].GetSample(ib);
 
