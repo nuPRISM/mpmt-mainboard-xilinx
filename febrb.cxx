@@ -170,8 +170,9 @@ std::string ReadBrbCommand(std::string command){
 
   sprintf(buffer,"%s",command.c_str());
   gSocket->write(buffer,size);
+  usleep(150000);
   int val = gSocket->read(bigbuffer,size2);
-  //std::cout << command << " (" << val << ") : " << bigbuffer ;
+  std::cout << "Send command: " << command << " (" << val << ") : " << bigbuffer ;
   usleep(150000);
 
 
@@ -181,8 +182,8 @@ std::string ReadBrbCommand(std::string command){
   std::size_t current;
   current = rstring.find("\r");
   std::string rstring2 = rstring.substr(0, current);
-  //  std::cout << "\n before=" << rstring << "\n after="
-  //	    << rstring2 << "\n";
+  std::cout << "\n before=" << rstring << "\n after="
+  	    << rstring2 << "\n";
 
   return rstring2;
 
@@ -258,19 +259,33 @@ INT frontend_init()
   std::cout << "Finished;... " << gSocket->getErrorCode() << std::endl;  
   std::cout << "Socket status : " << gSocket->getErrorString() << std::endl;
 
-  SendBrbCommand("custom_command SET_PMT_UART_TIMEOUT_MS 50\r\n");
+  //  SendBrbCommand("custom_command SET_PMT_UART_TIMEOUT_MS 50\r\n");
+
+  for(int i = 0 ; i < 10;++i){
+    sleep(1);
+    
+    std::string temp = ReadBrbCommand("custom_command get_pressure_sensor_temp\n");
+    printf("Temp %s\n",temp.c_str());
+  }
+
 
   std::string hw_version = ReadBrbCommand("get_hw_version\r\n");
   std::string sw_version = ReadBrbCommand("get_sw_version\r\n");
 
+  //std::string hw_version = ReadBrbCommand("get_hw_version\r\n");
+  //std::string sw_version = ReadBrbCommand("get_sw_version\r\n");
+  
+
+
   cm_msg(MINFO,"init","BRB Firmware HW version: %s",hw_version.c_str()); 
   cm_msg(MINFO,"init","BRB Firmware SW version: %s",sw_version.c_str()); 
+
+  return FE_ERR_HW;
 
   std::cout << "Setting up PMTs" <<std::endl;
   // Setup control of PMTs
   pmts = new PMTControl(gSocket, get_frontend_index());
   std::cout << "Finished setting up PMTs" << std::endl;
-
 
   return SUCCESS;
 }
