@@ -17,14 +17,36 @@ std::string ReadBrbCommand(std::string command, KOsocket *gSocket){
 
   char buffer[200];
   char bigbuffer[500];
+
+  for(int i = 0; i < 500; i++){ bigbuffer[i] = 0;}
   int size=sizeof(buffer);
   int size2 = sizeof(bigbuffer);
 
   sprintf(buffer,"%s",command.c_str());
   gSocket->write(buffer,size);
-  usleep(100000);
+  usleep(1000);
   int val = gSocket->read(bigbuffer,size2);
-  usleep(150000);
+  usleep(1500);
+
+  std::cout << "Return value : " << val << std::endl;
+  for(int i = 0; i < 9;i++){
+    int value = (int)bigbuffer[i];
+    std::cout << value << " " ;
+  }
+  std::cout << std::endl;
+  
+  // Try rereading if val = 2
+  if(val == 2 && 0){
+    int val = gSocket->read(bigbuffer,size2);
+
+    std::cout << "Return value second time: " << val << std::endl;
+    for(int i = 0; i < 20;i++){
+      int value = (int)bigbuffer[i];
+      std::cout << value << " " ;
+    }
+    std::cout << std::endl;
+
+  }
 
   // Strip the \r off end
   std::string rstring(bigbuffer);
@@ -42,6 +64,7 @@ std::string ReadBrbCommand2(std::string command, std::string ip){
 
   KOsocket *gSocket = new KOsocket(ip, 40);
 
+  usleep(100);
   char buffer[200];
   char bigbuffer[500];
   int size=sizeof(buffer);
@@ -49,9 +72,16 @@ std::string ReadBrbCommand2(std::string command, std::string ip){
 
   sprintf(buffer,"%s",command.c_str());
   gSocket->write(buffer,size);
-  usleep(100000);
+  usleep(1000);
   int val = gSocket->read(bigbuffer,size2);
-  usleep(150000);
+  usleep(1500);
+
+  std::cout << "Return value : " << val << std::endl;
+  for(int i = 0; i < 9; i++){
+    int value = (int)bigbuffer[i];
+    std::cout << value << " " ;
+  }
+  std::cout << std::endl;
 
   // Strip the \r off end
   std::string rstring(bigbuffer);
@@ -74,42 +104,51 @@ int main (int argc, char *argv[])
 
   std::cout << "Getting data from Nuprism board with single socket connection" << std::endl;
 
-  KOsocket *Socket = new KOsocket(argv[1], 40);
-  if(Socket->getErrorCode() != 0){
-    std::cout << "Failed to connect to host" << std::endl;
-    exit(0);
+  if(1){
+    
+    std::cout << "Start socket connection " << std::endl;
+    KOsocket *Socket = new KOsocket(argv[1], 40);
+    if(Socket->getErrorCode() != 0){
+      std::cout << "Failed to connect to host" << std::endl;
+      exit(0);
+    }
+    std::cout << "Making request" << std::endl;
+    for(int i = 0 ; i < 1;++i){
+      usleep(1000);
+      
+      std::string temp = ReadBrbCommand("custom_command get_pressure_sensor_temp\r\n", Socket);
+      printf("Pressure sensor temperature =  %s\n",temp.c_str());
+    }
+    
+    usleep(100000);
+    std::string pressure = ReadBrbCommand("custom_command get_pressure\r\n", Socket);
+    std::cout << "Pressure = " << pressure << std::endl;
+    
+    //std::string version = ReadBrbCommand("get_sw_version\n", Socket);
+    //std::cout << "Software Version = " << version << std::endl;
+    
+    Socket->shutdown();
   }
 
-  for(int i = 0 ; i < 4;++i){
-    sleep(1);
+  if(1){
 
-    std::string temp = ReadBrbCommand("custom_command get_pressure_sensor_temp\n", Socket);
-    printf("Pressure sensor temperature =  %s\n",temp.c_str());
+    
+    std::cout << "\n\nGetting data from Nuprism board with single multiple connections" << std::endl;
+    
+    for(int i = 0 ; i < 1;++i){
+      usleep(1000000);
+      
+      std::string temp2 = ReadBrbCommand2("custom_command get_pressure_sensor_temp\n", argv[1]);
+      printf("Pressure sensor temperature =  %s\n",temp2.c_str());
+    }
+    
+    usleep(100000);
+    std::string pressure2 = ReadBrbCommand2("custom_command get_pressure\n", argv[1]);
+    std::cout << "Pressure = " << pressure2 << std::endl;
+    
+    //std::string version2 = ReadBrbCommand2("get_sw_version\n", argv[1]);
+    /// std::cout << "Software Version = " << version2 << std::endl;
   }
-
-  std::string pressure = ReadBrbCommand("custom_command get_pressure\n", Socket);
-  std::cout << "Pressure = " << pressure << std::endl;
-
-  std::string version = ReadBrbCommand("get_sw_version\n", Socket);
-  std::cout << "Software Version = " << version << std::endl;
- 
-  Socket->shutdown();
-
-  std::cout << "\n\nGetting data from Nuprism board with single multiple connections" << std::endl;
-
-  for(int i = 0 ; i < 4;++i){
-    sleep(1);
-
-    std::string temp2 = ReadBrbCommand2("custom_command get_pressure_sensor_temp\n", argv[1]);
-    printf("Pressure sensor temperature =  %s\n",temp2.c_str());
-  }
-
-  std::string pressure2 = ReadBrbCommand2("custom_command get_pressure\n", argv[1]);
-  std::cout << "Pressure = " << pressure2 << std::endl;
-
-  std::string version2 = ReadBrbCommand2("get_sw_version\n", argv[1]);
-  std::cout << "Software Version = " << version2 << std::endl;
-
 
 }
 

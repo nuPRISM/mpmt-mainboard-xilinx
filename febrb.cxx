@@ -147,6 +147,23 @@ PMTControl *pmts = 0;
 // Function for sending command to BRB and receiving requests
 void SendBrbCommand(std::string command){
 
+  midas::odb o = {
+    {"host", "brb00"},
+    {"port", 40},
+  };
+
+  char eq_dir[200];
+  sprintf(eq_dir,"/Equipment/BRB%02i/Settings",get_frontend_index());
+  o.connect(eq_dir);
+
+  gSocket = new KOsocket(o["host"], o["port"]);
+  if(gSocket->getErrorCode() != 0){
+    cm_msg(MERROR,"init","Failed to connect to host; hostname/port = %s %i",((std::string)o["host"]).c_str(),(int)o["port"]);
+  }
+
+
+  usleep(100000);
+
   char buffer[200];
   char bigbuffer[500];
   int size=sizeof(buffer);
@@ -158,10 +175,29 @@ void SendBrbCommand(std::string command){
   std::cout << command << " (" << val << ") : " << bigbuffer ;
   usleep(150000);
 
+  gSocket->shutdown();
+  usleep(100000);
+
 }
 
 // Function for reading return from  command to BRB and receiving requests
 std::string ReadBrbCommand(std::string command){
+
+  midas::odb o = {
+    {"host", "brb00"},
+    {"port", 40},
+  };
+
+  char eq_dir[200];
+  sprintf(eq_dir,"/Equipment/BRB%02i/Settings",get_frontend_index());
+  o.connect(eq_dir);
+
+  gSocket = new KOsocket(o["host"], o["port"]);
+  if(gSocket->getErrorCode() != 0){
+    cm_msg(MERROR,"init","Failed to connect to host; hostname/port = %s %i",((std::string)o["host"]).c_str(),(int)o["port"]);
+  }
+
+  usleep(100000);
 
   char buffer[200];
   char bigbuffer[500];
@@ -170,9 +206,9 @@ std::string ReadBrbCommand(std::string command){
 
   sprintf(buffer,"%s",command.c_str());
   gSocket->write(buffer,size);
-  usleep(150000);
+  usleep(100000);
   int val = gSocket->read(bigbuffer,size2);
-  std::cout << "Send command: " << command << " (" << val << ") : " << bigbuffer ;
+  //  std::cout << "Send command: " << command << " (" << val << ") : " << bigbuffer ;
   usleep(150000);
 
 
@@ -182,8 +218,10 @@ std::string ReadBrbCommand(std::string command){
   std::size_t current;
   current = rstring.find("\r");
   std::string rstring2 = rstring.substr(0, current);
-  std::cout << "\n before=" << rstring << "\n after="
+  if(0)std::cout << "\n before=" << rstring << "\n after="
   	    << rstring2 << "\n";
+  gSocket->shutdown();
+  usleep(100000);
 
   return rstring2;
 
@@ -258,11 +296,11 @@ INT frontend_init()
 
   std::cout << "Finished;... " << gSocket->getErrorCode() << std::endl;  
   std::cout << "Socket status : " << gSocket->getErrorString() << std::endl;
-
+  gSocket->shutdown();
   //  SendBrbCommand("custom_command SET_PMT_UART_TIMEOUT_MS 50\r\n");
 
-  for(int i = 0 ; i < 10;++i){
-    sleep(1);
+  for(int i = 0 ; i < 4;++i){
+    usleep(100000);
     
     std::string temp = ReadBrbCommand("custom_command get_pressure_sensor_temp\n");
     printf("Temp %s\n",temp.c_str());
@@ -272,6 +310,7 @@ INT frontend_init()
   std::string hw_version = ReadBrbCommand("get_hw_version\r\n");
   std::string sw_version = ReadBrbCommand("get_sw_version\r\n");
 
+
   //std::string hw_version = ReadBrbCommand("get_hw_version\r\n");
   //std::string sw_version = ReadBrbCommand("get_sw_version\r\n");
   
@@ -280,8 +319,8 @@ INT frontend_init()
   cm_msg(MINFO,"init","BRB Firmware HW version: %s",hw_version.c_str()); 
   cm_msg(MINFO,"init","BRB Firmware SW version: %s",sw_version.c_str()); 
 
-  return FE_ERR_HW;
-
+  //  return FE_ERR_HW;
+  return SUCCESS;
   std::cout << "Setting up PMTs" <<std::endl;
   // Setup control of PMTs
   pmts = new PMTControl(gSocket, get_frontend_index());
@@ -295,7 +334,7 @@ INT frontend_exit()
 {
 
   std::cout << "Closing socket." << std::endl;
-  gSocket->shutdown();
+  //  gSocket->shutdown();
 
   return SUCCESS;
 }
@@ -395,7 +434,7 @@ INT begin_of_run(INT run_number, char *error)
   usleep(200000);
 
   // Check which PMTs are active.
-  pmts->CheckActivePMTs();
+  //  pmts->CheckActivePMTs();
 
 
   //------ FINAL ACTIONS before BOR -----------
@@ -488,12 +527,29 @@ struct timeval last_event_time;
 // Function for returning a BRB value
 float get_brb_value(std::string command, bool with_ok=false){
 
+  midas::odb o = {
+    {"host", "brb00"},
+    {"port", 40},
+  };
+
+  char eq_dir[200];
+  sprintf(eq_dir,"/Equipment/BRB%02i/Settings",get_frontend_index());
+  o.connect(eq_dir);
+
+  gSocket = new KOsocket(o["host"], o["port"]);
+  if(gSocket->getErrorCode() != 0){
+    cm_msg(MERROR,"init","Failed to connect to host; hostname/port = %s %i",((std::string)o["host"]).c_str(),(int)o["port"]);
+  }
+
+  usleep(150000);
+
   // Read temperature                                                                                                                                                                               
   char buffer[200];
   sprintf(buffer,"%s\r\n",command.c_str());
   int size=sizeof(buffer);
   gSocket->write(buffer,size);
 
+  usleep(150000);
   char bigbuffer[500];
   size = sizeof(bigbuffer);
   gSocket->read(bigbuffer,size);
@@ -528,7 +584,12 @@ float get_brb_value(std::string command, bool with_ok=false){
 
   //   std::cout << "get brb value: " << command << " " << buffer 
   //	     << " readback=" << readback << " | values="  << values[0] << " value=" << value << std::endl;
-  
+
+  usleep(150000);
+
+  gSocket->shutdown();  
+  usleep(150000);
+  delete gSocket;
   return value;
 
 
@@ -666,8 +727,8 @@ INT read_pmt_status(char *pevent, INT off)
 
   bk_init32(pevent);
 
-  return pmts->GetStatus(pevent, off);
-
+  //  return pmts->GetStatus(pevent, off);
+  return 0;
 }
 
   
