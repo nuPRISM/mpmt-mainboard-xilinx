@@ -12,52 +12,6 @@
 #include <stdint.h>
 
 
-// Function for reading from mainboard with single socket
-std::string ReadBrbCommand(std::string command, KOsocket *gSocket){
-
-  char buffer[200];
-  char bigbuffer[500];
-
-  for(int i = 0; i < 500; i++){ bigbuffer[i] = 0;}
-  int size=sizeof(buffer);
-  int size2 = sizeof(bigbuffer);
-
-  sprintf(buffer,"%s",command.c_str());
-  gSocket->write(buffer,size);
-  usleep(1000);
-  int val = gSocket->read(bigbuffer,size2);
-  usleep(1500);
-
-  std::cout << "Return value : " << val << std::endl;
-  for(int i = 0; i < 9;i++){
-    int value = (int)bigbuffer[i];
-    std::cout << value << " " ;
-  }
-  std::cout << std::endl;
-  
-  // Try rereading if val = 2
-  if(val == 2 && 0){
-    int val = gSocket->read(bigbuffer,size2);
-
-    std::cout << "Return value second time: " << val << std::endl;
-    for(int i = 0; i < 20;i++){
-      int value = (int)bigbuffer[i];
-      std::cout << value << " " ;
-    }
-    std::cout << std::endl;
-
-  }
-
-  // Strip the \r off end
-  std::string rstring(bigbuffer);
-  std::size_t current;
-  current = rstring.find("\r");
-  std::string rstring2 = rstring.substr(0, current);
-
-  return rstring2;
-
-
-}
 
 // Function for reading from mainboard with different socket each time
 std::string ReadBrbCommand2(std::string command, std::string ip){
@@ -77,13 +31,6 @@ std::string ReadBrbCommand2(std::string command, std::string ip){
   int val = gSocket->read(bigbuffer,size2);
   usleep(150000);
 
-  //  std::cout << "Return value : " << val << std::endl;
-  //  for(int i = 0; i < 9; i++){
-  //int value = (int)bigbuffer[i];
-  // std::cout << value << " " ;
-  // }
-  //std::cout << std::endl;
-
   // Strip the \r off end
   std::string rstring(bigbuffer);
   std::size_t current;
@@ -101,55 +48,68 @@ std::string ReadBrbCommand2(std::string command, std::string ip){
 int main (int argc, char *argv[])
 {
   
-  // Get data from mainboard with single socket connection
+  std::cout << "Getting currents from Nuprism board" << std::endl;
 
-  std::cout << "Getting data from Nuprism board with single socket connection" << std::endl;
 
-  if(1){
-    
-    std::cout << "Start socket connection " << std::endl;
-    KOsocket *Socket = new KOsocket(argv[1], 40);
-    if(Socket->getErrorCode() != 0){
-      std::cout << "Failed to connect to host" << std::endl;
-      exit(0);
-    }
-    std::cout << "Making request" << std::endl;
-    for(int i = 0 ; i < 1;++i){
-      usleep(1000);
-      
-      std::string temp = ReadBrbCommand("custom_command get_pressure_sensor_temp\r\n", Socket);
-      printf("Pressure sensor temperature =  %s\n",temp.c_str());
-    }
-    
+  float power[8];
+  for(int i = 0 ; i < 8;++i){
     usleep(100000);
-    std::string pressure = ReadBrbCommand("custom_command get_pressure\r\n", Socket);
-    std::cout << "Pressure = " << pressure << std::endl;
     
-    //std::string version = ReadBrbCommand("get_sw_version\n", Socket);
-    //std::cout << "Software Version = " << version << std::endl;
-    
-    Socket->shutdown();
-  }
+    char command[100];
+    sprintf(command,"custom_command ldo_get_shunt_voltage %i\n",i+1);
 
-  if(1){
+    std::string temp2 = ReadBrbCommand2(command, argv[1]);
 
+    float shunt_voltage = strtof (temp2.c_str(), NULL) * 1000.0; // in mV
+
+    // Shunt resistor values 
+    double resistor = 1.0; // three of the 
+    if(i==0){ resistor = 0.1; }
+    if(i==2){ resistor =200; }
+    if(i==5){ resistor =0.1; }
+    if(i==6){ resistor =0.05; }
+    if(i==7){ resistor =0.05;}
+
+    // Current
+    float current = shunt_voltage/resistor; // in mA
+
+    // Fix a couple currents;
+    if(i==2) current = current/0.0004;
+    if(i==6) current = -current;
+
+    // Voltages in V
+    double voltage;
+    if(i==0) voltage = 6;
+    if(i==1) voltage = 5;
+    if(i==2) voltage = 1.8;
+    if(i==3) voltage = 5;
+    if(i==4) voltage = 3.3;
+    if(i==5) voltage = 4;
+    if(i==6) voltage = 12;
+    if(i==7) voltage = 3.3;
+
+    power[i] = voltage * current / 1000.0; // in W
     
-    std::cout << "\n\nGetting data from Nuprism board with single multiple connections" << std::endl;
-    
-    for(int i = 0 ; i < 10000;++i){
-      usleep(1000000);
-      
-      std::string temp2 = ReadBrbCommand2("custom_command get_clnr_status_pins\n", argv[1]);
-      printf("get_clnr_status_pins (%i) =  %s\n",i,temp2.c_str());
-    }
-    
-    usleep(100000);
-    std::string pressure2 = ReadBrbCommand2("custom_command get_pressure\n", argv[1]);
-    std::cout << "Pressure = " << pressure2 << std::endl;
-    
-    //std::string version2 = ReadBrbCommand2("get_sw_version\n", argv[1]);
-    /// std::cout << "Software Version = " << version2 << std::endl;
+    char sensor[100];
+    if(i==0) sprintf(sensor,"+6V Amplifier");
+    if(i==1) sprintf(sensor,"-5V PMT      ");
+    if(i==2) sprintf(sensor,"+1.8V ADC    ");
+    if(i==3) sprintf(sensor,"+5V PMT      ");
+    if(i==4) sprintf(sensor,"+3.3V PMT    ");
+    if(i==5) sprintf(sensor,"-4V Amplifier");
+    if(i==6) sprintf(sensor,"+12V POE     ");
+    if(i==7) sprintf(sensor,"+3.3V non-SOM");
+
+    printf("%s (LDO%i): shunt voltage = %6.2fmV, current = %7.2fmA, power=%6.2fW\n",sensor,i+1, shunt_voltage, current,power[i]);
+
   }
+  
+
+  // Now calculate total power for SoM:
+
+  double power_som = power[6] - power[0] - power[1] - power[2] - power[5] - power[7];
+  printf("Total power being used on SoM is %5.2fW\n",power_som);
+
 
 }
 
