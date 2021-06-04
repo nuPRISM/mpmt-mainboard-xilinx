@@ -295,8 +295,9 @@ int PMTControl::GetStatus(char *pevent, INT off)
   bk_close(pevent, pddata4);
 
   int *pddata5; // is channel plugged in?
-  // ramp rate  from PMT
-  bk_create(pevent, "PMA0", TID_INT, (void**)&pddata5);
+  //  PMT Active bank
+  sprintf(bank_name,"PMA%i",get_frontend_index());
+  bk_create(pevent, bank_name, TID_INT, (void**)&pddata5);
   for(int i = 0; i < 20; i++){
     if(fActivePMTs[i])
       *pddata5++ = 1;
