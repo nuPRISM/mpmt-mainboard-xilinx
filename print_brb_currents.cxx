@@ -108,7 +108,7 @@ int main (int argc, char *argv[])
   // Now calculate total power for SoM:
 
   double power_som = power[6] - power[0] - power[1] - power[2] - power[5] - power[7];
-  printf("Total power being used on SoM is %5.2fW\n",power_som);
+  printf("Total power being used on SoM is %5.2fW  / %5.2fmA\n",power_som,power_som/12.0*1000.0);
 
 
 }

@@ -156,26 +156,28 @@ void SendBrbCommand(std::string command){
   sprintf(eq_dir,"/Equipment/BRB%02i/Settings",get_frontend_index());
   o.connect(eq_dir);
 
-  gSocket = new KOsocket(o["host"], o["port"]);
+  //  gSocket = new KOsocket(o["host"], o["port"]);
   if(gSocket->getErrorCode() != 0){
     cm_msg(MERROR,"init","Failed to connect to host; hostname/port = %s %i",((std::string)o["host"]).c_str(),(int)o["port"]);
   }
 
 
-  usleep(100000);
+  usleep(200000);
 
   char buffer[200];
   char bigbuffer[500];
   int size=sizeof(buffer);
   int size2 = sizeof(bigbuffer);
+  size = command.size();
 
   sprintf(buffer,"%s",command.c_str());
   gSocket->write(buffer,size);
+  usleep(50000);
   int val = gSocket->read(bigbuffer,size2);
   std::cout << command << " (" << val << ") : " << bigbuffer ;
-  usleep(150000);
+  usleep(100000);
 
-  gSocket->shutdown();
+  //  gSocket->shutdown();
   usleep(100000);
 
 }
@@ -192,17 +194,18 @@ std::string ReadBrbCommand(std::string command){
   sprintf(eq_dir,"/Equipment/BRB%02i/Settings",get_frontend_index());
   o.connect(eq_dir);
 
-  gSocket = new KOsocket(o["host"], o["port"]);
-  if(gSocket->getErrorCode() != 0){
-    cm_msg(MERROR,"init","Failed to connect to host; hostname/port = %s %i",((std::string)o["host"]).c_str(),(int)o["port"]);
-  }
+  //  gSocket = new KOsocket(o["host"], o["port"]);
+  //if(gSocket->getErrorCode() != 0){
+  //cm_msg(MERROR,"init","Failed to connect to host; hostname/port = %s %i",((std::string)o["host"]).c_str(),(int)o["port"]);
+  //}
 
-  usleep(100000);
+  usleep(200000);
 
   char buffer[200];
   char bigbuffer[500];
   int size=sizeof(buffer);
   int size2 = sizeof(bigbuffer);
+  size = command.size();
 
   sprintf(buffer,"%s",command.c_str());
   gSocket->write(buffer,size);
@@ -220,7 +223,7 @@ std::string ReadBrbCommand(std::string command){
   std::string rstring2 = rstring.substr(0, current);
   if(0)std::cout << "\n before=" << rstring << "\n after="
   	    << rstring2 << "\n";
-  gSocket->shutdown();
+  //gSocket->shutdown();
   usleep(100000);
 
   return rstring2;
@@ -296,7 +299,7 @@ INT frontend_init()
 
   std::cout << "Finished;... " << gSocket->getErrorCode() << std::endl;  
   std::cout << "Socket status : " << gSocket->getErrorString() << std::endl;
-  gSocket->shutdown();
+  //  gSocket->shutdown();
   //  SendBrbCommand("custom_command SET_PMT_UART_TIMEOUT_MS 50\r\n");
 
   for(int i = 0 ; i < 4;++i){
@@ -304,6 +307,9 @@ INT frontend_init()
     
     std::string temp = ReadBrbCommand("custom_command get_pressure_sensor_temp\n");
     printf("Temp %s\n",temp.c_str());
+
+    std::string temp2 = ReadBrbCommand( "custom_command ldo_get_voltage 1\n");
+    printf("LDO1: %s\n",temp2.c_str());;
   }
 
 
@@ -334,7 +340,7 @@ INT frontend_exit()
 {
 
   std::cout << "Closing socket." << std::endl;
-  //  gSocket->shutdown();
+    gSocket->shutdown();
 
   return SUCCESS;
 }
@@ -367,7 +373,7 @@ INT begin_of_run(INT run_number, char *error)
   BOOL testPattern = o["testPatternADC"];
   
   // Do settings for each ADC
-  for(int i = 0; i < 5; i++){
+  for(int i = 0; i < 1; i++){
     
     // Use offset binary encoding (rathers than twos complement)
     sprintf(buffer,"custom_command set_adc_data_format %i 1\r\n",i);
@@ -527,33 +533,39 @@ struct timeval last_event_time;
 // Function for returning a BRB value
 float get_brb_value(std::string command, bool with_ok=false){
 
-  midas::odb o = {
-    {"host", "brb00"},
-    {"port", 40},
-  };
+  //midas::odb o = {
+  //{"host", "brb00"},
+  //{"port", 40},
+  //};
 
-  char eq_dir[200];
-  sprintf(eq_dir,"/Equipment/BRB%02i/Settings",get_frontend_index());
-  o.connect(eq_dir);
+  //char eq_dir[200];
+  //sprintf(eq_dir,"/Equipment/BRB%02i/Settings",get_frontend_index());
+  // o.connect(eq_dir);
 
-  gSocket = new KOsocket(o["host"], o["port"]);
-  if(gSocket->getErrorCode() != 0){
-    cm_msg(MERROR,"init","Failed to connect to host; hostname/port = %s %i",((std::string)o["host"]).c_str(),(int)o["port"]);
-  }
+  //  std::cout << "n";
+  //gSocket = new KOsocket(o["host"], o["port"]);
+  //if(gSocket->getErrorCode() != 0){
+  //  cm_msg(MERROR,"init","Failed to connect to host; hostname/port = %s %i",((std::string)o["host"]).c_str(),(int)o["port"]);
+  // }
 
-  usleep(150000);
+  usleep(2500);
 
   // Read temperature                                                                                                                                                                               
   char buffer[200];
   sprintf(buffer,"%s\r\n",command.c_str());
+  //  printf("command: %s\n",command.c_str());
   int size=sizeof(buffer);
+  size = command.size() + 2;
+
+  //std::cout << "w";
   gSocket->write(buffer,size);
 
-  usleep(150000);
+  usleep(50000);
   char bigbuffer[500];
   size = sizeof(bigbuffer);
+  //std::cout << "r";
   gSocket->read(bigbuffer,size);
-
+  //std::cout << "d";
   std::string readback(bigbuffer);
   std::vector<std::string> values;
   std::size_t current, previous = 0;
@@ -582,14 +594,8 @@ float get_brb_value(std::string command, bool with_ok=false){
 
   }
 
-  //   std::cout << "get brb value: " << command << " " << buffer 
-  //	     << " readback=" << readback << " | values="  << values[0] << " value=" << value << std::endl;
+  usleep(250);
 
-  usleep(150000);
-
-  gSocket->shutdown();  
-  usleep(150000);
-  delete gSocket;
   return value;
 
 
@@ -598,7 +604,6 @@ float get_brb_value(std::string command, bool with_ok=false){
 /*-- Event readout -------------------------------------------------*/
 INT read_slow_control(char *pevent, INT off)
 {
-
 
   bk_init32(pevent);
 
