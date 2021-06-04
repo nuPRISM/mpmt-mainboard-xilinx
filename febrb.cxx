@@ -302,8 +302,8 @@ INT frontend_init()
   //  gSocket->shutdown();
   //  SendBrbCommand("custom_command SET_PMT_UART_TIMEOUT_MS 50\r\n");
 
-  for(int i = 0 ; i < 4;++i){
-    usleep(100000);
+  for(int i = 0 ; i < 2;++i){
+    usleep(50000);
     
     std::string temp = ReadBrbCommand("custom_command get_pressure_sensor_temp\n");
     printf("Temp %s\n",temp.c_str());
@@ -326,12 +326,13 @@ INT frontend_init()
   cm_msg(MINFO,"init","BRB Firmware SW version: %s",sw_version.c_str()); 
 
   //  return FE_ERR_HW;
-  return SUCCESS;
+  //  return SUCCESS;
   std::cout << "Setting up PMTs" <<std::endl;
   // Setup control of PMTs
   pmts = new PMTControl(gSocket, get_frontend_index());
   std::cout << "Finished setting up PMTs" << std::endl;
 
+  //  return FE_ERR_HW;
   return SUCCESS;
 }
 
@@ -732,7 +733,7 @@ INT read_pmt_status(char *pevent, INT off)
 
   bk_init32(pevent);
 
-  //  return pmts->GetStatus(pevent, off);
+  return pmts->GetStatus(pevent, off);
   return 0;
 }
 
