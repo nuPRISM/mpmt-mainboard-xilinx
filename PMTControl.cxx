@@ -12,11 +12,11 @@ int PMTControl::CheckActivePMTs(){
 
   std::cout << "Check active " << std::endl;
   
-  for(int i = 0; i < 20; i++){
-    usleep(200000);
+  for(int i = 0; i < 4; i++){
+    usleep(300000);
     std::cout << "Checking chan " << i << std::endl;
     SetCommand("SetChannel", i);
-    usleep(200000);
+    usleep(1200000);
     char buffer[200];
     for(int i = 0; i < 200; i++){buffer[i]=0;}
     sprintf(buffer,"custom_command exec_pmt_cmd 01LG \n");
