@@ -240,10 +240,11 @@ INT frontend_init()
   // using new C++ ODB!
   
   //  midas::odb::set_debug(true);
-  char names1[200], names2[200], names3[200];
+  char names1[200], names2[200], names3[200], names4[200];
   sprintf(names1,"Names BRV%i",get_frontend_index());
   sprintf(names2,"Names BRT%i",get_frontend_index());
   sprintf(names3,"Names BRH%i",get_frontend_index());
+  sprintf(names4,"Names BRC%i",get_frontend_index());
  
   midas::odb o = {
     {"host", "brb00"},
@@ -251,6 +252,7 @@ INT frontend_init()
     {names1, std::array<std::string, 18>{}},
     {names2, std::array<std::string, 6>{}},
     {names3, std::array<std::string, 2>{}},
+    {names4, std::array<std::string, 1>{}},
   };
 
   std::cout << "Names : " << names2 << std::endl;
@@ -284,6 +286,8 @@ INT frontend_init()
 
   o[names3][0] = "Humidity";
   o[names3][1] = "Pressure";
+
+  o[names4][0] = "Clock Status";
 
   char eq_dir[200];
   sprintf(eq_dir,"/Equipment/BRB%02i/Settings",get_frontend_index());
@@ -720,7 +724,22 @@ INT read_slow_control(char *pevent, INT off)
   std::cout << "Pressure/Humidity : " << pressure << " " << humidity << std::endl;
 
   bk_close(pevent, pddata3);
+
   
+  //Clock status
+  int *pddata4;
+
+  sprintf(bank_name,"BRC%i",get_frontend_index());
+  bk_create(pevent, bank_name, TID_INT, (void**)&pddata4);
+
+  float clock_status = get_brb_value("custom_command get_clnr_status_pins",true);
+
+  printf("Clock status %f\n",clock_status);
+
+  *pddata4++ = (int)clock_status;
+
+  bk_close(pevent, pddata4);
+
 
 
   return bk_size(pevent);
