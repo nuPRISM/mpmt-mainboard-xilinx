@@ -231,6 +231,55 @@ std::string ReadBrbCommand(std::string command){
 
 }
 
+
+midas::odb lpc_watch;
+
+void lpc_callback(midas::odb &o) {
+
+  int gSelectedChannel = o.get_last_index();
+  std::cout << "Change value for " << gSelectedChannel << " " << o.get_full_path() << " " << o << std::endl;
+  // check that the selected PMT is active                                                                                                         
+ 
+  // Handle Turning on/off fast LED
+  if(o.get_full_path().find("EnableFastLED") != std::string::npos){
+    
+    // Turn on or off?
+    if(o){ //turn on
+      
+      // Turn on fast LED
+      SendBrbCommand("custom_command enable_fast_led \r\n");
+
+      cm_msg(MINFO,"lpc_callback","Enabling fast LED");
+      
+    }else{ // turn off
+
+      // Turn off fast LED
+      SendBrbCommand("custom_command disable_fast_led \r\n");
+
+      cm_msg(MINFO,"lpc_callback","Disabling fast LED");
+      
+    }
+
+  }else if(o.get_full_path().find("LED_DAC") != std::string::npos){
+
+    // Set DAC value
+    int dac = o;
+    // Sanity checks
+    if(dac > 255) dac = 255;
+    if(dac < 0) dac = 0;
+    
+    char buffer[256];
+    sprintf(buffer,"custom_command write_mezzanine_dac 1 1 %i \r\n",dac);
+    SendBrbCommand(buffer);
+
+    cm_msg(MINFO,"lpc_callback","Setting LPC DAC to %i",dac);
+
+
+  }
+
+}
+
+
 /*-- Frontend Init -------------------------------------------------*/
 INT frontend_init()
 {
@@ -240,11 +289,12 @@ INT frontend_init()
   // using new C++ ODB!
   
   //  midas::odb::set_debug(true);
-  char names1[200], names2[200], names3[200], names4[200];
+  char names1[200], names2[200], names3[200], names4[200], names5[200];
   sprintf(names1,"Names BRV%i",get_frontend_index());
   sprintf(names2,"Names BRT%i",get_frontend_index());
   sprintf(names3,"Names BRH%i",get_frontend_index());
   sprintf(names4,"Names BRC%i",get_frontend_index());
+  sprintf(names5,"Names BRL%i",get_frontend_index());
  
   midas::odb o = {
     {"host", "brb00"},
@@ -253,6 +303,7 @@ INT frontend_init()
     {names2, std::array<std::string, 6>{}},
     {names3, std::array<std::string, 2>{}},
     {names4, std::array<std::string, 1>{}},
+    {names5, std::array<std::string, 4>{}},
   };
 
   std::cout << "Names : " << names2 << std::endl;
@@ -289,6 +340,11 @@ INT frontend_init()
 
   o[names4][0] = "Clock Status";
 
+  o[names5][0] = "Fast LED Enabled";
+  o[names5][1] = "Fast LED Mode";
+  o[names5][2] = "LED DAC";
+  o[names5][3] = "Slow LED Enabled";
+
   char eq_dir[200];
   sprintf(eq_dir,"/Equipment/BRB%02i/Settings",get_frontend_index());
   o.connect(eq_dir);
@@ -320,23 +376,37 @@ INT frontend_init()
   std::string hw_version = ReadBrbCommand("get_hw_version\r\n");
   std::string sw_version = ReadBrbCommand("get_sw_version\r\n");
 
-
-  //std::string hw_version = ReadBrbCommand("get_hw_version\r\n");
-  //std::string sw_version = ReadBrbCommand("get_sw_version\r\n");
-  
-
-
   cm_msg(MINFO,"init","BRB Firmware HW version: %s",hw_version.c_str()); 
   cm_msg(MINFO,"init","BRB Firmware SW version: %s",sw_version.c_str()); 
 
-  //  return FE_ERR_HW;
-  //  return SUCCESS;
-  std::cout << "Setting up PMTs" <<std::endl;
   // Setup control of PMTs
+  std::cout << "Setting up PMTs" <<std::endl;
   pmts = new PMTControl(gSocket, get_frontend_index());
   std::cout << "Finished setting up PMTs" << std::endl;
 
-  //  return FE_ERR_HW;
+  // Set LPC to external trigger and set DAC to minimum light
+  SendBrbCommand("custom_command select_sync_to_external_fast_led \r\n");
+  SendBrbCommand("custom_command enable_mezzanine_dac \r\n");
+  SendBrbCommand("custom_command write_mezzanine_dac 1 1 255 \r\n");
+  cm_msg(MINFO,"init","Setting LPC to use external trigger"); 
+
+  // Setup the LPC ODB keys and setup callback
+
+  midas::odb lpc = {
+    {"EnableFastLED", false },
+    {"LED_DAC", 255 }
+  };
+
+  sprintf(eq_dir,"/Equipment/BRB%02i/Settings/LPC",get_frontend_index());
+  printf("Connecting ODB directory %s\n",eq_dir);
+  lpc.connect(eq_dir);
+
+  // Setup the DB watch for the LPC settings
+  lpc_watch.connect(eq_dir);
+  std::function<void(midas::odb &o)> f2 = [=](midas::odb &o) {  lpc_callback(o);  };
+  lpc_watch.watch(f2);
+  std::cout << "Finished setting up LPC ODB" << std::endl;
+
   return SUCCESS;
 }
 
@@ -538,20 +608,6 @@ struct timeval last_event_time;
 // Function for returning a BRB value
 float get_brb_value(std::string command, bool with_ok=false){
 
-  //midas::odb o = {
-  //{"host", "brb00"},
-  //{"port", 40},
-  //};
-
-  //char eq_dir[200];
-  //sprintf(eq_dir,"/Equipment/BRB%02i/Settings",get_frontend_index());
-  // o.connect(eq_dir);
-
-  //  std::cout << "n";
-  //gSocket = new KOsocket(o["host"], o["port"]);
-  //if(gSocket->getErrorCode() != 0){
-  //  cm_msg(MERROR,"init","Failed to connect to host; hostname/port = %s %i",((std::string)o["host"]).c_str(),(int)o["port"]);
-  // }
 
   usleep(2500);
 
@@ -739,6 +795,27 @@ INT read_slow_control(char *pevent, INT off)
   *pddata4++ = (int)clock_status;
 
   bk_close(pevent, pddata4);
+
+
+
+  //LPC status
+  int *pddata5;
+
+  sprintf(bank_name,"BRL%i",get_frontend_index());
+  bk_create(pevent, bank_name, TID_INT, (void**)&pddata5);
+
+  float led_fast_status = get_brb_value("custom_command get_enable_fast_led_status",true);
+  float led_fast_mode = get_brb_value("custom_command get_fast_led_mode",true);
+  float led_dac = 0;//get_brb_value("custom_command get_mezzanine_dac",true);
+  float led_slow_status = 0;
+  //  printf("FAST LED status %f %f %f\n",led_fast_status, led_fast_mode,led_dac);
+
+  *pddata5++ = (int)led_fast_status;
+  *pddata5++ = (int)led_fast_mode;
+  *pddata5++ = (int)led_dac;
+  *pddata5++ = (int)led_slow_status;
+
+  bk_close(pevent, pddata5);
 
 
 
