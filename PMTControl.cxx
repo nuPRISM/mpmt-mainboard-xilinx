@@ -129,10 +129,21 @@ bool PMTControl::SetCommand(std::string command, int value){
   // Check that the reply has the expected except substring
   std::string origcommand(buffer);  
   if(origcommand.find(readback) == std::string::npos and !(command.compare("SetChannel") == 0)){
-    cm_msg(MERROR,"PMTControl::SetCommand","Reply did not match original command: %s |  %s",readback.c_str(),origcommand.c_str());
-    std::cout << "PMTControl : Reply did not match original command: " << readback
-	      << " | " << origcommand << std::endl;
-    return false;
+    // Extra check for the HV on / off message
+    if((command.compare("HV") == 0)){
+      readback.pop_back(); readback.pop_back(); readback.pop_back();  // extra characters for this particular command
+      if(origcommand.find(readback) == std::string::npos){
+	cm_msg(MERROR,"PMTControl::SetCommand","Reply did not match original HV command: %s |  %s",readback.c_str(),origcommand.c_str());
+	std::cout << "PMTControl : Reply did not match original command: " << readback
+		  << " | " << origcommand << std::endl;
+	return false;
+      }
+    }else{
+      cm_msg(MERROR,"PMTControl::SetCommand","Reply did not match original command: %s |  %s",readback.c_str(),origcommand.c_str());
+      std::cout << "PMTControl : Reply did not match original command: " << readback
+		<< " | " << origcommand << std::endl;
+      return false;
+    }
   }
   //  std::cout << "Reply matches expectation: " << readback << " " << origcommand << std::endl;
 
