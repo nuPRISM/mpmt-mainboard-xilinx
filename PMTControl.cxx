@@ -3,35 +3,47 @@
 #include "time.h"
 #include "sys/time.h"
 #include <array>
+#include <unistd.h>
 
 // Check which PMTs are plugged in and responding
 int PMTControl::CheckActivePMTs(){
   
   int npmts_active = 0;
+
+  std::cout << "Check active " << std::endl;
   
-  for(int i = 0; i < 20; i++){
+  for(int i = 0; i < 4; i++){
+    usleep(300000);
+    std::cout << "Checking chan " << i << std::endl;
     SetCommand("SetChannel", i);
+    usleep(1200000);
     char buffer[200];
+    for(int i = 0; i < 200; i++){buffer[i]=0;}
     sprintf(buffer,"custom_command exec_pmt_cmd 01LG \n");
-    int size=sizeof(buffer);
+    int size=strlen(buffer);
+    size = strlen(buffer);
+    std::cout << "custom command : " << buffer << " size="<< size << std::endl;
+    usleep(10000);
     fSocket->write(buffer,size);
     char bigbuffer[50];
+    for(int i = 0; i < 50; i++){bigbuffer[i]=0;}
     size = sizeof(bigbuffer);
+    usleep(500000);
     fSocket->read(bigbuffer,size);
     std::string readback(bigbuffer);
-    //    std::cout << "Readback from PMT: " << i << " " << readback << " |  " <<  readback.size() << std::endl;
+    std::cout << "Readback from PMT 01LG: " << i << " | " << readback << " |  " <<  readback.size() << std::endl;
     if((readback.size() == 14 or readback.size() == 11 or readback.size() == 10) 
        && (readback.substr(0,4) == std::string("01LG"))){
-      std::cout << "Active... " << i << std::endl;
+      std::cout << "Active... " << i << " " << readback.size() << std::endl;
       npmts_active++;
       fActivePMTs[i] = true;
     }else{
-      std::cout << "Not active: " << i << " " << readback.size() << std::endl;
-      std::cout       << readback << std::endl;
+      std::cout << "Not active: " << i << " size=" << readback.size() << std::endl;
+      std::cout       << "|| readback=" << readback << " ||" << std::endl;
       fActivePMTs[i] = false;
     }
 
-    //    std::cout << "response: "  << " " << readback.size()<< std::endl;
+        std::cout << "response: "  << " " << readback.size()<< std::endl;
     ///	      << readback.compare(0,4,"01LG") <<  std::endl;
     
   }
@@ -97,7 +109,8 @@ bool PMTControl::SetCommand(std::string command, int value){
   }
 
   int size=sizeof(buffer);
-  //  std::cout << "Command : " << buffer << " " << size << std::endl;
+  size = strlen(buffer);
+  std::cout << "Command : " << buffer << " " << size << std::endl;
   fSocket->write(buffer,size);
   char bigbuffer[500];
   size = sizeof(bigbuffer);
@@ -105,7 +118,7 @@ bool PMTControl::SetCommand(std::string command, int value){
   
   
   std::string readback(bigbuffer);
-  //  std::cout << "readback: " << readback << " | " << readback.size() << std::endl;
+  std::cout << "readback for set command: " << readback << " | " << readback.size() << std::endl;
   readback.pop_back();
   readback.pop_back(); 
   readback.pop_back(); 
@@ -116,10 +129,21 @@ bool PMTControl::SetCommand(std::string command, int value){
   // Check that the reply has the expected except substring
   std::string origcommand(buffer);  
   if(origcommand.find(readback) == std::string::npos and !(command.compare("SetChannel") == 0)){
-    cm_msg(MERROR,"PMTControl::SetCommand","Reply did not match original command: %s |  %s",readback.c_str(),origcommand.c_str());
-    std::cout << "PMTControl : Reply did not match original command: " << readback
-	      << " | " << origcommand << std::endl;
-    return false;
+    // Extra check for the HV on / off message
+    if((command.compare("HV") == 0)){
+      readback.pop_back(); readback.pop_back(); readback.pop_back();  // extra characters for this particular command
+      if(origcommand.find(readback) == std::string::npos){
+	cm_msg(MERROR,"PMTControl::SetCommand","Reply did not match original HV command: %s |  %s",readback.c_str(),origcommand.c_str());
+	std::cout << "PMTControl : Reply did not match original command: " << readback
+		  << " | " << origcommand << std::endl;
+	return false;
+      }
+    }else{
+      cm_msg(MERROR,"PMTControl::SetCommand","Reply did not match original command: %s |  %s",readback.c_str(),origcommand.c_str());
+      std::cout << "PMTControl : Reply did not match original command: " << readback
+		<< " | " << origcommand << std::endl;
+      return false;
+    }
   }
   //  std::cout << "Reply matches expectation: " << readback << " " << origcommand << std::endl;
 
@@ -192,7 +216,8 @@ float PMTControl::ReadValue(std::string command,int chan){
 
   char buffer[200];
   sprintf(buffer,"custom_command exec_pmt_cmd %s \n",command.c_str());
-  int size=sizeof(buffer);
+  int size=strlen(buffer);
+  size = strlen(buffer);
   fSocket->write(buffer,size);
   char bigbuffer[50];
   size = sizeof(bigbuffer);
@@ -211,7 +236,7 @@ float PMTControl::ReadValue(std::string command,int chan){
   //  long int value = strtol(readback.substr(4,length).c_str(),NULL,0);
   long int value = atoi(readback.substr(4,length).c_str());
   float fvalue = ((float)value)*factor;
-  std::cout << "readback: " << readback.substr(4,length) << " " << value 
+  std::cout << "readback: " <<  readback.substr(4,length) << " " << value 
 	    << " " << " " << fvalue << std::endl;
   
   return fvalue;
@@ -233,8 +258,9 @@ int PMTControl::GetStatus(char *pevent, INT off)
   // Only readout first 4 PMTs for now.
   for(int i = 0; i < 20; i++){
     if(!fActivePMTs[i]) continue; // ignore inactive PMTs
-
+    usleep(100000);
     SetCommand("SetChannel", i);
+    usleep(500000);
     current[i] = ReadValue("01LI",0);
     read_volt[i] = ReadValue("01LV",0);
     set_volt[i] = ReadValue("01LH",0);
@@ -242,6 +268,7 @@ int PMTControl::GetStatus(char *pevent, INT off)
     //    trip_state[i] = ReadValue("01LD",0);
     //    ramp_rate[i] = ReadValue("01LR",0);
     //    ramp_rate[i] = ReadValue("01LR",0);
+    usleep(100000);
   }
 
   struct timeval t2;
@@ -279,8 +306,9 @@ int PMTControl::GetStatus(char *pevent, INT off)
   bk_close(pevent, pddata4);
 
   int *pddata5; // is channel plugged in?
-  // ramp rate  from PMT
-  bk_create(pevent, "PMA0", TID_INT, (void**)&pddata5);
+  //  PMT Active bank
+  sprintf(bank_name,"PMA%i",get_frontend_index());
+  bk_create(pevent, bank_name, TID_INT, (void**)&pddata5);
   for(int i = 0; i < 20; i++){
     if(fActivePMTs[i])
       *pddata5++ = 1;

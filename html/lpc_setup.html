@@ -1,0 +1,64 @@
+!DOCTYPE html>
+<html class="mcss">
+<head>
+   <meta charset="UTF-8">
+   <link rel="stylesheet" href="midas.css">
+   <script src="controls.js"></script>
+   <script src="midas.js"></script>
+   <script src="mhttpd.js"></script>
+   <title>LPC Setup</title>
+
+   <style>
+      .mtable td { padding: 10px; }
+   </style>
+
+</head>
+
+<body class="mcss" onload="mhttpd_init('LPC Setup');;">
+
+<!-- header and side navigation will be filled in mhttpd_init -->
+<div id="mheader"></div>
+<div id="msidenav"></div>
+
+<div id="mmain">
+
+  <table class="mtable">
+    <tr>
+      <th colspan="3" class="mtableheader">LCP Setup</th>
+    </tr>
+    <tr>
+      <td></td>
+      <td>Set Value</td>
+      <td> Readback </td>
+
+    </tr>
+
+
+    <tr>
+      <td>
+	LPC Enable
+      </td>
+      <td>
+        <div class="modbvalue" data-odb-editable="1" data-odb-path="/Equipment/BRB02/Settings/LPC/EnableFastLED" ></div> 
+      </td>
+      <td>
+        <div class="modbvalue" data-odb-path="/Equipment/BRB02/Variables/BRL2[0]" ></div> 
+      </td>
+    </tr>
+    <tr>
+      <td>
+        LED DAC Value
+      </td>
+      <td>
+        <div class="modbvalue" data-odb-editable="1" data-odb-path="/Equipment/BRB02/Settings/LPC/LED_DAC" ></div> 
+      </td>
+      <td>
+
+      </td>
+    </tr>
+  </table>
+
+
+</div>
+</body>
+</html>

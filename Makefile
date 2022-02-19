@@ -100,7 +100,7 @@ LIBMIDAS = -L$(MIDAS_LIB) -lmidas
 #
 # All includes
 INCS = -I. -I$(MIDAS_INC) -I$(MIDAS_DRV) 
-all: $(UFE).exe  feudp.exe 
+all: $(UFE).exe  feudp.exe test_brb.exe print_brb_currents.exe
 
 
 feudp.exe: $(LIB) $(MIDAS_LIB)/mfe.o $(DRIVERS) feudp.o
@@ -122,11 +122,27 @@ $(UFE).exe: $(LIB) $(MIDAS_LIB)/mfe.o $(DRIVERS) KOsocket.o PMTControl.o $(UFE).
 	$(CXX) $(CFLAGS) $(OSFLAGS) $(INCS) -o $(UFE).exe $(UFE).o $(DRIVERS) \
 	$(MIDAS_LIB)/mfe.o KOsocket.o PMTControl.o $(LIBMIDAS) $(LIBS)
 
+print_brb_currents.exe: print_brb_currents.o KOsocket.o
+	$(CXX) $(CFLAGS) $(OSFLAGS) $(INCS) -o print_brb_currents.exe print_brb_currents.o $(DRIVERS) \
+	KOsocket.o $(LIBS)
+
+test_brb.exe: test_brb.o KOsocket.o
+	$(CXX) $(CFLAGS) $(OSFLAGS) $(INCS) -o test_brb.exe test_brb.o $(DRIVERS) \
+	KOsocket.o $(LIBS)
+
+
 febrb.o: febrb.cxx
 	$(CXX) $(CFLAGS) $(INCS) $(OSFLAGS) -o $@ -c $<
 
 KOsocket.o: KOsocket.cxx
 	$(CXX) $(CFLAGS) $(INCS) $(OSFLAGS) -o $@ -c $<
+
+test_brb.o: test_brb.cxx
+	$(CXX) $(CFLAGS) $(INCS) $(OSFLAGS) -o $@ -c $<
+
+print_brb_currents.o: print_brb_currents.cxx
+	$(CXX) $(CFLAGS) $(INCS) $(OSFLAGS) -o $@ -c $<
+
 
 PMTControl.o: PMTControl.cxx
 	$(CXX) $(CFLAGS) $(INCS) $(OSFLAGS) -o $@ -c $<

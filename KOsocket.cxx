@@ -409,9 +409,10 @@ KOsocket::KOsocket(KOsocketType fd,
 KOsocket::KOsocket(const std::string& remoteHost,
 		   int remotePort) // ctor
 {
-  std::cout << "Initialize... " << std::endl;
+
+  
   SOCKET ret = ::socket(AF_INET,SOCK_STREAM,0);
-  std::cout << "Ret " << ret << std::endl;
+  //std::cout << "Create socket" << std::endl;
   if (ret == INVALID_SOCKET)
     {
       fError = WSAGetLastError();
@@ -421,6 +422,7 @@ KOsocket::KOsocket(const std::string& remoteHost,
   fSocket = ret;
 
 
+  //std::cout << "arle bargle " << std::endl;
   /* Disable the Nagle (TCP No Delay) algorithm */  
   if(1){
     int flag = 1;
@@ -430,6 +432,7 @@ KOsocket::KOsocket(const std::string& remoteHost,
       exit( EXIT_FAILURE );    
     }
   }
+  //std::cout << "arled  le bargle " << std::endl;
 
 
   fTimeout = 0;
@@ -442,13 +445,15 @@ KOsocket::KOsocket(const std::string& remoteHost,
   fLocalAddr.fHostname = "(local)";
   fLocalAddr.fPort     = 0;
 
-  std::cout << "Setting things.. " << std::endl;
+  //printf("try lookup hostname [%s], gethostbyname() \n",remoteHost.c_str());
   struct hostent *eptr = gethostbyname(remoteHost.c_str());
   if (!eptr)
     {
       fError = WSAGetLastError();
       throw KOsocketException(KOsprintf("Cannot lookup hostname [%s], gethostbyname() error: %s",remoteHost.c_str(),getErrorString().c_str()));
     }
+
+  //printf("Could lookup hostname [%s], gethostbyname() error: %s\n ",remoteHost.c_str(),getErrorString().c_str());
 
   unsigned int ipAddr = ntohl(*(unsigned int*)*(eptr->h_addr_list));
 
@@ -457,9 +462,9 @@ KOsocket::KOsocket(const std::string& remoteHost,
   sockAddr.sin_family = AF_INET;
   sockAddr.sin_port = htons(remotePort);
   sockAddr.sin_addr.s_addr = htonl(ipAddr);
-  std::cout << "Connecting " << std::hex << sockAddr.sin_addr.s_addr << std::dec <<std::endl;
+  //std::cout << "Connecting " << std::hex << sockAddr.sin_addr.s_addr << std::dec <<std::endl;
   int err2 = ::connect(fSocket,(LPSOCKADDR)&sockAddr,sizeof(sockAddr));
-  std::cout << "Connected " << std::endl;
+  //std::cout << "Connected " << std::hex << sockAddr.sin_addr.s_addr << " " << err2 << std::dec <<std::endl;
   
   if (err2 == SOCKET_ERROR)
     {
