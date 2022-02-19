@@ -93,7 +93,7 @@ EQUIPMENT equipment[] = {
       EQ_PERIODIC ,      /* equipment type */
       LAM_SOURCE(0, 0x8111),     /* event source crate 0, all stations */
       "MIDAS",                /* format */
-      TRUE,                   /* enabled */
+      FALSE,                   /* enabled */
       RO_ALWAYS | RO_ODB,             /* read always */
       1000,                    /* poll for 500ms */
       0,                      /* stop run after this event limit */
@@ -381,7 +381,7 @@ INT frontend_init()
 
   // Setup control of PMTs
   std::cout << "Setting up PMTs" <<std::endl;
-  pmts = new PMTControl(gSocket, get_frontend_index());
+  //pmts = new PMTControl(gSocket, get_frontend_index());
   std::cout << "Finished setting up PMTs" << std::endl;
 
   // Set LPC to external trigger and set DAC to minimum light
@@ -448,7 +448,7 @@ INT begin_of_run(INT run_number, char *error)
   BOOL testPattern = o["testPatternADC"];
   
   // Do settings for each ADC
-  for(int i = 0; i < 1; i++){
+  if(0)  for(int i = 0; i < 1; i++){
     
     // Use offset binary encoding (rathers than twos complement)
     sprintf(buffer,"custom_command set_adc_data_format %i 1\r\n",i);
@@ -480,12 +480,12 @@ INT begin_of_run(INT run_number, char *error)
   SendBrbCommand(buffer);
 
   // Set the trigger rate as per ODB
-  sprintf(buffer,"custom_command SET_EMULATED_TRIGGER_SPEED %f\r\n",(float)(o["soft trigger rate"]));
+  sprintf(buffer,"set_trigger_freq  %f \n",(float)(o["soft trigger rate"]));
   SendBrbCommand(buffer);
 
   // Set the channel mask
   unsigned int mask = (unsigned int)(o["channel mask"]) & 0x1ff;
-  sprintf(buffer,"custom_command set_acquired_masks  0 0x%x \r\n",mask);
+  sprintf(buffer,"set_adc_mask  0x%x \n",mask);
   SendBrbCommand(buffer);
 
   // Set the Number samples
@@ -503,16 +503,20 @@ INT begin_of_run(INT run_number, char *error)
   BOOL software_trigger = (bool)(o["enableSoftwareTrigger"]);
   if(software_trigger){
     cm_msg(MINFO,"BOR","Enabling software trigger with rate = %f", (float)(o["soft trigger rate"]));
-    SendBrbCommand("custom_command ENABLE_EMULATED_TRIGGER\r\n");
+    //    SendBrbCommand("custom_command ENABLE_EMULATED_TRIGGER\r\n");
+
+    usleep(100000);
+    SendBrbCommand("set_num_samples_per_packet 1024\n");
+
   }else{
     cm_msg(MINFO,"BOR","Disabling software trigger");
     SendBrbCommand("custom_command DISABLE_EMULATED_TRIGGER\r\n");
   }
-  usleep(200000);
-  SendBrbCommand("custom_command enable_dsp_processing \n");
   usleep(1000000);
-  SendBrbCommand("udp_stream_start 0 192.168.0.253 1500\r\n");
+  //  SendBrbCommand("udp_stream_start 0 192.168.0.253 1500\r\n");
+  SendBrbCommand("start_periodic_acquisition 192.168.0.253 1500\n");
   usleep(200000);
+
 
   // Check which PMTs are active.
   //  pmts->CheckActivePMTs();
@@ -530,7 +534,8 @@ INT end_of_run(INT run_number, char *error)
 
 
   // Stop the events                                                                                                                                                      
-  SendBrbCommand("custom_command disable_dsp_processing \r\n");
+  //  SendBrbCommand("custom_command disable_dsp_processing \r\n");
+  SendBrbCommand("stop_acquisition \n");
   usleep(200000);
 
 
@@ -665,7 +670,7 @@ float get_brb_value(std::string command, bool with_ok=false){
 /*-- Event readout -------------------------------------------------*/
 INT read_slow_control(char *pevent, INT off)
 {
-
+  return 0;
   bk_init32(pevent);
 
   float *pddata, *ptmp;
