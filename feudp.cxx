@@ -502,11 +502,28 @@ int read_event(char *pevent, int off)
    std::string bname(bankname);
 
    // Check the frame ID
-   if(length < 100) std::cerr << "Error packet too short!!! " << length << std::endl;
+
+   if(length < 50) std::cerr << "Error packet too short!!! " << length << std::endl;
    uint16_t *data = (uint16_t*)buf;
-   //int packetID = (((data[2] & 0xff00)>>8) | ((data[2] & 0xff)<<8));
+   std::cout <<"_________________________________" << std::endl;
+   for(int i = 0; i < 21; i++){
+      uint16_t tmp = (((data[i] & 0xff00)>>8) | ((data[i] & 0xff)<<8));
+      
+      std::cout << tmp << " ";
+   }
+   std::cout << std::endl;
+
+
+
+      if(0)   std::cout << std::hex 
+             << data[0] << " " << data[1] << " "
+             << data[2] << " " << data[3] << " "
+             << data[4] << " " << data[5] << " "
+             << std::dec << std::endl;
+
+   int packetID = (((data[2] & 0xff00)>>8) | ((data[2] & 0xff)<<8));
    int frameID = (((data[4] & 0xff00)>>8) | ((data[4] & 0xff)<<8));
-   //   std::cout << "frameID: " << frameID << " packetID: " << packetID << " with length: " << length << std::endl;
+   std::cout << "frameID: " << frameID << " packetID: " << packetID << " with length: " << length << std::endl;
    for(int i = 0; i < 40; i++){
       int tttt = (((data[i] & 0xff00)>>8) | ((data[i] & 0xff)<<8));
       unsigned int ttt = (tttt >> 4);
@@ -520,7 +537,7 @@ int read_event(char *pevent, int off)
    //   std::cout << "FrameIds out (" << bname << "): " << frameID << " " << fLastFrameIDs[std::string("BRB0")] << " " << fLastFrameIDs[std::string("BRB1")] << std::endl;
 
    if(frameID != fLastFrameIDs[bname] && fGotFirstPackets[bname]){
-      if(0)      std::cout << "Frame IDs differ ("<<frameID <<"/" << fLastFrameIDs[bname] 
+      if(1)      std::cout << "Frame IDs differ ("<<frameID <<"/" << fLastFrameIDs[bname] 
                            << "): saving last event." << std::endl;
 
       if(nUDPpackets[bname]%4 != 1){ // The number of packets should be 1 + multiple of 4.  Don't save if not the right number of packets

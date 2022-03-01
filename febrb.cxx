@@ -490,7 +490,7 @@ INT begin_of_run(INT run_number, char *error)
 
   // Set the Number samples
   //SendBrbCommand("custom_command SELECT_NUM_SAMPLES_TO_SEND_TO_UDP 512\r\n");
-  SendBrbCommand("custom_command SELECT_NUM_SAMPLES_TO_SEND_TO_UDP 1024\r\n");
+  SendBrbCommand("custom_command SELECT_NUM_SAMPLES_TO_SEND_TO_UDP 4096\r\n");
   usleep(200000);
   SendBrbCommand("custom_command CHANGE_STREAMING_PARAMS \r\n");
 
@@ -505,14 +505,18 @@ INT begin_of_run(INT run_number, char *error)
     cm_msg(MINFO,"BOR","Enabling software trigger with rate = %f", (float)(o["soft trigger rate"]));
     //    SendBrbCommand("custom_command ENABLE_EMULATED_TRIGGER\r\n");
 
-    usleep(100000);
-    SendBrbCommand("set_num_samples_per_packet 1024\n");
-
   }else{
     cm_msg(MINFO,"BOR","Disabling software trigger");
     SendBrbCommand("custom_command DISABLE_EMULATED_TRIGGER\r\n");
   }
+
+  usleep(100000);
+  SendBrbCommand("set_num_samples_per_packet 4096\n");
+  
+
   usleep(1000000);
+
+
   //  SendBrbCommand("udp_stream_start 0 192.168.0.253 1500\r\n");
   SendBrbCommand("start_periodic_acquisition 192.168.0.253 1500\n");
   usleep(200000);
