@@ -47,7 +47,8 @@ const char *frontend_file_name = __FILE__;               /* The frontend file na
 
 
 // Last frame ID
-std::map<std::string, std::vector<uint16_t> > event_datas;
+// We store the data separately for each packet, so that we can reorder the packets based on packet ID
+std::map<std::string, std::vector< std::pair<int, std::vector<uint16_t> > > > event_datas;
 std::map<std::string, uint16_t> fLastFrameIDs;
 std::map<std::string, bool> fGotFirstPackets;
 std::map<std::string, int> fBadEventCounts;
@@ -371,8 +372,8 @@ int frontend_init()
 
    // Initialize the counters and structure needed for combining data packets.
    // Assume we have only two boards for now.
-   event_datas["BRB0"] = std::vector<uint16_t>();
-   event_datas["BRB1"] = std::vector<uint16_t>();
+   event_datas["BRB0"] = std::vector< std::pair<int, std::vector<uint16_t> > >();
+   event_datas["BRB1"] = std::vector< std::pair<int, std::vector<uint16_t> > >();
   
    fLastFrameIDs["BRB0"] = 0;
    fLastFrameIDs["BRB1"] = 0;
@@ -503,9 +504,11 @@ int read_event(char *pevent, int off)
 
    // Check the frame ID
 
+   //Just throw out the short packets
+   if(length < 100) return 0;
    if(length < 50) std::cerr << "Error packet too short!!! " << length << std::endl;
    uint16_t *data = (uint16_t*)buf;
-   std::cout <<"_________________________________" << std::endl;
+   //   std::cout <<"_________________________________" << std::endl;
    for(int i = 0; i < 21; i++){
       uint16_t tmp = (((data[i] & 0xff00)>>8) | ((data[i] & 0xff)<<8));
       
@@ -523,12 +526,24 @@ int read_event(char *pevent, int off)
 
    int packetID = (((data[2] & 0xff00)>>8) | ((data[2] & 0xff)<<8));
    int frameID = (((data[4] & 0xff00)>>8) | ((data[4] & 0xff)<<8));
-   std::cout << "frameID: " << frameID << " packetID: " << packetID << " with length: " << length << std::endl;
-   for(int i = 0; i < 40; i++){
-      int tttt = (((data[i] & 0xff00)>>8) | ((data[i] & 0xff)<<8));
-      unsigned int ttt = (tttt >> 4);
-      //printf("%4i ",ttt);
-      //if(i%4==3) std::cout << std::endl;
+   int adc = (((data[19] & 0xff00)>>8) | ((data[19] & 0xff)<<8));
+   adc = (adc>>8);
+   // Temp hack for lack of consistent frameIDs
+   frameID = (frameID+1)/2;
+   packetID = packetID + (adc*8);
+
+   std::cout << "packet has frameID: " << frameID << " packetID: " << packetID << " for ADC " << adc << " with length: " << length << std::endl;
+
+   if(length < 100){
+      printf("Trailer: ");
+      for(int i = 0; i < length/2; i++){
+         //         int tttt = (((data[i] & 0xff00)>>8) | ((data[i] & 0xff)<<8));
+         int tttt = data[i];
+         unsigned int ttt = (tttt >> 4);
+         printf("%5i ",tttt);
+         //if(i%4==3) std::cout << std::endl;
+      }
+      printf("\n");
    }
 
 
@@ -540,19 +555,24 @@ int read_event(char *pevent, int off)
       if(1)      std::cout << "Frame IDs differ ("<<frameID <<"/" << fLastFrameIDs[bname] 
                            << "): saving last event." << std::endl;
 
-      if(nUDPpackets[bname]%4 != 1){ // The number of packets should be 1 + multiple of 4.  Don't save if not the right number of packets
-         std::cout << "Failure! Number of packets: " << nUDPpackets[bname] << " for bank " << bname << std::endl;
-         
-         std::cout << "npackets: " << nUDPpackets[std::string("BRB0")] << " " << nUDPpackets[std::string("BRB1")] << std::endl;
-         std::cout << "frameIDs: " << frameID << " " << fLastFrameIDs[std::string("BRB0")] << " " << fLastFrameIDs[std::string("BRB1")] << std::endl;
+      //if(nUDPpackets[bname]%4 != 1){ // The number of packets should be 1 + multiple of 4.  Don't save if not the right number of packets
+      if(nUDPpackets[bname]%4 != 0){ // The number of packets should be 1 + multiple of 4.  Don't save if not the right number of packets
+         if(1){
+            std::cout << "Failure! Number of packets: " << nUDPpackets[bname] << " for bank " << bname << std::endl;            
+            std::cout << "npackets: " << nUDPpackets[std::string("BRB0")] << " " << nUDPpackets[std::string("BRB1")] << std::endl;
+            std::cout << "frameIDs: " << frameID << " " << fLastFrameIDs[std::string("BRB0")] << " " << fLastFrameIDs[std::string("BRB1")] << std::endl;
+         }
          nUDPpackets[bname] = 0;
+         for(int i = 0; i < event_datas[bname].size(); i++){
+            event_datas[bname][i].second.clear();
+         }
          event_datas[bname].clear();
          fBadEventCounts[bname]++;
       }else{
 
          nUDPpackets[bname] = 0;
          
-         if(0)std::cout << "Saving " << event_datas[bname].size() << " words." << std::endl;
+         if(1)std::cout << "Saving " << event_datas[bname].size() << " words." << std::endl;
          //printf("%4i %4i %4i %4i\n",(event_data[21]>>4),(event_data[22]>>4),(event_data[23]>>4),(event_data[24]>>4));
          //printf("%4i %4i %4i %4i\n",(event_data[554]>>4),(event_data[555]>>4),(event_data[556]>>4),(event_data[557]>>4));
          //printf("%4i %4i %4i %4i\n",(event_data[1087]>>4),(event_data[1088]>>4),(event_data[1089]>>4),(event_data[1090]>>4));
@@ -563,7 +583,16 @@ int read_event(char *pevent, int off)
          bk_init32(pevent);
          uint16_t* pdata;
          bk_create(pevent, bankname, TID_WORD, (void**)&pdata);
-         for(int i = 0; i < event_datas[bname].size(); i++) *pdata++ = event_datas[bname][i];
+         std::cout << "packet has IDs: " ;
+         for(int i = 0; i < event_datas[bname].size(); i++){
+            std::cout << event_datas[bname][i].first << " ";
+
+            for(int j = 0; j < event_datas[bname][i].second.size(); j++){
+               *pdata++ = event_datas[bname][i].second[j];
+            }
+
+         }
+         std::cout << std::endl;
          bk_close(pevent, pdata);
          
          
@@ -573,10 +602,44 @@ int read_event(char *pevent, int off)
    }
 
    // save the data in overall packet.  Endian flip
+   // reorder the packets based on packet ID
+   std::pair<int, std::vector<uint16_t> > this_data;
+   this_data.first = packetID;
+   this_data.second = std::vector<uint16_t>();
    for(int i  = 0; i < length/2; i++){
       uint16_t tmp = (((data[i] & 0xff00)>>8) | ((data[i] & 0xff)<<8));
       
-      event_datas[bname].push_back(tmp);
+      //      event_datas[bname].push_back(tmp);
+      this_data.second.push_back(tmp);    
+   }
+
+   // Figure out where to insert this packet
+
+   if(event_datas[bname].size() == 0){
+      event_datas[bname].push_back(this_data);
+   }else if(event_datas[bname].size() == 1 && packetID < event_datas[bname][0].first){
+      event_datas[bname].insert(event_datas[bname].begin(), this_data);
+      
+   }else{
+      // find the first element where the packet index is larger; insert before that.
+
+      int index = -1;
+      bool found = false;
+      for(unsigned int i = 0; i < event_datas[bname].size(); i++){
+         if(found) continue;
+
+         if(packetID > event_datas[bname][i].first){
+            index = i;
+         }else{
+            found = true;
+         }
+      }
+      if(index == -1){
+         event_datas[bname].push_back(this_data);
+      }else{
+      
+         event_datas[bname].insert(event_datas[bname].begin() + index+1, this_data);
+      }
    }
    nUDPpackets[bname]++;
 
