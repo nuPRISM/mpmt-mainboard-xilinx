@@ -19,7 +19,8 @@ TBRBRawData::TBRBRawData(int bklen, int bktype, const char* name, void *pdata):
   uint16_t* fData = reinterpret_cast<uint16_t*>(pdata);
 
   int nwords = bklen;
-  int npackets = (bklen - 29) / 533; // Number of full packets, discard tail packet with just 29 words
+  //  int npackets = (bklen - 29) / 533; // Number of full packets, discard tail packet with just 29 words
+  int npackets = (bklen) / 533; // Number of full packets, 
   if(0)std::cout << "Number of words: " << nwords
             << ", number of packets : " << npackets << std::endl;
   
@@ -33,10 +34,13 @@ TBRBRawData::TBRBRawData(int bklen, int bktype, const char* name, void *pdata):
   int nadcs = ((npackets))/8;
   std::cout << "Number of words: " << nwords
 	    << ", number of packets : " << npackets 
-	    << " " << nadcs 
-	    << " " << bklen << std::endl;
+	    << " nadcs=" << nadcs 
+	    << " bklen=" << bklen << std::endl;
   
   for(int adc =0; adc < nadcs; adc++){ // loop over ADCs
+
+    // save ADC number
+    int sadc=-1;
 
     // Create the something to save samples...
     std::vector<std::vector<uint32_t> >Samples;
@@ -53,10 +57,16 @@ TBRBRawData::TBRBRawData(int bklen, int bktype, const char* name, void *pdata):
       uint32_t cadc0 = fData[istart + 19];
       uint32_t cadc1 = fData[istart + 20];
       uint32_t cadc = (cadc0 << 16) + cadc1;
-      if(1 and p==0)std::cout << adc << " " << p << " istart=" << istart << " frame id " << frameid
+      if(sadc == -1) sadc = fData[istart + 19] >> 8;
+      if(1 and p==0){std::cout << adc << " " << p << " istart=" << istart << " frame id " << frameid
 		<< "packet id " << packetid
 		<< " channel=0x" << std::hex << cadc0 << " " << cadc1 << " 0x" << cadc << std::dec  << std::endl;
+	std::cout << "ADC:" 
+		  <<"  0x" << std::hex << sadc << std::dec
+		  << std::endl;
+      }
 
+      
       // Save data samples; data for 4 channels is interleaved
       // need to convert between ADC channel number and connector channel number
       int chan_map[4] = {2,3,0,1};
@@ -106,7 +116,7 @@ TBRBRawData::TBRBRawData(int bklen, int bktype, const char* name, void *pdata):
 
     for(int ach = 0; ach < 4; ach++){
 
-      int ch = adc*4 + ach;
+      int ch = sadc*4 + ach;
       
       RawBRBMeasurement meas = RawBRBMeasurement(ch);
       meas.AddSamples(Samples[ach]);

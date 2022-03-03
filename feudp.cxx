@@ -508,22 +508,7 @@ int read_event(char *pevent, int off)
    if(length < 100) return 0;
    if(length < 50) std::cerr << "Error packet too short!!! " << length << std::endl;
    uint16_t *data = (uint16_t*)buf;
-   //   std::cout <<"_________________________________" << std::endl;
-   for(int i = 0; i < 21; i++){
-      uint16_t tmp = (((data[i] & 0xff00)>>8) | ((data[i] & 0xff)<<8));
-      
-      std::cout << tmp << " ";
-   }
-   std::cout << std::endl;
-
-
-
-      if(0)   std::cout << std::hex 
-             << data[0] << " " << data[1] << " "
-             << data[2] << " " << data[3] << " "
-             << data[4] << " " << data[5] << " "
-             << std::dec << std::endl;
-
+ 
    int packetID = (((data[2] & 0xff00)>>8) | ((data[2] & 0xff)<<8));
    int frameID = (((data[4] & 0xff00)>>8) | ((data[4] & 0xff)<<8));
    int adc = (((data[19] & 0xff00)>>8) | ((data[19] & 0xff)<<8));
@@ -585,8 +570,11 @@ int read_event(char *pevent, int off)
          bk_create(pevent, bankname, TID_WORD, (void**)&pdata);
          std::cout << "packet has IDs: " ;
          for(int i = 0; i < event_datas[bname].size(); i++){
-            std::cout << event_datas[bname][i].first << " ";
+            // Omit the trailer packets right now
+            //            std::cout << "size: " << event_datas[bname][i].second.size() << std::endl; 
+            if(event_datas[bname][i].second.size() < 100) continue;
 
+            std::cout << event_datas[bname][i].first << " ";
             for(int j = 0; j < event_datas[bname][i].second.size(); j++){
                *pdata++ = event_datas[bname][i].second[j];
             }
@@ -595,7 +583,12 @@ int read_event(char *pevent, int off)
          std::cout << std::endl;
          bk_close(pevent, pdata);
          
-         
+         std::cout << "Event size: " << bk_size(pevent) << std::endl;
+
+         nUDPpackets[bname] = 0;
+         for(int i = 0; i < event_datas[bname].size(); i++){
+            event_datas[bname][i].second.clear();
+         }
          event_datas[bname].clear();
       }
 
