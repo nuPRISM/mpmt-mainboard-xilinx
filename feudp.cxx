@@ -514,7 +514,7 @@ int read_event(char *pevent, int off)
    int adc = (((data[19] & 0xff00)>>8) | ((data[19] & 0xff)<<8));
    adc = (adc>>8);
    // Temp hack for lack of consistent frameIDs
-   frameID = (frameID+1)/2;
+   frameID = (frameID)/2;
    packetID = packetID + (adc*8);
 
    std::cout << "packet has frameID: " << frameID << " packetID: " << packetID << " for ADC " << adc << " with length: " << length << std::endl;

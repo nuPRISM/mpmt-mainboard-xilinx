@@ -365,10 +365,10 @@ INT frontend_init()
   for(int i = 0 ; i < 2;++i){
     usleep(50000);
     
-    std::string temp = ReadBrbCommand("custom_command get_pressure_sensor_temp\n");
+    std::string temp = ReadBrbCommand("get_pressure_sensor_temp\n");
     printf("Temp %s\n",temp.c_str());
 
-    std::string temp2 = ReadBrbCommand( "custom_command ldo_get_voltage 1\n");
+    std::string temp2 = ReadBrbCommand( "ldo_get_voltage 1\n");
     printf("LDO1: %s\n",temp2.c_str());;
   }
 
@@ -385,10 +385,10 @@ INT frontend_init()
   std::cout << "Finished setting up PMTs" << std::endl;
 
   // Set LPC to external trigger and set DAC to minimum light
-  SendBrbCommand("custom_command select_sync_to_external_fast_led \r\n");
-  SendBrbCommand("custom_command enable_mezzanine_dac \r\n");
-  SendBrbCommand("custom_command write_mezzanine_dac 1 1 255 \r\n");
-  cm_msg(MINFO,"init","Setting LPC to use external trigger"); 
+  //SendBrbCommand("custom_command select_sync_to_external_fast_led \r\n");
+  //SendBrbCommand("custom_command enable_mezzanine_dac \r\n");
+  //SendBrbCommand("custom_command write_mezzanine_dac 1 1 255 \r\n");
+  //cm_msg(MINFO,"init","Setting LPC to use external trigger"); 
 
   // Setup the LPC ODB keys and setup callback
 
@@ -448,26 +448,26 @@ INT begin_of_run(INT run_number, char *error)
   BOOL testPattern = o["testPatternADC"];
   
   // Do settings for each ADC
-  if(0)  for(int i = 0; i < 1; i++){
+  if(1)  for(int i = 0; i < 5; i++){
     
     // Use offset binary encoding (rathers than twos complement)
-    sprintf(buffer,"custom_command set_adc_data_format %i 1\r\n",i);
-    SendBrbCommand(buffer);
+    //sprintf(buffer,"custom_command set_adc_data_format %i 1\r\n",i);
+    //SendBrbCommand(buffer);
 
     if(testPattern){
       cm_msg(MINFO,"BOR","Using test pattern for ADC %i",i);
-      sprintf(buffer,"custom_command enable_adc_test_signals %i\r\n",i);
+      sprintf(buffer,"enable_adc_test_signals %i\r\n",i);
       SendBrbCommand(buffer);
       for(int j = 0; j < 4; j++){
-	sprintf(buffer,"custom_command set_adc_test_signal_type %i %i 9 \r\n",i,j);
+	sprintf(buffer,"set_adc_test_signal_type %i %i 9 \r\n",i,j);
 	SendBrbCommand(buffer);
       }
     }else{
       std::cout << "Not using test pattern " << std::endl;
-      sprintf(buffer,"custom_command disable_adc_test_signals %i\r\n",i);
+      sprintf(buffer,"disable_adc_test_signals %i\r\n",i);
       SendBrbCommand(buffer);
       for(int j = 0; j < 4; j++){
-	sprintf(buffer,"custom_command set_adc_test_signal_type %i %i 0 \r\n",i,j);
+	sprintf(buffer,"set_adc_test_signal_type %i %i 0 \r\n",i,j);
 	SendBrbCommand(buffer);
       }
     }
@@ -475,9 +475,9 @@ INT begin_of_run(INT run_number, char *error)
 
 
   // Set the trigger delay as per ODB
-  sprintf(buffer,"custom_command SET_PRE_TRIGGER_DELAY 0 %i\r\n",(int)(o["trigger delay"]));
-  cm_msg(MINFO,"BOR","Setting pre-trigger delay to %i",(int)(o["trigger delay"]));
-  SendBrbCommand(buffer);
+  //sprintf(buffer,"custom_command SET_PRE_TRIGGER_DELAY 0 %i\r\n",(int)(o["trigger delay"]));
+  //cm_msg(MINFO,"BOR","Setting pre-trigger delay to %i",(int)(o["trigger delay"]));
+  //SendBrbCommand(buffer);
 
 
   // Set the channel mask
@@ -488,12 +488,12 @@ INT begin_of_run(INT run_number, char *error)
 
   // Set the Number samples
   //SendBrbCommand("custom_command SELECT_NUM_SAMPLES_TO_SEND_TO_UDP 512\r\n");
-  SendBrbCommand("custom_command SELECT_NUM_SAMPLES_TO_SEND_TO_UDP 4096\r\n");
-  usleep(200000);
-  SendBrbCommand("custom_command CHANGE_STREAMING_PARAMS \r\n");
+  //SendBrbCommand("custom_command SELECT_NUM_SAMPLES_TO_SEND_TO_UDP 4096\r\n");
+  //usleep(200000);
+  //SendBrbCommand("custom_command CHANGE_STREAMING_PARAMS \r\n");
 
-  usleep(200000);
-  SendBrbCommand("custom_command SET_PMT_UART_TIMEOUT_MS 50\r\n");
+  //usleep(200000);
+  //SendBrbCommand("custom_command SET_PMT_UART_TIMEOUT_MS 50\r\n");
 
 
   // Start the events
@@ -678,7 +678,7 @@ INT read_slow_control(char *pevent, INT off)
 {
 
   sleep(1);
-  return 0;
+
   bk_init32(pevent);
 
   float *pddata, *ptmp;
@@ -704,9 +704,9 @@ INT read_slow_control(char *pevent, INT off)
     gettimeofday(&t1, NULL);
 
     // Read voltage
-    sprintf(command,"custom_command ldo_get_voltage %i",j+1);
+    sprintf(command,"ldo_get_voltage %i",j+1);
     double voltage = get_brb_value(command);
-    sprintf(command,"custom_command ldo_get_shunt_voltage %i",j+1);
+    sprintf(command,"ldo_get_shunt_voltage %i",j+1);
     double shunt_voltage = get_brb_value(command);
     
     float shunt_current = 1000.0*shunt_voltage/resistor;
@@ -742,6 +742,8 @@ INT read_slow_control(char *pevent, INT off)
 
 
   bk_close(pevent, pddata);	
+
+
   
   // Get temperatures
 
@@ -754,20 +756,21 @@ INT read_slow_control(char *pevent, INT off)
   for(int j = 1; j < 4; j++){
 
     // Read temperature
-    sprintf(command,"custom_command get_temp %i",j);
+    sprintf(command,"get_temp %i",j);
     float temperature = get_brb_value(command);
     std::cout << temperature << " " ; 
     *pddata2++ = temperature;
 
   }
 
-  float temperature1 = get_brb_value("custom_command get_pressure_sensor_temp",true);
+  float temperature1 = get_brb_value("get_pressure_sensor_temp",true);
   *pddata2++ = temperature1;
 
-  float temperature2 = get_brb_value("custom_command get_rtc_temp",true);
+  // NO RTC temperature right now
+  float temperature2 = 0.0;//get_brb_value("get_rtc_temp",true);
   *pddata2++ = temperature2;
 
-  float temperature3 = get_brb_value("custom_command get_hdc1080_temp",true);
+  float temperature3 = get_brb_value("get_hdc1080_temp",true);
   *pddata2++ = temperature3;
   
   std::cout << " " << temperature1 << " " 
@@ -778,14 +781,15 @@ INT read_slow_control(char *pevent, INT off)
   bk_close(pevent, pddata2);	
 
 
+
   // Save humidity and pressure
   float *pddata3;
 
   sprintf(bank_name,"BRH%i",get_frontend_index());
   bk_create(pevent, bank_name, TID_FLOAT, (void**)&pddata3);
 
-  float humidity = get_brb_value("custom_command get_humidity",true);
-  float pressure = get_brb_value("custom_command get_pressure",true);
+  float humidity = get_brb_value("get_humidity",true);
+  float pressure = get_brb_value("get_pressure",true);
   
   *pddata3++ = humidity;
   *pddata3++ = pressure;
@@ -801,7 +805,7 @@ INT read_slow_control(char *pevent, INT off)
   sprintf(bank_name,"BRC%i",get_frontend_index());
   bk_create(pevent, bank_name, TID_INT, (void**)&pddata4);
 
-  float clock_status = get_brb_value("custom_command get_clnr_status_pins",true);
+  float clock_status = 0.0;//get_brb_value("custom_command get_clnr_status_pins",true);
 
   printf("Clock status %f\n",clock_status);
 
@@ -817,8 +821,8 @@ INT read_slow_control(char *pevent, INT off)
   sprintf(bank_name,"BRL%i",get_frontend_index());
   bk_create(pevent, bank_name, TID_INT, (void**)&pddata5);
 
-  float led_fast_status = get_brb_value("custom_command get_enable_fast_led_status",true);
-  float led_fast_mode = get_brb_value("custom_command get_fast_led_mode",true);
+  float led_fast_status = 0.0;//get_brb_value("custom_command get_enable_fast_led_status",true);
+  float led_fast_mode = 0.0;//get_brb_value("custom_command get_fast_led_mode",true);
   float led_dac = 0;//get_brb_value("custom_command get_mezzanine_dac",true);
   float led_slow_status = 0;
   //  printf("FAST LED status %f %f %f\n",led_fast_status, led_fast_mode,led_dac);
