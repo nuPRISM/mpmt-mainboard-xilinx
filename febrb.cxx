@@ -210,7 +210,8 @@ std::string ReadBrbCommand(std::string command){
   sprintf(buffer,"%s",command.c_str());
   gSocket->write(buffer,size);
   usleep(100000);
-  int val = gSocket->read(bigbuffer,size2);
+  gSocket->read(bigbuffer,size2);
+  //int val = gSocket->read(bigbuffer,size2);
   //  std::cout << "Send command: " << command << " (" << val << ") : " << bigbuffer ;
   usleep(150000);
 
@@ -475,26 +476,15 @@ INT begin_of_run(INT run_number, char *error)
 
 
   // Set the trigger delay as per ODB
-  //sprintf(buffer,"custom_command SET_PRE_TRIGGER_DELAY 0 %i\r\n",(int)(o["trigger delay"]));
-  //cm_msg(MINFO,"BOR","Setting pre-trigger delay to %i",(int)(o["trigger delay"]));
-  //SendBrbCommand(buffer);
-
+  sprintf(buffer,"SET_PRE_TRIGGER_DELAY %i\r\n",(int)(o["trigger delay"]));
+  cm_msg(MINFO,"BOR","Setting pre-trigger delay to %i",(int)(o["trigger delay"]));
+  SendBrbCommand(buffer);
 
   // Set the channel mask
   unsigned int mask = (unsigned int)(o["channel mask"]) & 0x1ff;
   sprintf(buffer,"set_adc_mask  0x%x \n",mask);
   cm_msg(MINFO,"BOR","Setting ADC mask to 0x%x",mask);
   SendBrbCommand(buffer);
-
-  // Set the Number samples
-  //SendBrbCommand("custom_command SELECT_NUM_SAMPLES_TO_SEND_TO_UDP 512\r\n");
-  //SendBrbCommand("custom_command SELECT_NUM_SAMPLES_TO_SEND_TO_UDP 4096\r\n");
-  //usleep(200000);
-  //SendBrbCommand("custom_command CHANGE_STREAMING_PARAMS \r\n");
-
-  //usleep(200000);
-  //SendBrbCommand("custom_command SET_PMT_UART_TIMEOUT_MS 50\r\n");
-
 
   // Start the events
   usleep(20000);
@@ -505,10 +495,11 @@ INT begin_of_run(INT run_number, char *error)
     // Set the trigger rate as per ODB
     sprintf(buffer,"set_trigger_freq  %f \n",(float)(o["soft trigger rate"]));
     SendBrbCommand(buffer);
+    SendBrbCommand("ENABLE_EMULATED_TRIGGER\r\n");
     
   }else{
     cm_msg(MINFO,"BOR","Disabling software trigger");
-    //    SendBrbCommand("custom_command DISABLE_EMULATED_TRIGGER\r\n");
+    SendBrbCommand("DISABLE_EMULATED_TRIGGER\r\n");
   }
 
   usleep(100000);
@@ -520,7 +511,7 @@ INT begin_of_run(INT run_number, char *error)
 
   //  SendBrbCommand("udp_stream_start 0 192.168.0.253 1500\r\n");
   // start acquisition... send to port 1500
-  SendBrbCommand("start_periodic_acquisition 192.168.0.253 1500\n");
+  SendBrbCommand("start_periodic_acquisition_ext_trigger 192.168.0.253 1500\n");
   usleep(200000);
 
 
