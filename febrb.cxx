@@ -270,11 +270,10 @@ void lpc_callback(midas::odb &o) {
     if(dac < 0) dac = 0;
     
     char buffer[256];
-    sprintf(buffer,"custom_command write_mezzanine_dac 1 1 %i \r\n",dac);
+    sprintf(buffer,"write_mezzanine_dac 1 1 %i \r\n",dac);
     SendBrbCommand(buffer);
 
     cm_msg(MINFO,"lpc_callback","Setting LPC DAC to %i",dac);
-
 
   }
 
@@ -386,10 +385,10 @@ INT frontend_init()
   std::cout << "Finished setting up PMTs" << std::endl;
 
   // Set LPC to external trigger and set DAC to minimum light
-  //SendBrbCommand("custom_command select_sync_to_external_fast_led \r\n");
-  //SendBrbCommand("custom_command enable_mezzanine_dac \r\n");
-  //SendBrbCommand("custom_command write_mezzanine_dac 1 1 255 \r\n");
-  //cm_msg(MINFO,"init","Setting LPC to use external trigger"); 
+  SendBrbCommand("select_sync_to_external_fast_led \r\n");
+  SendBrbCommand("enable_mezzanine_dac \r\n");
+  SendBrbCommand("write_mezzanine_dac 1 1 255 \r\n");
+  cm_msg(MINFO,"init","Setting LPC to use external trigger"); 
 
   // Setup the LPC ODB keys and setup callback
 
@@ -399,7 +398,7 @@ INT frontend_init()
   };
 
   sprintf(eq_dir,"/Equipment/BRB%02i/Settings/LPC",get_frontend_index());
-  printf("Connecting ODB directory %s\n",eq_dir);
+  // printf("Connecting ODB directory %s\n",eq_dir);
   lpc.connect(eq_dir);
 
   // Setup the DB watch for the LPC settings
@@ -812,9 +811,9 @@ INT read_slow_control(char *pevent, INT off)
   sprintf(bank_name,"BRL%i",get_frontend_index());
   bk_create(pevent, bank_name, TID_INT, (void**)&pddata5);
 
-  float led_fast_status = 0.0;//get_brb_value("custom_command get_enable_fast_led_status",true);
-  float led_fast_mode = 0.0;//get_brb_value("custom_command get_fast_led_mode",true);
-  float led_dac = 0;//get_brb_value("custom_command get_mezzanine_dac",true);
+  float led_fast_status = get_brb_value("get_enable_fast_led_status",true);
+  float led_fast_mode = get_brb_value("get_fast_led_mode",true);
+  float led_dac = 0.0;//get_brb_value("get_mezzanine_dac",true);
   float led_slow_status = 0;
   //  printf("FAST LED status %f %f %f\n",led_fast_status, led_fast_mode,led_dac);
 
