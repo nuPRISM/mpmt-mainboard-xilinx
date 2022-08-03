@@ -511,13 +511,15 @@ int read_event(char *pevent, int off)
  
    int packetID = (((data[2] & 0xff00)>>8) | ((data[2] & 0xff)<<8));
    int frameID = (((data[4] & 0xff00)>>8) | ((data[4] & 0xff)<<8));
+   int frameID_orig = frameID;
    int adc = (((data[19] & 0xff00)>>8) | ((data[19] & 0xff)<<8));
    adc = (adc>>8);
    // Temp hack for lack of consistent frameIDs
-   frameID = (frameID)/2;
+   frameID = (frameID+1)/2;
    packetID = packetID + (adc*8);
 
-   std::cout << "packet has frameID: " << frameID << " packetID: " << packetID << " for ADC " << adc << " with length: " << length << std::endl;
+   std::cout << "packet has frameID: " << frameID << " (" << frameID_orig
+             << ") packetID: " << packetID << " for ADC " << adc << " with length: " << length << std::endl;
 
    if(length < 100){
       printf("Trailer: ");

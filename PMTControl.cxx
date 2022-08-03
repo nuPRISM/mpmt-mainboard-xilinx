@@ -13,27 +13,25 @@ int PMTControl::CheckActivePMTs(){
   std::cout << "Check active " << std::endl;
   
   for(int i = 0; i < 4; i++){
-    usleep(300000);
-    std::cout << "Checking chan " << i << std::endl;
-    SetCommand("SetChannel", i);
-    usleep(1200000);
+    usleep(200000);
+    std::cout << "__________________\nChecking chan " << i << std::endl;
     char buffer[200];
-    for(int i = 0; i < 200; i++){buffer[i]=0;}
-    sprintf(buffer,"custom_command exec_pmt_cmd 01LG \n");
+    for(int j = 0; j < 200; j++){buffer[j]=0;}
+    sprintf(buffer,"get_PMT_FW %i \n",i);
     int size=strlen(buffer);
     size = strlen(buffer);
-    std::cout << "custom command : " << buffer << " size="<< size << std::endl;
+    std::cout << "custom command : " << buffer;
     usleep(10000);
     fSocket->write(buffer,size);
     char bigbuffer[50];
-    for(int i = 0; i < 50; i++){bigbuffer[i]=0;}
+    for(int j = 0; j < 50; j++){bigbuffer[j]=0;}
     size = sizeof(bigbuffer);
-    usleep(500000);
+    usleep(300000);
     fSocket->read(bigbuffer,size);
     std::string readback(bigbuffer);
-    std::cout << "Readback from PMT 01LG: " << i << " | " << readback << " |  " <<  readback.size() << std::endl;
-    if((readback.size() == 14 or readback.size() == 11 or readback.size() == 10) 
-       && (readback.substr(0,4) == std::string("01LG"))){
+    std::cout << "Readback from  get_PMT_FW: " << i << " | " << readback << " |  " <<  readback.size() << std::endl;
+    if((readback.size() == 22) 
+       && (readback.substr(0,17) == std::string("Modbus+FW+present"))){
       std::cout << "Active... " << i << " " << readback.size() << std::endl;
       npmts_active++;
       fActivePMTs[i] = true;
@@ -43,7 +41,7 @@ int PMTControl::CheckActivePMTs(){
       fActivePMTs[i] = false;
     }
 
-        std::cout << "response: "  << " " << readback.size()<< std::endl;
+    //        std::cout << "response: "  << " " << readback.size()<< std::endl;
     ///	      << readback.compare(0,4,"01LG") <<  std::endl;
     
   }

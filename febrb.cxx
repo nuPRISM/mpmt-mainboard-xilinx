@@ -381,7 +381,7 @@ INT frontend_init()
 
   // Setup control of PMTs
   std::cout << "Setting up PMTs" <<std::endl;
-  //pmts = new PMTControl(gSocket, get_frontend_index());
+  pmts = new PMTControl(gSocket, get_frontend_index());
   std::cout << "Finished setting up PMTs" << std::endl;
 
   // Set LPC to external trigger and set DAC to minimum light
@@ -756,8 +756,7 @@ INT read_slow_control(char *pevent, INT off)
   float temperature1 = get_brb_value("get_pressure_sensor_temp",true);
   *pddata2++ = temperature1;
 
-  // NO RTC temperature right now
-  float temperature2 = 0.0;//get_brb_value("get_rtc_temp",true);
+  float temperature2 = get_brb_value("get_fpga_temp",true);
   *pddata2++ = temperature2;
 
   float temperature3 = get_brb_value("get_hdc1080_temp",true);
