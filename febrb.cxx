@@ -289,12 +289,13 @@ INT frontend_init()
   // using new C++ ODB!
   
   //  midas::odb::set_debug(true);
-  char names1[200], names2[200], names3[200], names4[200], names5[200];
+  char names1[200], names2[200], names3[200], names4[200], names5[200], names6[200];
   sprintf(names1,"Names BRV%i",get_frontend_index());
   sprintf(names2,"Names BRT%i",get_frontend_index());
   sprintf(names3,"Names BRH%i",get_frontend_index());
   sprintf(names4,"Names BRC%i",get_frontend_index());
   sprintf(names5,"Names BRL%i",get_frontend_index());
+  sprintf(names6,"Names BRM%i",get_frontend_index());
  
   midas::odb o = {
     {"host", "brb00"},
@@ -304,6 +305,7 @@ INT frontend_init()
     {names3, std::array<std::string, 2>{}},
     {names4, std::array<std::string, 1>{}},
     {names5, std::array<std::string, 4>{}},
+    {names6, std::array<std::string, 4>{}},
   };
 
   std::cout << "Names : " << names2 << std::endl;
@@ -345,6 +347,11 @@ INT frontend_init()
   o[names5][2] = "LED DAC";
   o[names5][3] = "Slow LED Enabled";
 
+  o[names6][0] = "Mag Field X (gauss)";
+  o[names6][1] = "Mag Field Y (gauss)";
+  o[names6][2] = "Mag Field Z (gauss)";
+  o[names6][3] = "Mag Field tota (gauss)";
+
   char eq_dir[200];
   sprintf(eq_dir,"/Equipment/BRB%02i/Settings",get_frontend_index());
   o.connect(eq_dir);
@@ -383,6 +390,10 @@ INT frontend_init()
   std::cout << "Setting up PMTs" <<std::endl;
   pmts = new PMTControl(gSocket, get_frontend_index());
   std::cout << "Finished setting up PMTs" << std::endl;
+
+  // initialize the temp correction for magnetometer
+  SendBrbCommand("mmeter_get_new_offset \r\n");
+
 
   // Set LPC to external trigger and set DAC to minimum light
   SendBrbCommand("select_sync_to_external_fast_led \r\n");
@@ -517,6 +528,8 @@ INT begin_of_run(INT run_number, char *error)
   // Check which PMTs are active.
   //  pmts->CheckActivePMTs();
 
+  // initialize the temp correction for magnetometer
+  SendBrbCommand("mmeter_get_new_offset \r\n");
 
   //------ FINAL ACTIONS before BOR -----------
   printf("End of BOR\n");
@@ -662,6 +675,8 @@ float get_brb_value(std::string command, bool with_ok=false){
 
 
 }
+
+#include <math.h>   
 
 /*-- Event readout -------------------------------------------------*/
 INT read_slow_control(char *pevent, INT off)
@@ -822,6 +837,25 @@ INT read_slow_control(char *pevent, INT off)
   *pddata5++ = (int)led_slow_status;
 
   bk_close(pevent, pddata5);
+
+  //magnetometer status
+  float *pddata6;
+
+  sprintf(bank_name,"BRM%i",get_frontend_index());
+  bk_create(pevent, bank_name, TID_FLOAT, (void**)&pddata6);
+
+  float mag_x = get_brb_value("mmeter_read_mag_field 0",true);
+  float mag_y = get_brb_value("mmeter_read_mag_field 1",true);
+  float mag_z = get_brb_value("mmeter_read_mag_field 2",true);
+  float mag_tot = sqrt(mag_x*mag_x + mag_y*mag_y + mag_z*mag_z);
+  printf("mag status %f %f %f %f\n",mag_x,mag_y,mag_z,mag_tot);
+
+  *pddata6++ = mag_x;
+  *pddata6++ = mag_y;
+  *pddata6++ = mag_z;
+  *pddata6++ = mag_tot;
+
+  bk_close(pevent, pddata6);
 
 
 
