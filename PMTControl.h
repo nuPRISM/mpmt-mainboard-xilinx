@@ -27,7 +27,10 @@ class PMTControl {
   // Read PMT value
   float ReadValue(std::string command,int chan);
 
-  bool SetCommand(std::string command, int value);
+  // Read modbus PMT value
+  float ReadModbusValue(std::string command,int chan);
+
+  bool SetCommand(std::string command, int value, int ch = -1);
 
   // Setup the callback for PMT Settings directory
   midas::odb pmt_watch; 

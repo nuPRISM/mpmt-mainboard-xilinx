@@ -12,8 +12,8 @@ int PMTControl::CheckActivePMTs(){
 
   std::cout << "Check active " << std::endl;
   
-  for(int i = 0; i < 4; i++){
-    usleep(200000);
+  for(int i = 0; i < 8; i++){
+    usleep(150000);
     std::cout << "__________________\nChecking chan " << i << std::endl;
     char buffer[200];
     for(int j = 0; j < 200; j++){buffer[j]=0;}
@@ -21,12 +21,12 @@ int PMTControl::CheckActivePMTs(){
     int size=strlen(buffer);
     size = strlen(buffer);
     std::cout << "custom command : " << buffer;
-    usleep(10000);
+    usleep(50000);
     fSocket->write(buffer,size);
     char bigbuffer[50];
     for(int j = 0; j < 50; j++){bigbuffer[j]=0;}
     size = sizeof(bigbuffer);
-    usleep(300000);
+    usleep(150000);
     fSocket->read(bigbuffer,size);
     std::string readback(bigbuffer);
     std::cout << "Readback from  get_PMT_FW: " << i << " | " << readback << " |  " <<  readback.size() << std::endl;
@@ -69,56 +69,57 @@ void PMTControl::callback(midas::odb &o) {
   
   if(o.get_full_path().find("HVset") != std::string::npos){
     std::cout << "Channel " << gSelectedChannel << " HV changed to " << o[gSelectedChannel] << std::endl;
-    SetCommand("SH", o[gSelectedChannel]);
+    SetCommand("SH", o[gSelectedChannel],gSelectedChannel);
   }else if(o.get_full_path().find("HVRampRate") != std::string::npos){
     std::cout << "Channel " << gSelectedChannel << " ramp rate changed to " << o[gSelectedChannel] << std::endl;
-    SetCommand("SR", o[gSelectedChannel]);
+    SetCommand("SR", o[gSelectedChannel],gSelectedChannel);
   }else if(o.get_full_path().find("HVenable") != std::string::npos){
     int state = (int)o[gSelectedChannel];
     if(state){
       std::cout << "Turning on HV for channel " << gSelectedChannel << std::endl;
-      SetCommand("HV", 1);
+      SetCommand("HV", 1,gSelectedChannel);
     }else{
       std::cout << "Turning off HV for channel " << gSelectedChannel << std::endl;
-      SetCommand("HV", 0);
+      SetCommand("HV", 0,gSelectedChannel);
     }
   }
 
 }
 
 
-bool PMTControl::SetCommand(std::string command, int value){
+bool PMTControl::SetCommand(std::string command, int value, int ch){
 
 
   char buffer[200];
   if(command.compare("SetChannel") == 0){
-    sprintf(buffer,"custom_command select_pmt %i \n",value);
+    sprintf(buffer,"select_pmt %i \n",value);
   }else{
     if(command.compare("SH") == 0){
-      sprintf(buffer,"custom_command exec_pmt_cmd 01%s%04i \n",command.c_str(),value);
+      sprintf(buffer,"exec_pmt_cmd %02i%s%04i \n",ch+1,command.c_str(),value);
     }else if(command.compare("HV") == 0){
-      sprintf(buffer,"custom_command exec_pmt_cmd 01%s%i \n",command.c_str(),value);
+      sprintf(buffer,"exec_pmt_cmd %02i%s%i \n",ch+1,command.c_str(),value);
     }else if(command.compare("SR") == 0){
-      sprintf(buffer,"custom_command exec_pmt_cmd 01%s%03i \n",command.c_str(),value);
+      sprintf(buffer,"exec_pmt_cmd %02i%s%03i \n",ch+1,command.c_str(),value);
     }else{
       cm_msg(MERROR,"PMTControl::SetCommand","Invalid set command %s",command.c_str());
       return false;
     }
   }
 
+  usleep(60000);
   int size=sizeof(buffer);
   size = strlen(buffer);
   std::cout << "Command : " << buffer << " " << size << std::endl;
   fSocket->write(buffer,size);
   char bigbuffer[500];
   size = sizeof(bigbuffer);
+  usleep(100000);
   fSocket->read(bigbuffer,size);
   
   
   std::string readback(bigbuffer);
   std::cout << "readback for set command: " << readback << " | " << readback.size() << std::endl;
   readback.pop_back();
-  readback.pop_back(); 
   readback.pop_back(); 
   readback.pop_back(); 
   readback.pop_back(); 
@@ -143,7 +144,7 @@ bool PMTControl::SetCommand(std::string command, int value){
       return false;
     }
   }
-  //  std::cout << "Reply matches expectation: " << readback << " " << origcommand << std::endl;
+  std::cout << "Reply matches expectation: " << readback << " " << origcommand << std::endl;
 
   return true;
 }
@@ -186,34 +187,79 @@ PMTControl::PMTControl(KOsocket *socket, int index){
 
 }
 
+float PMTControl::ReadModbusValue(std::string command,int chan){
 
-
-//Read value
-float PMTControl::ReadValue(std::string command,int chan){
-  
-  int length = 7;
-  float factor = 1.0;
-  if(command.compare("01LI")== 0){
-    factor = 0.001;
-  }else if(command.compare("01LV")== 0){
-    factor = 0.001;
-  }else if(command.compare("01LS")== 0){
-    length = 4;
-  }else if(command.compare("01LG")== 0){
-    length = 1;
-  }else if(command.compare("01LR")== 0){
-    length = 3;
-  }else if(command.compare("01LH")== 0){
-    length = 4;
-  }else if(command.compare("01LD")== 0){
-    length = 3;
+  float factor = 1500.0;
+  if(command.find("HVCurVal") != std::string::npos){
+    factor = 10.0 / 65535.0;
+  }else if(command.find("HVVolVal") != std::string::npos){
+    factor = 1500.0 / 65535.0;
+  }else if(command.find("HVVolNom") != std::string::npos){
+    factor = 1500.0 / 65535.0;
+  }else if(command.find("STATUS1") != std::string::npos){
+    factor = 1.0;
   }else{
     std::cout << "Error, command " << command << " not defined! " << std::endl;
   }
 
 
+  usleep(50000);
   char buffer[200];
-  sprintf(buffer,"custom_command exec_pmt_cmd %s \n",command.c_str());
+  sprintf(buffer,"pmt_read_reg %i %s\n",chan,command.c_str());
+  std::cout <<"Command= " << command.c_str() << " ";
+  int size=strlen(buffer);
+  size = strlen(buffer);
+  fSocket->write(buffer,size);
+  char bigbuffer[50];
+  size = sizeof(bigbuffer);
+
+  usleep(50000);
+  fSocket->read(bigbuffer,size);
+
+  std::string readback(bigbuffer);
+  int ifind = readback.find("+");
+  if(ifind == std::string::npos){printf("No find string\n"); return -9999.0;}
+
+  std::string valstring = readback.substr(0,ifind);
+ 
+  long int value = atoi(valstring.c_str());
+  float fvalue = ((float)value)*factor;
+  std::cout << " |  readback: " << " " << value
+            << " " << " " << fvalue << std::endl;
+
+  return fvalue;
+
+}
+
+
+//Read value
+float PMTControl::ReadValue(std::string command,int chan){
+
+  //  std::cout <<"Read value" << std::endl;  
+  int length = 7;
+  float factor = 1.0;
+  if(command.find("LI") != std::string::npos){
+    factor = 0.001;
+  }else if(command.find("LV") != std::string::npos){
+    factor = 0.001;
+  }else if(command.find("LS") != std::string::npos){
+    length = 4;
+  }else if(command.find("LG") != std::string::npos){
+    length = 2;
+  }else if(command.find("LR") != std::string::npos){
+    length = 3;
+  }else if(command.find("LH") != std::string::npos){
+    length = 4;
+  }else if(command.find("LD") != std::string::npos){
+    length = 3;
+  }else{
+    std::cout << "Error, command " << command << " not defined! " << std::endl;
+  }
+
+  usleep(50000);
+  char buffer[200];
+  sprintf(buffer,"exec_pmt_cmd %s\n",command.c_str());
+  std::cout <<"Command= " << command.c_str();
   int size=strlen(buffer);
   size = strlen(buffer);
   fSocket->write(buffer,size);
@@ -222,6 +268,7 @@ float PMTControl::ReadValue(std::string command,int chan){
 
   struct timeval t1;
   gettimeofday(&t1, NULL);
+  usleep(50000);
   fSocket->read(bigbuffer,size);
   struct timeval t2;
   gettimeofday(&t2, NULL);
@@ -229,12 +276,13 @@ float PMTControl::ReadValue(std::string command,int chan){
   //  std::cout << "Time to read one value:: " << dtime*1000.0 << " ms " << std::endl;
   
   std::string readback(bigbuffer);
-  //  std::cout << "size: " << readback.size() << std::endl;
+  //std::cout << "size: " << readback.size() << std::endl;
+  //std::cout << "readback valuve: " << readback << std::endl;
   if(readback.size() < 4){ return -9999.0; }
   //  long int value = strtol(readback.substr(4,length).c_str(),NULL,0);
   long int value = atoi(readback.substr(4,length).c_str());
   float fvalue = ((float)value)*factor;
-  std::cout << "readback: " <<  readback.substr(4,length) << " " << value 
+  std::cout << " readback: " <<  readback.substr(4,length) << " " << value 
 	    << " " << " " << fvalue << std::endl;
   
   return fvalue;
@@ -242,6 +290,7 @@ float PMTControl::ReadValue(std::string command,int chan){
 
 int PMTControl::GetStatus(char *pevent, INT off)
 {
+
 
   std::vector<float> current(20,0);
   std::vector<float> read_volt(20,0);
@@ -253,20 +302,23 @@ int PMTControl::GetStatus(char *pevent, INT off)
   struct timeval t1;
   gettimeofday(&t1, NULL);
   std::cout << "Start readout PMTs " << std::endl;
-  // Only readout first 4 PMTs for now.
-  for(int i = 0; i < 20; i++){
+  char command[100];
+  for(int i = 0; i < 8; i++){
+    //  printf("_____________ch %i _________\n",i);
     if(!fActivePMTs[i]) continue; // ignore inactive PMTs
-    usleep(100000);
-    SetCommand("SetChannel", i);
-    usleep(500000);
-    current[i] = ReadValue("01LI",0);
-    read_volt[i] = ReadValue("01LV",0);
-    set_volt[i] = ReadValue("01LH",0);
-    state[i] = ReadValue("01LG",0);
+
+    sprintf(command,"%02iLI",i+1);
+    current[i] = ReadModbusValue("HVCurVal",i);
+    sprintf(command,"%02iLV",i+1);
+    read_volt[i] = ReadModbusValue("HVVolVal",i);
+    sprintf(command,"%02iLH",i+1);
+    set_volt[i] = ReadModbusValue("HVVolNom",i);
+    sprintf(command,"%02iLG",i+1);
+    state[i] = ReadModbusValue("STATUS1",i);
     //    trip_state[i] = ReadValue("01LD",0);
     //    ramp_rate[i] = ReadValue("01LR",0);
     //    ramp_rate[i] = ReadValue("01LR",0);
-    usleep(100000);
+    usleep(50000);
   }
 
   struct timeval t2;
@@ -279,29 +331,41 @@ int PMTControl::GetStatus(char *pevent, INT off)
   char bank_name[20];
   sprintf(bank_name,"PMI%i",get_frontend_index());
   bk_create(pevent, bank_name, TID_FLOAT, (void**)&pddata);
-  for(int i = 0; i < 20; i++){ *pddata++ = current[i];  }
+  printf("PMT current: ");
+  for(int i = 0; i < 20; i++){ *pddata++ = current[i]; printf("%f ",current[i]); } printf("\n");
   bk_close(pevent, pddata);
 
   float *pddata2;
   // Readback voltages from PMT
   sprintf(bank_name,"PMV%i",get_frontend_index());
   bk_create(pevent, bank_name, TID_FLOAT, (void**)&pddata2);
-  for(int i = 0; i < 20; i++){ *pddata2++ = read_volt[i];} 
+  printf("PMT read volt: ");
+  for(int i = 0; i < 20; i++){ *pddata2++ = read_volt[i]; printf("%f ",read_volt[i]);}   printf("\n");
   bk_close(pevent, pddata2);
   
   float *pddata3;
   // measured voltages from PMT
   sprintf(bank_name,"PMH%i",get_frontend_index());
   bk_create(pevent, bank_name, TID_FLOAT, (void**)&pddata3);  
-  for(int i = 0; i < 20; i++){ *pddata3++ = set_volt[i];}  
+  printf("PMT set volt: ");
+  for(int i = 0; i < 20; i++){ *pddata3++ = set_volt[i]; printf("%f ",set_volt[i]);}    printf("\n");
   bk_close(pevent, pddata3);
 
   int *pddata4;
-  // ON/OFF  from PMT
+  // ON/OFF status from PMT
   sprintf(bank_name,"PMG%i",get_frontend_index());
   bk_create(pevent, bank_name, TID_INT, (void**)&pddata4);
-  for(int i = 0; i < 20; i++){ *pddata4++ = (int)state[i];} 
+  printf("PMT state: ");
+  for(int i = 0; i < 20; i++){ *pddata4++ = (((int)state[i]) & 0x3);printf("%f ",state[i]);}   printf("\n");
   bk_close(pevent, pddata4);
+
+  int *pddata42;
+  // error status from PMT
+  sprintf(bank_name,"PME%i",get_frontend_index());
+  bk_create(pevent, bank_name, TID_INT, (void**)&pddata42);
+  printf("PMT error: ");
+  for(int i = 0; i < 20; i++){ *pddata42++ = (((int)state[i]) & 0x3c);printf("%f ",state[i]);}   printf("\n");
+  bk_close(pevent, pddata42);
 
   int *pddata5; // is channel plugged in?
   //  PMT Active bank

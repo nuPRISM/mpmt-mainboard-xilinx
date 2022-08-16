@@ -89,14 +89,14 @@ TBRBRawData::TBRBRawData(int bklen, int bktype, const char* name, void *pdata):
 		    << tmp1 << " "<< tmp2 << " " << data << " ( " << fData[index] << "/"
 		    << std::hex << fData[index] << std::dec <<std::endl; 
 	}
-	if(ch == 1 || ch == 3){ data = 4096 - data;}  // Swap polarity of data for channels 1 and 3.
+	//	if(ch == 1 || ch == 3){ data = 4096 - data;}  // Swap polarity of data for channels 1 and 3.
 
 	if(0 and i < 50 and p == 0 and ch==0){
 	  std::cout << "after data("<<i<<")="
 		    << tmp1 << " "<< tmp2 << " " << data << " ( " << fData[index] << "/"
 		    << std::hex << fData[index] << std::dec <<std::endl; 
 	}
-	//if(adc == 4 && ch == 1){ data = 4096 - data;} // swap polarity back again    
+	//	if(adc == 4 && ch == 1){ data = 4096 - data;} // swap polarity back again    
 	//if(adc == 4 && ch == 3){ data = 4096 - data;} // swap polarity back again    
 
 	// Swap the channel so that channel 0 is as marked on board as J0
