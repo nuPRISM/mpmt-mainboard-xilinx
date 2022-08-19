@@ -511,6 +511,7 @@ int read_event(char *pevent, int off)
  
    int packetID = (((data[2] & 0xff00)>>8) | ((data[2] & 0xff)<<8));
    int frameID = (((data[4] & 0xff00)>>8) | ((data[4] & 0xff)<<8));
+   int triggerCount = (((data[10] & 0xff00)>>8) | ((data[10] & 0xff)<<8));
    int frameID_orig = frameID;
    int adc = (((data[19] & 0xff00)>>8) | ((data[19] & 0xff)<<8));
    adc = (adc>>8);
@@ -519,7 +520,9 @@ int read_event(char *pevent, int off)
    packetID = packetID + (adc*8);
 
    std::cout << "packet has frameID: " << frameID << " (" << frameID_orig
-             << ") packetID: " << packetID << " for ADC " << adc << " with length: " << length << std::endl;
+             << ") packetID: " << packetID << " for ADC " << adc 
+             << " triggerCount = " << triggerCount 
+             << " with length: " << length << std::endl;
 
    if(length < 100){
       printf("Trailer: ");
@@ -533,13 +536,12 @@ int read_event(char *pevent, int off)
       printf("\n");
    }
 
-
    bool saveEvent = false;
    
    //   std::cout << "FrameIds out (" << bname << "): " << frameID << " " << fLastFrameIDs[std::string("BRB0")] << " " << fLastFrameIDs[std::string("BRB1")] << std::endl;
 
-   if(frameID != fLastFrameIDs[bname] && fGotFirstPackets[bname]){
-      if(1)      std::cout << "Frame IDs differ ("<<frameID <<"/" << fLastFrameIDs[bname] 
+   if(triggerCount != fLastFrameIDs[bname] && fGotFirstPackets[bname]){
+      if(1)      std::cout << "Frame IDs differ ("<<triggerCount <<"/" << fLastFrameIDs[bname] 
                            << "): saving last event." << std::endl;
 
       //if(nUDPpackets[bname]%4 != 1){ // The number of packets should be 1 + multiple of 4.  Don't save if not the right number of packets
@@ -547,7 +549,7 @@ int read_event(char *pevent, int off)
          if(1){
             std::cout << "Failure! Number of packets: " << nUDPpackets[bname] << " for bank " << bname << std::endl;            
             std::cout << "npackets: " << nUDPpackets[std::string("BRB0")] << " " << nUDPpackets[std::string("BRB1")] << std::endl;
-            std::cout << "frameIDs: " << frameID << " " << fLastFrameIDs[std::string("BRB0")] << " " << fLastFrameIDs[std::string("BRB1")] << std::endl;
+            std::cout << "frameIDs: " << triggerCount << " " << fLastFrameIDs[std::string("BRB0")] << " " << fLastFrameIDs[std::string("BRB1")] << std::endl;
          }
          nUDPpackets[bname] = 0;
          for(int i = 0; i < event_datas[bname].size(); i++){
@@ -639,7 +641,7 @@ int read_event(char *pevent, int off)
    nUDPpackets[bname]++;
 
    //   std::cout << "FrameIds out1 (" << bname << "): " << frameID << " " << fLastFrameIDs[std::string("BRB0")] << " " << fLastFrameIDs[std::string("BRB1")] << std::endl;
-   fLastFrameIDs[bname] = frameID;
+   fLastFrameIDs[bname] = triggerCount;
    //std::cout << "FrameIds out2 (" << bname << "): " << frameID << " " << fLastFrameIDs[std::string("BRB0")] << " " << fLastFrameIDs[std::string("BRB1")] << std::endl;
    fGotFirstPackets[bname] = true; 
 

@@ -503,7 +503,7 @@ INT begin_of_run(INT run_number, char *error)
     cm_msg(MINFO,"BOR","Enabling software trigger with rate = %f", (float)(o["soft trigger rate"]));
 
     // Set the trigger rate as per ODB
-    sprintf(buffer,"set_trigger_freq  %f \n",(float)(o["soft trigger rate"]));
+    sprintf(buffer,"set_trigger_freq  %i \n",(int)(o["soft trigger rate"]));
     SendBrbCommand(buffer);
     SendBrbCommand("ENABLE_EMULATED_TRIGGER\r\n");
     
