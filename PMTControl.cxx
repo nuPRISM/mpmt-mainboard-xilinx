@@ -12,7 +12,11 @@ int PMTControl::CheckActivePMTs(){
 
   std::cout << "Check active " << std::endl;
   
-  for(int i = 0; i < 8; i++){
+  for(int i = 0; i < 12; i++){
+
+    usleep(150000);
+    SetCommand("SetChannel",i);
+
     usleep(150000);
     std::cout << "__________________\nChecking chan " << i << std::endl;
     char buffer[200];
@@ -21,12 +25,12 @@ int PMTControl::CheckActivePMTs(){
     int size=strlen(buffer);
     size = strlen(buffer);
     std::cout << "custom command : " << buffer;
-    usleep(50000);
+    usleep(70000);
     fSocket->write(buffer,size);
     char bigbuffer[50];
     for(int j = 0; j < 50; j++){bigbuffer[j]=0;}
     size = sizeof(bigbuffer);
-    usleep(150000);
+    usleep(250000);
     fSocket->read(bigbuffer,size);
     std::string readback(bigbuffer);
     std::cout << "Readback from  get_PMT_FW: " << i << " | " << readback << " |  " <<  readback.size() << std::endl;
@@ -196,6 +200,8 @@ float PMTControl::ReadModbusValue(std::string command,int chan){
     factor = 1500.0 / 65535.0;
   }else if(command.find("HVVolNom") != std::string::npos){
     factor = 1500.0 / 65535.0;
+  }else if((command.find("RampUpSpd") != std::string::npos) || (command.find("RampDwnSpd") != std::string::npos)){
+    factor = 1000.0 / 65535.0;
   }else if(command.find("STATUS1") != std::string::npos){
     factor = 1.0;
   }else{
@@ -203,17 +209,17 @@ float PMTControl::ReadModbusValue(std::string command,int chan){
   }
 
 
-  usleep(50000);
+  usleep(20000);
   char buffer[200];
   sprintf(buffer,"pmt_read_reg %i %s\n",chan,command.c_str());
-  std::cout <<"Command= " << command.c_str() << " ";
+  std::cout <<"Command= " << command.c_str() << " (Chan=" << chan << ") ";
   int size=strlen(buffer);
   size = strlen(buffer);
   fSocket->write(buffer,size);
   char bigbuffer[50];
   size = sizeof(bigbuffer);
 
-  usleep(50000);
+  usleep(30000);
   fSocket->read(bigbuffer,size);
 
   std::string readback(bigbuffer);
@@ -291,40 +297,34 @@ float PMTControl::ReadValue(std::string command,int chan){
 int PMTControl::GetStatus(char *pevent, INT off)
 {
 
+  struct timeval t1;
+  gettimeofday(&t1, NULL);
+
+
 
   std::vector<float> current(20,0);
   std::vector<float> read_volt(20,0);
   std::vector<float> set_volt(20,0);
   std::vector<float> state(20,0);
   std::vector<float> trip_state(20,0);
-  std::vector<float> ramp_rate(20,0);
+  std::vector<float> ramp_rate_up(20,0);
+  std::vector<float> ramp_rate_down(20,0);
 
-  struct timeval t1;
-  gettimeofday(&t1, NULL);
-  std::cout << "Start readout PMTs " << std::endl;
-  char command[100];
   for(int i = 0; i < 8; i++){
     //  printf("_____________ch %i _________\n",i);
     if(!fActivePMTs[i]) continue; // ignore inactive PMTs
 
-    sprintf(command,"%02iLI",i+1);
     current[i] = ReadModbusValue("HVCurVal",i);
-    sprintf(command,"%02iLV",i+1);
     read_volt[i] = ReadModbusValue("HVVolVal",i);
-    sprintf(command,"%02iLH",i+1);
     set_volt[i] = ReadModbusValue("HVVolNom",i);
-    sprintf(command,"%02iLG",i+1);
     state[i] = ReadModbusValue("STATUS1",i);
     //    trip_state[i] = ReadValue("01LD",0);
+    ramp_rate_up[i] = ReadModbusValue("RampUpSpd",i);
+    ramp_rate_down[i] = ReadModbusValue("RampDwnSpd",i);
     //    ramp_rate[i] = ReadValue("01LR",0);
-    //    ramp_rate[i] = ReadValue("01LR",0);
-    usleep(50000);
+    usleep(500);
   }
 
-  struct timeval t2;
-  gettimeofday(&t2, NULL);
-
-  ///  double dtime = t2.tv_sec - t1.tv_sec + (t2.tv_usec - t1.tv_usec)/1000000.0;
   
   float *pddata;  
   // Read currents from PMT
@@ -380,6 +380,23 @@ int PMTControl::GetStatus(char *pevent, INT off)
 
   bk_close(pevent, pddata5);
 
+
+  float *pddata6;
+  // ON/OFF status from PMT
+  sprintf(bank_name,"PMU%i",get_frontend_index());
+  bk_create(pevent, bank_name, TID_FLOAT, (void**)&pddata6);
+  printf("Ramp up: ");
+  for(int i = 0; i < 20; i++){ *pddata6++ = ramp_rate_up[i];printf("%f ",ramp_rate_up[i]);}   printf("\n");
+  bk_close(pevent, pddata6);
+
+  float *pddata6b;
+  // ON/OFF status from PMT
+  sprintf(bank_name,"PMD%i",get_frontend_index());
+  bk_create(pevent, bank_name, TID_FLOAT, (void**)&pddata6b);
+  printf("Ramp up: ");
+  for(int i = 0; i < 20; i++){ *pddata6b++ = ramp_rate_down[i];printf("%f ",ramp_rate_down[i]);}   printf("\n");
+  bk_close(pevent, pddata6b);
+
   //int *pddata5;
   // trip state  from PMT
   //bk_create(pevent, "PMD0", TID_INT, (void**)&pddata5);
@@ -393,6 +410,10 @@ int PMTControl::GetStatus(char *pevent, INT off)
   //bk_close(pevent, pddata5);
 
 
+  struct timeval t2;
+  gettimeofday(&t2, NULL);
+  double dtime = t2.tv_sec - t1.tv_sec + (t2.tv_usec - t1.tv_usec)/1000000.0;                                                
+  std::cout << "Time to finish reading all PMTs: " << dtime*1000.0 << " ms " << std::endl;                                         
 
 
   return bk_size(pevent);
