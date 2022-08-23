@@ -168,11 +168,15 @@ bool PMTControl::SetDefaults(){
   for(int i = 0; i < 20; i++){
     if(!fActivePMTs[i]) continue; // ignore inactive PMTs                                                                                          
     
-    usleep(1000);    
+    usleep(100000);    
     SetCommand("RampUpSpd",20.0,i);
-    usleep(1000);    
+    usleep(10000);    
     SetCommand("RampDwnSpd",20.0,i);
-    usleep(1000);
+    usleep(10000);
+    SetCommand("TripTime",2.0,i);
+    usleep(10000);
+    SetCommand("HVCurrMax",6.0,i);
+    usleep(10000);
   }
   
   cm_msg(MINFO,"PMTControl::SetDefaults","Set default values for HV ramp rate and trip points");
