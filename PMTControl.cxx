@@ -2,8 +2,7 @@
 #include "PMTControl.h"
 #include "time.h"
 #include "sys/time.h"
-#include <array>
-#include <unistd.h>
+
 
 // Check which PMTs are plugged in and responding
 int PMTControl::CheckActivePMTs(){
@@ -45,17 +44,45 @@ int PMTControl::CheckActivePMTs(){
       fActivePMTs[i] = false;
     }
 
-    //        std::cout << "response: "  << " " << readback.size()<< std::endl;
-    ///	      << readback.compare(0,4,"01LG") <<  std::endl;
-    
   }
 
   cm_msg(MINFO,"PMTControl::SetCommand","Number of active PMTs: %i",npmts_active);
 
+  fFirstEvent = true;
+  
   return npmts_active;
 }
   
 
+
+float PMTControl::GetModbusFactor(std::string command){
+
+  // Different factors for different commands; also checks that commands are valid.
+
+  float factor = 1500.0;
+  if(command.find("HVCurVal") != std::string::npos){
+    factor = 10.0 / 65535.0;
+  }else if(command.find("HVVolVal") != std::string::npos){
+    factor = 1500.0 / 65535.0;
+  }else if(command.find("HVVolNom") != std::string::npos){
+    factor = 1500.0 / 65535.0;
+  }else if((command.find("RampUpSpd") != std::string::npos) || (command.find("RampDwnSpd") != std::string::npos)){
+    factor = 1000.0 / 65535.0;
+  }else if(command.find("HVCurrMax") != std::string::npos){
+    factor = 10.0 / 65535.0;
+  }else if(command.find("TripTime") != std::string::npos){
+    factor = 1.0;
+  }else if(command.find("STATUS1") != std::string::npos){
+    factor = 1.0;
+  }else if((command.find("SetChannel") != std::string::npos) || (command.find("pmt_toggle_hv") != std::string::npos)){
+    ;
+  }else{
+    std::cout << "Error, command " << command << " not defined! " << std::endl;
+    return -1;
+  }  
+  
+  return factor;
+}
 
 
 // Define what do do with callbacks from watch function
@@ -73,87 +100,97 @@ void PMTControl::callback(midas::odb &o) {
   
   if(o.get_full_path().find("HVset") != std::string::npos){
     std::cout << "Channel " << gSelectedChannel << " HV changed to " << o[gSelectedChannel] << std::endl;
-    SetCommand("SH", o[gSelectedChannel],gSelectedChannel);
+    SetCommand("HVVolNom", o[gSelectedChannel],gSelectedChannel);
   }else if(o.get_full_path().find("HVRampRate") != std::string::npos){
     std::cout << "Channel " << gSelectedChannel << " ramp rate changed to " << o[gSelectedChannel] << std::endl;
     SetCommand("SR", o[gSelectedChannel],gSelectedChannel);
   }else if(o.get_full_path().find("HVenable") != std::string::npos){
     int state = (int)o[gSelectedChannel];
     if(state){
-      std::cout << "Turning on HV for channel " << gSelectedChannel << std::endl;
-      SetCommand("HV", 1,gSelectedChannel);
+      cm_msg(MINFO,"PMTControl","Turning on HV for channel %i",gSelectedChannel);
+      SetCommand("pmt_toggle_hv", 1,gSelectedChannel);
     }else{
-      std::cout << "Turning off HV for channel " << gSelectedChannel << std::endl;
-      SetCommand("HV", 0,gSelectedChannel);
+      cm_msg(MINFO,"PMTControl","Turning off HV for channel %i",gSelectedChannel);
+      SetCommand("pmt_toggle_hv", 0,gSelectedChannel);
     }
   }
 
 }
 
 
-bool PMTControl::SetCommand(std::string command, int value, int ch){
+bool PMTControl::SetCommand(std::string command, float value, int ch){
 
+  float factor = GetModbusFactor(command);
+  if(factor < 0) return false;
 
+  // command string
   char buffer[200];
   if(command.compare("SetChannel") == 0){
     sprintf(buffer,"select_pmt %i \n",value);
+  }else if(command.compare("pmt_toggle_hv") == 0){
+    // Set toggle HV command
+    sprintf(buffer,"pmt_toggle_hv %i %i \n",ch,(int)value);
   }else{
-    if(command.compare("SH") == 0){
-      sprintf(buffer,"exec_pmt_cmd %02i%s%04i \n",ch+1,command.c_str(),value);
-    }else if(command.compare("HV") == 0){
-      sprintf(buffer,"exec_pmt_cmd %02i%s%i \n",ch+1,command.c_str(),value);
-    }else if(command.compare("SR") == 0){
-      sprintf(buffer,"exec_pmt_cmd %02i%s%03i \n",ch+1,command.c_str(),value);
-    }else{
-      cm_msg(MERROR,"PMTControl::SetCommand","Invalid set command %s",command.c_str());
-      return false;
-    }
+    // Use the correct factor to convert from physical units to digital units
+    int int_value = (int)(value / factor);
+
+    // create write command
+    sprintf(buffer,"pmt_write_reg %i %s %i \n",ch,command.c_str(),int_value);
   }
 
   usleep(60000);
   int size=sizeof(buffer);
   size = strlen(buffer);
-  std::cout << "Command : " << buffer << " " << size << std::endl;
+  std::cout << "Set Command : " << buffer << " " << size << std::endl;
+
   fSocket->write(buffer,size);
   char bigbuffer[500];
   size = sizeof(bigbuffer);
   usleep(100000);
   fSocket->read(bigbuffer,size);
   
-  
   std::string readback(bigbuffer);
   std::cout << "readback for set command: " << readback << " | " << readback.size() << std::endl;
-  readback.pop_back();
-  readback.pop_back(); 
-  readback.pop_back(); 
-  readback.pop_back(); 
-  readback.pop_back(); 
 
   // Check that the reply has the expected except substring
-  std::string origcommand(buffer);  
-  if(origcommand.find(readback) == std::string::npos and !(command.compare("SetChannel") == 0)){
-    // Extra check for the HV on / off message
-    if((command.compare("HV") == 0)){
-      readback.pop_back(); readback.pop_back(); readback.pop_back();  // extra characters for this particular command
-      if(origcommand.find(readback) == std::string::npos){
-	cm_msg(MERROR,"PMTControl::SetCommand","Reply did not match original HV command: %s |  %s",readback.c_str(),origcommand.c_str());
-	std::cout << "PMTControl : Reply did not match original command: " << readback
-		  << " | " << origcommand << std::endl;
-	return false;
-      }
-    }else{
-      cm_msg(MERROR,"PMTControl::SetCommand","Reply did not match original command: %s |  %s",readback.c_str(),origcommand.c_str());
-      std::cout << "PMTControl : Reply did not match original command: " << readback
-		<< " | " << origcommand << std::endl;
-      return false;
-    }
+  if(readback.find("1+OK") == std::string::npos and !(command.compare("SetChannel") == 0)){
+    cm_msg(MERROR,"PMTControl::SetCommand","Reply did not 1+OK: %s",readback.c_str());
+    return false;    
   }
-  std::cout << "Reply matches expectation: " << readback << " " << origcommand << std::endl;
+
+  std::cout << "Reply matches expectation 1+OK: " << readback << std::endl;
 
   return true;
 }
 
+bool PMTControl::SetDefaults(){
+
+  for(int i = 0; i < 20; i++){
+    if(!fActivePMTs[i]) continue; // ignore inactive PMTs                                                                                          
+    
+    usleep(1000);    
+    SetCommand("RampUpSpd",20.0,i);
+    usleep(1000);    
+    SetCommand("RampDwnSpd",20.0,i);
+    usleep(1000);
+  }
+  
+  cm_msg(MINFO,"PMTControl::SetDefaults","Set default values for HV ramp rate and trip points");
+
+
+
+}
+
+
 PMTControl::PMTControl(KOsocket *socket, int index){
+
+  // Initialize some variables:
+  std::cout << "Make variables" << std::endl;
+  ramp_rate_up = std::vector<float>(20,0);
+  ramp_rate_down = std::vector<float>(20,0);
+  trip_time = std::vector<float>(20,0);
+  trip_threshold = std::vector<float>(20,0);
+  std::cout << "Made variables" << std::endl;
 
   // Save connection to socket.
   fSocket = socket;
@@ -188,26 +225,16 @@ PMTControl::PMTControl(KOsocket *socket, int index){
   // Check which PMTs are plugged in and responding.
   fActivePMTs = std::vector<bool>(20,false);
   CheckActivePMTs();
+  
+  // Set ramp and trip defaults
+  SetDefaults();
+
 
 }
 
 float PMTControl::ReadModbusValue(std::string command,int chan){
 
-  float factor = 1500.0;
-  if(command.find("HVCurVal") != std::string::npos){
-    factor = 10.0 / 65535.0;
-  }else if(command.find("HVVolVal") != std::string::npos){
-    factor = 1500.0 / 65535.0;
-  }else if(command.find("HVVolNom") != std::string::npos){
-    factor = 1500.0 / 65535.0;
-  }else if((command.find("RampUpSpd") != std::string::npos) || (command.find("RampDwnSpd") != std::string::npos)){
-    factor = 1000.0 / 65535.0;
-  }else if(command.find("STATUS1") != std::string::npos){
-    factor = 1.0;
-  }else{
-    std::cout << "Error, command " << command << " not defined! " << std::endl;
-  }
-
+  float factor = GetModbusFactor(command);
 
   usleep(20000);
   char buffer[200];
@@ -238,62 +265,6 @@ float PMTControl::ReadModbusValue(std::string command,int chan){
 }
 
 
-//Read value
-float PMTControl::ReadValue(std::string command,int chan){
-
-  //  std::cout <<"Read value" << std::endl;  
-  int length = 7;
-  float factor = 1.0;
-  if(command.find("LI") != std::string::npos){
-    factor = 0.001;
-  }else if(command.find("LV") != std::string::npos){
-    factor = 0.001;
-  }else if(command.find("LS") != std::string::npos){
-    length = 4;
-  }else if(command.find("LG") != std::string::npos){
-    length = 2;
-  }else if(command.find("LR") != std::string::npos){
-    length = 3;
-  }else if(command.find("LH") != std::string::npos){
-    length = 4;
-  }else if(command.find("LD") != std::string::npos){
-    length = 3;
-  }else{
-    std::cout << "Error, command " << command << " not defined! " << std::endl;
-  }
-
-  usleep(50000);
-  char buffer[200];
-  sprintf(buffer,"exec_pmt_cmd %s\n",command.c_str());
-  std::cout <<"Command= " << command.c_str();
-  int size=strlen(buffer);
-  size = strlen(buffer);
-  fSocket->write(buffer,size);
-  char bigbuffer[50];
-  size = sizeof(bigbuffer);
-
-  struct timeval t1;
-  gettimeofday(&t1, NULL);
-  usleep(50000);
-  fSocket->read(bigbuffer,size);
-  struct timeval t2;
-  gettimeofday(&t2, NULL);
-  //double dtime = t2.tv_sec - t1.tv_sec + (t2.tv_usec - t1.tv_usec)/1000000.0;
-  //  std::cout << "Time to read one value:: " << dtime*1000.0 << " ms " << std::endl;
-  
-  std::string readback(bigbuffer);
-  //std::cout << "size: " << readback.size() << std::endl;
-  //std::cout << "readback valuve: " << readback << std::endl;
-  if(readback.size() < 4){ return -9999.0; }
-  //  long int value = strtol(readback.substr(4,length).c_str(),NULL,0);
-  long int value = atoi(readback.substr(4,length).c_str());
-  float fvalue = ((float)value)*factor;
-  std::cout << " readback: " <<  readback.substr(4,length) << " " << value 
-	    << " " << " " << fvalue << std::endl;
-  
-  return fvalue;
-}
-
 int PMTControl::GetStatus(char *pevent, INT off)
 {
 
@@ -307,10 +278,8 @@ int PMTControl::GetStatus(char *pevent, INT off)
   std::vector<float> set_volt(20,0);
   std::vector<float> state(20,0);
   std::vector<float> trip_state(20,0);
-  std::vector<float> ramp_rate_up(20,0);
-  std::vector<float> ramp_rate_down(20,0);
 
-  for(int i = 0; i < 8; i++){
+  for(int i = 0; i < 20; i++){
     //  printf("_____________ch %i _________\n",i);
     if(!fActivePMTs[i]) continue; // ignore inactive PMTs
 
@@ -318,10 +287,12 @@ int PMTControl::GetStatus(char *pevent, INT off)
     read_volt[i] = ReadModbusValue("HVVolVal",i);
     set_volt[i] = ReadModbusValue("HVVolNom",i);
     state[i] = ReadModbusValue("STATUS1",i);
-    //    trip_state[i] = ReadValue("01LD",0);
-    ramp_rate_up[i] = ReadModbusValue("RampUpSpd",i);
-    ramp_rate_down[i] = ReadModbusValue("RampDwnSpd",i);
-    //    ramp_rate[i] = ReadValue("01LR",0);
+    if(fFirstEvent){ // Read some variables only on first event
+      ramp_rate_up[i] = ReadModbusValue("RampUpSpd",i);
+      ramp_rate_down[i] = ReadModbusValue("RampDwnSpd",i);
+      trip_time[i] = ReadModbusValue("TripTime",i);
+      trip_threshold[i] = ReadModbusValue("HVCurrMax",i);
+    }
     usleep(500);
   }
 
@@ -397,24 +368,28 @@ int PMTControl::GetStatus(char *pevent, INT off)
   for(int i = 0; i < 20; i++){ *pddata6b++ = ramp_rate_down[i];printf("%f ",ramp_rate_down[i]);}   printf("\n");
   bk_close(pevent, pddata6b);
 
-  //int *pddata5;
-  // trip state  from PMT
-  //bk_create(pevent, "PMD0", TID_INT, (void**)&pddata5);
-  //for(int i = 0; i < 20; i++){ *pddata5++ = (int)trip_state[i];} 
-  //bk_close(pevent, pddata5);
 
-  //  int *pddata5;
-  // HV setpoint  from PMT
-  //bk_create(pevent, "PMR0", TID_INT, (void**)&pddata5);
-  //for(int i = 0; i < 20; i++){ *pddata5++ = (int)ramp_rate[i];} 
-  //bk_close(pevent, pddata5);
+  float *pddata7a;
+  // Trip time
+  sprintf(bank_name,"PMT%i",get_frontend_index());
+  bk_create(pevent, bank_name, TID_FLOAT, (void**)&pddata7a);
+  for(int i = 0; i < 20; i++){ *pddata7a++ = trip_time[i];}
+  bk_close(pevent, pddata7a);
 
+
+  float *pddata7b;
+  // Trip threshold
+  sprintf(bank_name,"PMM%i",get_frontend_index());
+  bk_create(pevent, bank_name, TID_FLOAT, (void**)&pddata7b);
+  for(int i = 0; i < 20; i++){ *pddata7b++ = trip_threshold[i];}
+  bk_close(pevent, pddata7b);
 
   struct timeval t2;
   gettimeofday(&t2, NULL);
   double dtime = t2.tv_sec - t1.tv_sec + (t2.tv_usec - t1.tv_usec)/1000000.0;                                                
   std::cout << "Time to finish reading all PMTs: " << dtime*1000.0 << " ms " << std::endl;                                         
 
+  fFirstEvent = false;
 
   return bk_size(pevent);
 }
