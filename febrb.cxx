@@ -858,6 +858,13 @@ INT read_slow_control(char *pevent, INT off)
   bk_close(pevent, pddata6);
 
 
+  // re-initialize the temp correction for magnetometer
+  // Do this about every 60 minutes.
+  static int mag_counter= 0;
+  mag_counter++;
+  if(mag_counter%20000 == 0){ // 0.2Hz trigger rate * 60 sec * 60 minutes = 18000
+    SendBrbCommand("mmeter_get_new_offset \r\n");
+  }
 
   return bk_size(pevent);
 
