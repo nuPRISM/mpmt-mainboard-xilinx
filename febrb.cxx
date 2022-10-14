@@ -678,6 +678,8 @@ float get_brb_value(std::string command, bool with_ok=false){
 
 #include <math.h>   
 
+  static int mag_counter= 0;
+
 /*-- Event readout -------------------------------------------------*/
 INT read_slow_control(char *pevent, INT off)
 {
@@ -860,10 +862,12 @@ INT read_slow_control(char *pevent, INT off)
 
   // re-initialize the temp correction for magnetometer
   // Do this about every 60 minutes.
-  static int mag_counter= 0;
   mag_counter++;
-  if(mag_counter%20000 == 0){ // 0.2Hz trigger rate * 60 sec * 60 minutes = 18000
+  printf("%i %i\n",mag_counter,mag_counter%500);
+  if(mag_counter%1200 == 0){ // 0.2Hz trigger rate * 60 sec * 60 minutes = 18000
     SendBrbCommand("mmeter_get_new_offset \r\n");
+    cm_msg(MINFO,"febrb_readout","Updating the magnetometer temperature offsets");
+    
   }
 
   return bk_size(pevent);
