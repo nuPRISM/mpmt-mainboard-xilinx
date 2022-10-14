@@ -517,7 +517,7 @@ int read_event(char *pevent, int off)
    // Temp hack for lack of consistent frameIDs
    packetID = packetID + (adc*8);
 
-   std::cout << "packet has frameID: " << frameID 
+   if(0)std::cout << "packet has frameID: " << frameID 
              << " packetID: " << packetID << " for ADC " << adc 
              << " triggerCount = " << triggerCount 
              << " with length: " << length << std::endl;
@@ -537,11 +537,37 @@ int read_event(char *pevent, int off)
    bool saveEvent = false;
    
    if(triggerCount != fLastTriggerCount[bname] && fGotFirstPackets[bname]){
-      if(1)      std::cout << "Frame IDs differ ("<<triggerCount <<"/" << fLastTriggerCount[bname] 
+      if(0)      std::cout << "Frame IDs differ ("<<triggerCount <<"/" << fLastTriggerCount[bname] 
                            << "): saving last event." << std::endl;
 
       //if(nUDPpackets[bname]%4 != 1){ // The number of packets should be 1 + multiple of 4.  Don't save if not the right number of packets
-      if(nUDPpackets[bname]%4 != 0){ // The number of packets should be 1 + multiple of 4.  Don't save if not the right number of packets
+
+      bool bad_event = false;
+     
+      if(nUDPpackets[bname]%8 != 0) bad_event = true; // check if number of packets is divisible by 8.
+      
+      // Check that each set of eight packets are sequential
+      if(!bad_event){
+         int nadcs = nUDPpackets[bname] / 8;
+         for(int tadc = 0; tadc < nadcs; tadc++){
+                       
+            int initial_number = event_datas[bname][tadc*8].first;
+            for (int i = 1; i < 8; i++){
+               int this_number = initial_number + i;
+               if(this_number != event_datas[bname][tadc*8+i].first) bad_event = true;
+            }               
+         }
+      
+         if(bad_event){
+            std::cout << "Not sequential. packet has IDs: " ;
+            for(int i = 0; i < event_datas[bname].size(); i++){
+               std::cout << event_datas[bname][i].first << " ";
+            }
+            std::cout << std::endl;
+         }
+      }
+
+      if(bad_event){ 
          if(1){
             std::cout << "Failure! Number of packets: " << nUDPpackets[bname] << " for bank " << bname << std::endl;            
             std::cout << "npackets: " << nUDPpackets[std::string("BRB0")] << " " << nUDPpackets[std::string("BRB1")] << std::endl;
@@ -557,7 +583,7 @@ int read_event(char *pevent, int off)
 
          nUDPpackets[bname] = 0;
          
-         if(1)std::cout << "Saving " << event_datas[bname].size() << " words." << std::endl;
+         if(0)std::cout << "Saving " << event_datas[bname].size() << " words." << std::endl;
          //printf("%4i %4i %4i %4i\n",(event_data[21]>>4),(event_data[22]>>4),(event_data[23]>>4),(event_data[24]>>4));
          //printf("%4i %4i %4i %4i\n",(event_data[554]>>4),(event_data[555]>>4),(event_data[556]>>4),(event_data[557]>>4));
          //printf("%4i %4i %4i %4i\n",(event_data[1087]>>4),(event_data[1088]>>4),(event_data[1089]>>4),(event_data[1090]>>4));
@@ -583,7 +609,7 @@ int read_event(char *pevent, int off)
          std::cout << std::endl;
          bk_close(pevent, pdata);
          
-         std::cout << "Event size: " << bk_size(pevent) << std::endl;
+         //         std::cout << "Event size: " << bk_size(pevent) << std::endl;
 
          nUDPpackets[bname] = 0;
          for(int i = 0; i < event_datas[bname].size(); i++){
