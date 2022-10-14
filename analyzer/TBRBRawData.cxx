@@ -32,7 +32,7 @@ TBRBRawData::TBRBRawData(int bklen, int bktype, const char* name, void *pdata):
   
 
   int nadcs = ((npackets))/8;
-  std::cout << "Number of words: " << nwords
+  if(0)  std::cout << "Number of words: " << nwords
 	    << ", number of packets : " << npackets 
 	    << " nadcs=" << nadcs 
 	    << " bklen=" << bklen << std::endl;
@@ -58,7 +58,7 @@ TBRBRawData::TBRBRawData(int bklen, int bktype, const char* name, void *pdata):
       uint32_t cadc1 = fData[istart + 20];
       uint32_t cadc = (cadc0 << 16) + cadc1;
       if(sadc == -1) sadc = fData[istart + 19] >> 8;
-      if(1 and p==0){std::cout << adc << " " << p << " istart=" << istart << " frame id " << frameid
+      if(0 and p==0){std::cout << adc << " " << p << " istart=" << istart << " frame id " << frameid
 		<< "packet id " << packetid
 		<< " channel=0x" << std::hex << cadc0 << " " << cadc1 << " 0x" << cadc << std::dec  << std::endl;
 	std::cout << "ADC:" 
@@ -121,7 +121,7 @@ TBRBRawData::TBRBRawData(int bklen, int bktype, const char* name, void *pdata):
       RawBRBMeasurement meas = RawBRBMeasurement(ch);
       meas.AddSamples(Samples[ach]);
       fMeasurements.push_back(meas);
-      if(ach ==0){
+      if(ach ==0 && 0){
 	for(int i = 0; i < 40; i++){
 	  std::cout <<std::hex << Samples[0][i] << " ";
 	}
@@ -130,12 +130,62 @@ TBRBRawData::TBRBRawData(int bklen, int bktype, const char* name, void *pdata):
       }
     }
 
-    if(adc == 0 && 0){
+    if(adc == 0){
+
+      bool bad = false;
       for(int i = 0; i < Samples[0].size(); i++){
-	std::cout << "index = " << i << " Samples (ch0,1,2,3): " << Samples[0][i] << " , " << Samples[1][i] << " , "
-		  << Samples[2][i] << " , " << Samples[3][i] << std::endl;
+	// check for bad samples
+	if(Samples[0][i] < 2052) bad = true;
+	
+	//std::cout << "index = " << i << " Samples (ch0,1,2,3): " << Samples[0][i] << " , " << Samples[1][i] << " , "
+	//	  << Samples[2][i] << " , " << Samples[3][i] << std::endl;
       }
 
+      if(bad){
+
+	std::cout << "Bad event! Corrupt 0/1/129/130 " << Samples[0][0] << " " 
+		  << Samples[0][1] << " " 
+		  << Samples[0][128] << " " 
+		  << Samples[0][129] << " " 
+		  << Samples[0][128*2] << " " 
+		  << Samples[0][138*2+1] << " " 
+		  << Samples[0][128*3] << " " 
+		  << Samples[0][138*3+1] << " " 
+		  << Samples[0][128*4] << " " 
+		  << Samples[0][138*4+1] << " " 
+		  << Samples[0][128*5] << " " 
+		  << Samples[0][138*5+1] << " nadcs=" 
+		  << nadcs << " npackets" << npackets
+		  << std::endl;
+
+
+
+	//	std::cout << "FrameID/packetID/ ADC: ";
+	for(int p = 0; p < 8; p++){ // loop over packets// now 1024 samples hopefully                           
+	  //for(int p = 0; p < 4; p++){ // loop over packets                                                    
+	  
+	  int counter = adc*8 + p;
+	  int istart = counter*533;
+
+	  int frameid = fData[istart + 4];
+	  int packetid = fData[istart + 2];
+	  int triggerCount = fData[istart + 10];
+	  uint32_t cadc0 = fData[istart + 19];
+	  uint32_t cadc1 = fData[istart + 20];
+	  uint32_t cadc = (cadc0 << 16) + cadc1;
+	  cadc = (cadc >> 24);
+
+	  std::cout << "frame=" << frameid << " packet=" << packetid << " trigger=" << triggerCount << " ADC=" << cadc << " " << std::endl;
+
+	  //int frameID = (((data[4] & 0xff00)>>8) | ((data[4] & 0xff)<<8));
+	  //int triggerCount = (((data[10] & 0xff00)>>8) | ((data[10] & 0xff)<<8));
+	  //int adc = (((data[19] & 0xff00)>>8) | ((data[19] & 0xff)<<8));
+	  //adc = (adc>>8);
+	// Temp hack for lack of consistent frameIDs                                                             
+	  //	packetID = packetID + (adc*8);
+	}
+
+      }
 
     }
 

@@ -51,6 +51,30 @@ private:
 };
 
 
+/// Class for making histograms of raw BRB waveforms;
+class TBRBWaveformCorrupt : public THistogramArrayBase {
+public:
+  TBRBWaveformCorrupt();
+  virtual ~TBRBWaveformCorrupt(){std::cout << "TBRBWaveform destructor" << std::endl;};
+
+  void UpdateHistograms(TDataContainer& dataContainer);
+
+  // Reset the histograms; needed before we re-fill each histo.
+  void Reset();
+  
+  void CreateHistograms();
+  
+  /// Take actions at begin run
+  void BeginRun(int transition,int run,int time){		
+    CreateHistograms();		
+  }
+
+private:
+
+  int FrequencySetting;
+};
+
+
 
 /// Class for making histograms of raw BRB waveforms;
 class TBRBBaseline : public THistogramArrayBase {

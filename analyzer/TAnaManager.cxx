@@ -14,6 +14,7 @@ TAnaManager::TAnaManager(bool isoffline){
   AddHistogram(new TBRBPHBig());
   AddHistogram(new TBRB_Time());
   AddHistogram(new TBRBWaveformHit());
+  AddHistogram(new TBRBWaveformCorrupt());
   rate_histos = new TBRB_Rates();
   AddHistogram(rate_histos);
   rate_single_histos = new TBRB_Rates_Single();
