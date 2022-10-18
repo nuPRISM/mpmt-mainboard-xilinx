@@ -491,6 +491,8 @@ INT poll_event(INT source, INT count, BOOL test)
 
 #define MAX_UDP_SIZE (0x10000)
 
+std::vector<int> packet_list;
+
 int read_event(char *pevent, int off)
 {
    char buf[MAX_UDP_SIZE];
@@ -563,6 +565,12 @@ int read_event(char *pevent, int off)
             for(int i = 0; i < event_datas[bname].size(); i++){
                std::cout << event_datas[bname][i].first << " ";
             }
+            
+            std::cout << std::endl;
+            std::cout << "original packet sequence: " ;
+            for(int i = 0; i < packet_list.size(); i++){
+               std::cout << packet_list[i] << " " ;
+            }
             std::cout << std::endl;
          }
       }
@@ -594,19 +602,21 @@ int read_event(char *pevent, int off)
          bk_init32(pevent);
          uint16_t* pdata;
          bk_create(pevent, bankname, TID_WORD, (void**)&pdata);
-         std::cout << "packet has IDs: " ;
+
+         bool printy = false;
+         if(printy)         std::cout << "packet has IDs: " ;
          for(int i = 0; i < event_datas[bname].size(); i++){
             // Omit the trailer packets right now
             //            std::cout << "size: " << event_datas[bname][i].second.size() << std::endl; 
             if(event_datas[bname][i].second.size() < 100) continue;
 
-            std::cout << event_datas[bname][i].first << " ";
+            if(printy) std::cout << event_datas[bname][i].first << " ";
             for(int j = 0; j < event_datas[bname][i].second.size(); j++){
                *pdata++ = event_datas[bname][i].second[j];
             }
 
          }
-         std::cout << std::endl;
+         if(printy)std::cout << std::endl;
          bk_close(pevent, pdata);
          
          //         std::cout << "Event size: " << bk_size(pevent) << std::endl;
@@ -618,6 +628,7 @@ int read_event(char *pevent, int off)
          event_datas[bname].clear();
       }
 
+      packet_list.clear(); 
    }
 
    // save the data in overall packet.  Endian flip
@@ -632,11 +643,14 @@ int read_event(char *pevent, int off)
       this_data.second.push_back(tmp);    
    }
 
+   packet_list.push_back(packetID);
+
    // Figure out where to insert this packet
 
    if(event_datas[bname].size() == 0){
       event_datas[bname].push_back(this_data);
-   }else if(event_datas[bname].size() == 1 && packetID < event_datas[bname][0].first){
+      //}else if(event_datas[bname].size() == 1 && packetID < event_datas[bname][0].first){
+   }else if(packetID < event_datas[bname][0].first){
       event_datas[bname].insert(event_datas[bname].begin(), this_data);
       
    }else{
