@@ -387,12 +387,15 @@ INT frontend_init()
   cm_msg(MINFO,"init","BRB Firmware SW version: %s",sw_version.c_str()); 
 
   // Setup control of PMTs
-  std::cout << "Setting up PMTs" <<std::endl;
+  std::cout << "Setting up PMTs.  Reset addresses" <<std::endl;
+  // Need to reset addresses first
+  SendBrbCommand("reset_all_PMT_addresses\n");
+  std::cout << "Checking for active PMTs" <<std::endl;
   pmts = new PMTControl(gSocket, get_frontend_index());
   std::cout << "Finished setting up PMTs" << std::endl;
 
   // initialize the temp correction for magnetometer
-  SendBrbCommand("mmeter_get_new_offset \r\n");
+  //SendBrbCommand("mmeter_get_new_offset \r\n");
 
 
   // Set LPC to external trigger and set DAC to minimum light
@@ -526,7 +529,11 @@ INT begin_of_run(INT run_number, char *error)
 
 
   // Check which PMTs are active.
-  //  pmts->CheckActivePMTs();
+  if(pmts){
+    // Need to reset addresses first
+    SendBrbCommand("reset_all_PMT_addresses\n");
+    pmts->CheckActivePMTs();
+  }
 
   // initialize the temp correction for magnetometer
   SendBrbCommand("mmeter_get_new_offset \r\n");
@@ -827,8 +834,8 @@ INT read_slow_control(char *pevent, INT off)
   sprintf(bank_name,"BRL%i",get_frontend_index());
   bk_create(pevent, bank_name, TID_INT, (void**)&pddata5);
 
-  float led_fast_status = get_brb_value("get_enable_fast_led_status",true);
-  float led_fast_mode = get_brb_value("get_fast_led_mode",true);
+  float led_fast_status = 0;//get_brb_value("get_enable_fast_led_status",true);
+  float led_fast_mode = 0;//get_brb_value("get_fast_led_mode",true);
   float led_dac = 0.0;//get_brb_value("get_mezzanine_dac",true);
   float led_slow_status = 0;
   //  printf("FAST LED status %f %f %f\n",led_fast_status, led_fast_mode,led_dac);
@@ -846,9 +853,9 @@ INT read_slow_control(char *pevent, INT off)
   sprintf(bank_name,"BRM%i",get_frontend_index());
   bk_create(pevent, bank_name, TID_FLOAT, (void**)&pddata6);
 
-  float mag_x = get_brb_value("mmeter_read_mag_field 0",true);
-  float mag_y = get_brb_value("mmeter_read_mag_field 1",true);
-  float mag_z = get_brb_value("mmeter_read_mag_field 2",true);
+  float mag_x = 0;//get_brb_value("mmeter_read_mag_field 0",true);
+  float mag_y = 0;//get_brb_value("mmeter_read_mag_field 1",true);
+  float mag_z = 0;//get_brb_value("mmeter_read_mag_field 2",true);
   float mag_tot = sqrt(mag_x*mag_x + mag_y*mag_y + mag_z*mag_z);
   printf("mag status %f %f %f %f\n",mag_x,mag_y,mag_z,mag_tot);
 
@@ -865,7 +872,7 @@ INT read_slow_control(char *pevent, INT off)
   mag_counter++;
   printf("%i %i\n",mag_counter,mag_counter%500);
   if(mag_counter%1200 == 0){ // 0.2Hz trigger rate * 60 sec * 60 minutes = 18000
-    SendBrbCommand("mmeter_get_new_offset \r\n");
+    //SendBrbCommand("mmeter_get_new_offset \r\n");
     cm_msg(MINFO,"febrb_readout","Updating the magnetometer temperature offsets");
     
   }
