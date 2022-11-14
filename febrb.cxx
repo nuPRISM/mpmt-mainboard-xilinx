@@ -522,21 +522,25 @@ INT begin_of_run(INT run_number, char *error)
   usleep(1000000);
 
 
-  //  SendBrbCommand("udp_stream_start 0 192.168.0.253 1500\r\n");
-  // start acquisition... send to port 1500
-  SendBrbCommand("start_periodic_acquisition_ext_trigger 192.168.0.253 1500\n");
-  usleep(200000);
-
-
   // Check which PMTs are active.
   if(pmts){
     // Need to reset addresses first
+    printf("Resetting all PMT addresses\n");
     SendBrbCommand("reset_all_PMT_addresses\n");
     pmts->CheckActivePMTs();
   }
 
   // initialize the temp correction for magnetometer
   SendBrbCommand("mmeter_get_new_offset \r\n");
+
+  usleep(1000000);
+
+  
+  //  SendBrbCommand("udp_stream_start 0 192.168.0.253 1500\r\n");
+  // start acquisition... send to port 1500
+  SendBrbCommand("start_periodic_acquisition_ext_trigger 192.168.0.253 1500\n");
+  usleep(200000);
+
 
   //------ FINAL ACTIONS before BOR -----------
   printf("End of BOR\n");
