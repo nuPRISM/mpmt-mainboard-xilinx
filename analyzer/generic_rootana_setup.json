@@ -7,6 +7,10 @@
     "MaxChannels" : 20,
     "WebserverName" : "BRB_Hit"
   },  
+  "BRB Waveform Corrupt" : {
+    "MaxChannels" : 20,
+    "WebserverName" : "BRB_Corrupt"
+  },
   "BRB Baseline" : { 
     "MaxChannels" : 20,
     "WebserverName" : "BRB_Baseline"

@@ -11,12 +11,12 @@ int PMTControl::CheckActivePMTs(){
 
   std::cout << "Check active " << std::endl;
   
-  for(int i = 0; i < 12; i++){
+  for(int i = 0; i < 20; i++){
 
-    usleep(150000);
+    usleep(50000);
     SetCommand("SetChannel",i);
 
-    usleep(150000);
+    usleep(50000);
     std::cout << "__________________\nChecking chan " << i << std::endl;
     char buffer[200];
     for(int j = 0; j < 200; j++){buffer[j]=0;}
@@ -24,12 +24,12 @@ int PMTControl::CheckActivePMTs(){
     int size=strlen(buffer);
     size = strlen(buffer);
     std::cout << "custom command : " << buffer;
-    usleep(70000);
+    usleep(50000);
     fSocket->write(buffer,size);
     char bigbuffer[50];
     for(int j = 0; j < 50; j++){bigbuffer[j]=0;}
     size = sizeof(bigbuffer);
-    usleep(250000);
+    usleep(200000);
     fSocket->read(bigbuffer,size);
     std::string readback(bigbuffer);
     std::cout << "Readback from  get_PMT_FW: " << i << " | " << readback << " |  " <<  readback.size() << std::endl;
@@ -71,6 +71,8 @@ float PMTControl::GetModbusFactor(std::string command){
   }else if(command.find("HVCurrMax") != std::string::npos){
     factor = 10.0 / 65535.0;
   }else if(command.find("TripTime") != std::string::npos){
+    factor = 1.0;
+  }else if(command.find("MCUTemp") != std::string::npos){
     factor = 1.0;
   }else if(command.find("STATUS1") != std::string::npos){
     factor = 1.0;
@@ -231,7 +233,7 @@ PMTControl::PMTControl(KOsocket *socket, int index){
   CheckActivePMTs();
   
   // Set ramp and trip defaults
-  SetDefaults();
+  if(0)  SetDefaults();
 
 
 }
@@ -240,7 +242,7 @@ float PMTControl::ReadModbusValue(std::string command,int chan){
 
   float factor = GetModbusFactor(command);
 
-  usleep(20000);
+  usleep(5000);
   char buffer[200];
   sprintf(buffer,"pmt_read_reg %i %s\n",chan,command.c_str());
   std::cout <<"Command= " << command.c_str() << " (Chan=" << chan << ") ";
@@ -250,7 +252,7 @@ float PMTControl::ReadModbusValue(std::string command,int chan){
   char bigbuffer[50];
   size = sizeof(bigbuffer);
 
-  usleep(30000);
+  usleep(20000);
   fSocket->read(bigbuffer,size);
 
   std::string readback(bigbuffer);
@@ -282,15 +284,18 @@ int PMTControl::GetStatus(char *pevent, INT off)
   std::vector<float> set_volt(20,0);
   std::vector<float> state(20,0);
   std::vector<float> trip_state(20,0);
+  std::vector<float> pmt_temp(20,0);
 
   for(int i = 0; i < 20; i++){
     //  printf("_____________ch %i _________\n",i);
     if(!fActivePMTs[i]) continue; // ignore inactive PMTs
 
     current[i] = ReadModbusValue("HVCurVal",i);
-    read_volt[i] = ReadModbusValue("HVVolVal",i);
-    set_volt[i] = ReadModbusValue("HVVolNom",i);
-    state[i] = ReadModbusValue("STATUS1",i);
+    read_volt[i] = 0;//ReadModbusValue("HVVolVal",i);
+    set_volt[i] = 0;//ReadModbusValue("HVVolNom",i);
+    state[i] = 0;//ReadModbusValue("STATUS1",i);
+    pmt_temp[i] = ReadModbusValue("MCUTemp",i);
+    fFirstEvent = 0;
     if(fFirstEvent){ // Read some variables only on first event
       ramp_rate_up[i] = ReadModbusValue("RampUpSpd",i);
       ramp_rate_down[i] = ReadModbusValue("RampDwnSpd",i);
@@ -341,6 +346,14 @@ int PMTControl::GetStatus(char *pevent, INT off)
   printf("PMT error: ");
   for(int i = 0; i < 20; i++){ *pddata42++ = (((int)state[i]) & 0x3c);printf("%f ",state[i]);}   printf("\n");
   bk_close(pevent, pddata42);
+
+
+  float *pddata_tmp;
+  // PMT Temp
+  sprintf(bank_name,"PMC%i",get_frontend_index());
+  bk_create(pevent, bank_name, TID_FLOAT, (void**)&pddata_tmp);
+  for(int i = 0; i < 20; i++){ *pddata_tmp++ = pmt_temp[i];}
+  bk_close(pevent, pddata_tmp);
 
   int *pddata5; // is channel plugged in?
   //  PMT Active bank

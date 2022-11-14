@@ -204,6 +204,118 @@ void TBRBWaveformHit::UpdateHistograms(TDataContainer& dataContainer){
 }
 
 
+TBRBWaveformCorrupt::TBRBWaveformCorrupt(){
+
+  SetSubTabName("BRB Waveforms Corrupt");
+  
+  CreateHistograms();
+  FrequencySetting = -1;
+}
+
+
+void TBRBWaveformCorrupt::CreateHistograms(){
+
+
+  // check if we already have histogramss.
+  char tname[100];
+  sprintf(tname,"BRB_Corrupt_%i",0);
+
+
+  int fWFLength = 7; // Need a better way of detecting this...
+  int numSamples = fWFLength / 1;
+  
+  // Otherwise make histograms
+  clear();
+  
+  for(int i = 0; i < 20; i++){ // loop over 2 channels
+    
+    char name[100];
+    char title[100];
+    sprintf(name,"BRB_Corrupt_%i",i);
+    sprintf(title,"BRB Waveform for channel=%i (corrupt)",i);	
+
+    
+    TH1D *tmp = new TH1D(name, title, 1024, -0.5*8, 1023.5*8);
+    tmp->SetXTitle("ns");
+    tmp->SetYTitle("ADC value");
+    
+    push_back(tmp);
+  }
+  std::cout << "TBRBWaveform done init...... " << std::endl;
+  FrequencySetting = -1;
+}
+
+
+int total_checked=0;
+int total_corrupt=0;
+
+void TBRBWaveformCorrupt::UpdateHistograms(TDataContainer& dataContainer){
+  
+  int eventid = dataContainer.GetMidasData().GetEventId();
+  int timestamp = dataContainer.GetMidasData().GetTimeStamp();
+  int serno = dataContainer.GetMidasData().GetSerialNumber();
+  TBRBRawData *dt743 = dataContainer.GetEventData<TBRBRawData>("BRB0");
+  
+  if(dt743){      
+    
+    
+    std::vector<RawBRBMeasurement> measurements = dt743->GetMeasurements();
+
+
+
+
+    for(unsigned int i = 0; i < measurements.size(); i++){
+      
+
+      int chan = measurements[i].GetChannel();
+
+      char title[100];
+      sprintf(title,"BRB Waveform ch=%i (corrupt) evt=%i",chan,serno);	
+      
+      // Check for hits in this waveform
+      
+      int nsamples = 1000;
+      int baseline = (int)BSingleton::GetInstance()->GetBaseline(chan);
+      int threshold = baseline - 3;
+      int threshold2 = baseline - 10;
+      bool found_hit = false;
+      int pulse_height = 0;
+      int pulse_time = 0;
+      for(int ib = 0; ib < nsamples; ib++){
+	int sample = measurements[i].GetSample(ib);
+	if(sample < threshold){ // found a pulse                                                                                
+
+	  int ph = baseline-sample;
+	  if(ph > pulse_height) pulse_height = ph;
+	  found_hit = true;
+	  pulse_time = ib;
+	}
+      }
+      
+      if(chan==0) total_checked++;
+
+      
+      if(found_hit){
+	if(chan==0){ total_corrupt++;
+	  std::cout << "Corrupt data = " << total_corrupt << " out of total " << total_checked 
+		    << " ratio  = " << ((float)total_corrupt/(float)total_checked) << std::endl;
+	}
+	//	std::cout << "Pulse height: " << pulse_height << std::endl;
+	if(chan == 10) std::cout << "ch 8 : Pulse hit: " << " " << pulse_height << " " 
+				<< pulse_time << std::endl;
+	int nsamples = measurements[i].GetNSamples();
+	for(int ib = 0; ib < nsamples; ib++){
+	  GetHistogram(chan)->SetBinContent(ib+1, measurements[i].GetSample(ib));
+	}
+	GetHistogram(chan)->SetTitle(title);
+      }      
+    }
+    
+  }
+  
+}
+
+
 
 void TBRBWaveformHit::Reset(){
   

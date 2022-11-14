@@ -505,7 +505,7 @@ int read_event(char *pevent, int off)
    std::string bname(bankname);
 
    // Check the frame ID
-
+   //printf("Got packet! %i\n",length);
    //Just throw out the short packets
    if(length < 100) return 0;
    if(length < 50) std::cerr << "Error packet too short!!! " << length << std::endl;
