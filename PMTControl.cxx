@@ -90,6 +90,13 @@ float PMTControl::GetModbusFactor(std::string command){
 // Define what do do with callbacks from watch function
 void PMTControl::callback(midas::odb &o) {
 
+  // Special command to set defaults for all channels.
+  if(o.get_full_path().find("SetDefaults") != std::string::npos){
+    int status = SetDefaults();
+    printf("Return from setdefaults\n");
+    return;
+  }
+  
   int gSelectedChannel = o.get_last_index();
   std::cout << "Change value for " << gSelectedChannel << " " << o.get_full_path() << std::endl;
   // check that the selected PMT is active
@@ -183,7 +190,7 @@ bool PMTControl::SetDefaults(){
   
   cm_msg(MINFO,"PMTControl::SetDefaults","Set default values for HV ramp rate and trip points");
 
-
+  return true;
 
 }
 
@@ -211,7 +218,8 @@ PMTControl::PMTControl(KOsocket *socket, int index){
     {"HVmax", std::array<double, 20>{} },
     {"HVenable", std::array<bool, 20>{} },
     {"HVset", std::array<double, 20>{} },
-    {"HVRampRate", std::array<int, 20>{} }
+    {"HVRampRate", std::array<int, 20>{} },
+    {"SetDefaults", false }
 
   };
 
@@ -242,7 +250,7 @@ float PMTControl::ReadModbusValue(std::string command,int chan){
 
   float factor = GetModbusFactor(command);
 
-  usleep(5000);
+  usleep(2000);
   char buffer[200];
   sprintf(buffer,"pmt_read_reg %i %s\n",chan,command.c_str());
   std::cout <<"Command= " << command.c_str() << " (Chan=" << chan << ") ";
@@ -276,7 +284,7 @@ int PMTControl::GetStatus(char *pevent, INT off)
 
   struct timeval t1;
   gettimeofday(&t1, NULL);
-
+  printf("Get PMT status\n");
 
 
   std::vector<float> current(20,0);
@@ -290,12 +298,12 @@ int PMTControl::GetStatus(char *pevent, INT off)
     //  printf("_____________ch %i _________\n",i);
     if(!fActivePMTs[i]) continue; // ignore inactive PMTs
 
-    current[i] = ReadModbusValue("HVCurVal",i);
+    current[i] = 0; // ReadModbusValue("HVCurVal",i);
     read_volt[i] = 0;//ReadModbusValue("HVVolVal",i);
     set_volt[i] = 0;//ReadModbusValue("HVVolNom",i);
     state[i] = 0;//ReadModbusValue("STATUS1",i);
     pmt_temp[i] = ReadModbusValue("MCUTemp",i);
-    fFirstEvent = 0;
+    //    fFirstEvent = 0;
     if(fFirstEvent){ // Read some variables only on first event
       ramp_rate_up[i] = ReadModbusValue("RampUpSpd",i);
       ramp_rate_down[i] = ReadModbusValue("RampDwnSpd",i);
