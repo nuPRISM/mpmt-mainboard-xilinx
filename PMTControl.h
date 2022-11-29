@@ -29,13 +29,19 @@ class PMTControl {
   // Read modbus PMT value
   float ReadModbusValue(std::string command,int chan);
 
+  // read multiple modbus registers
+  std::vector<float> PMTControl::ReadMultiModbusValue(std::string command,int chan);
+
+  // read multiple modbus registers
+  std::vector<float> PMTControl::ReadFreqModbusValue(std::string command,int chan);
+
   bool SetCommand(std::string command, float value, int ch = -1);
 
   bool SetDefaults();
 
   // This function returns the conversion factor for different modbus registers
   float GetModbusFactor(std::string command);
-
+  
   // Setup the callback for PMT Settings directory
   midas::odb pmt_watch; 
 

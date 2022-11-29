@@ -11,7 +11,7 @@ int PMTControl::CheckActivePMTs(){
 
   std::cout << "Check active " << std::endl;
   
-  for(int i = 0; i < 20; i++){
+  for(int i = 0; i <20; i++){
 
     usleep(50000);
     SetCommand("SetChannel",i);
@@ -147,7 +147,7 @@ bool PMTControl::SetCommand(std::string command, float value, int ch){
     sprintf(buffer,"pmt_write_reg %i %s %i \n",ch,command.c_str(),int_value);
   }
 
-  usleep(60000);
+  usleep(20000);
   int size=sizeof(buffer);
   size = strlen(buffer);
   std::cout << "Set Command : " << buffer << " " << size << std::endl;
@@ -155,7 +155,7 @@ bool PMTControl::SetCommand(std::string command, float value, int ch){
   fSocket->write(buffer,size);
   char bigbuffer[500];
   size = sizeof(bigbuffer);
-  usleep(100000);
+  usleep(50000);
   fSocket->read(bigbuffer,size);
   
   std::string readback(bigbuffer);
@@ -278,6 +278,154 @@ float PMTControl::ReadModbusValue(std::string command,int chan){
 
 }
 
+std::vector<float> PMTControl::ReadMultiModbusValue(std::string command,int chan){
+
+
+  printf("ReadMultiModbusValue \n");
+  usleep(2000);
+  char buffer[200];
+  sprintf(buffer,"pmt_read_n_regs %i TripTime 4\n",chan);
+  int size=strlen(buffer);
+  size = strlen(buffer);
+  fSocket->write(buffer,size);
+  char bigbuffer[500];
+  size = sizeof(bigbuffer);
+
+  usleep(50000);
+  fSocket->read(bigbuffer,size);
+
+  std::string readback(bigbuffer);
+  std::cout << "multi readback " << readback << " " << std::endl;
+  int ifind = readback.find("1+OK+");
+  if(ifind == std::string::npos){printf("No find string\n"); return std::vector<float>(1);}
+
+
+  std::string valstring = readback.substr(5);
+
+  if(0)  std::cout << "valstring " << valstring << std::endl;
+
+  // valstring is 4 values separated by + and finish with \n
+  int first_plus = valstring.find("+",0);
+  int second_plus = valstring.find("+",first_plus+1);
+  int third_plus = valstring.find("+",second_plus+1);
+
+  if(0)std::cout << "Indices " << first_plus << " " << second_plus << " " 
+	    << third_plus << " " << std::endl;
+
+  std::string first_value = valstring.substr(0,first_plus-0);
+  std::string second_value = valstring.substr(first_plus+1,second_plus-first_plus-1);
+  std::string third_value = valstring.substr(second_plus+1,third_plus-second_plus-1);
+  std::string fourth_value = valstring.substr(third_plus+1,third_plus+1);
+
+  int ivalues[4];
+  ivalues[0] =  atoi(first_value.c_str());
+  ivalues[1] =  atoi(second_value.c_str());
+  ivalues[2] =  atoi(third_value.c_str());
+  ivalues[3] =  atoi(fourth_value.c_str());
+  
+  if(0)std::cout << "Set of values: " << first_value << " "
+	    << second_value << " "
+	    << third_value << " "
+	    << fourth_value << " "
+	    <<  std::endl;
+
+  if(1)  std::cout <<  ivalues[0]<< " "
+	    <<  ivalues[1]<< " "
+	    <<  ivalues[2] << " "
+	    <<  ivalues[3]<< " "
+	    <<   std::endl;
+
+  std::vector<float> fvalues(4);
+  fvalues[0] = ((float)ivalues[0]) * GetModbusFactor("TripTime");
+  fvalues[1] = ((float)ivalues[1]) * GetModbusFactor("RampUpSpd");
+  fvalues[2] = ((float)ivalues[2]) * GetModbusFactor("RampDwnSpd");
+  fvalues[3] = ((float)ivalues[3]) * GetModbusFactor("HVCurrMax");
+
+  std::cout << "fvalues: ";
+  for(int i = 0; i < 4; i++) std::cout << fvalues[i] << " ";
+  std::cout << "\n";
+  
+  return fvalues;
+
+}
+
+
+
+std::vector<float> PMTControl::ReadFreqModbusValue(std::string command,int chan){
+
+  
+  usleep(2000);
+  char buffer[200];
+  sprintf(buffer,"pmt_get_frequent_regs %i\n",chan);
+  int size=strlen(buffer);
+  size = strlen(buffer);
+  fSocket->write(buffer,size);
+  char bigbuffer[500];
+  size = sizeof(bigbuffer);
+
+  usleep(50000);
+  fSocket->read(bigbuffer,size);
+
+  std::string readback(bigbuffer);
+  int ifind = readback.find("1+OK+");
+  if(ifind == std::string::npos){printf("No find string\n"); return std::vector<float>(1);}
+
+  std::cout << "readback " << readback << " " << ifind << std::endl;
+
+  std::string valstring = readback.substr(5);
+
+  if(0)  std::cout << "valstring " << valstring << std::endl;
+
+  // valstring is 5 values separated by + and finish with \n
+  int first_plus = valstring.find("+",0);
+  int second_plus = valstring.find("+",first_plus+1);
+  int third_plus = valstring.find("+",second_plus+1);
+  int fourth_plus = valstring.find("+",third_plus+1);
+
+  if(0)std::cout << "Indices " << first_plus << " " << second_plus << " " 
+	    << third_plus << " " << fourth_plus << std::endl;
+
+  std::string first_value = valstring.substr(0,first_plus-0);
+  std::string second_value = valstring.substr(first_plus+1,second_plus-first_plus-1);
+  std::string third_value = valstring.substr(second_plus+1,third_plus-second_plus-1);
+  std::string fourth_value = valstring.substr(third_plus+1,fourth_plus-third_plus-1);
+  std::string fifth_value = valstring.substr(fourth_plus+1);
+
+  int ivalues[5];
+  ivalues[0] =  atoi(first_value.c_str());
+  ivalues[1] =  atoi(second_value.c_str());
+  ivalues[2] =  atoi(third_value.c_str());
+  ivalues[3] =  atoi(fourth_value.c_str());
+  ivalues[4] =  atoi(fifth_value.c_str());  
+  
+  if(0)std::cout << "Set of values: " << first_value << " "
+	    << second_value << " "
+	    << third_value << " "
+	    << fourth_value << " "
+	    << fifth_value << std::endl;
+
+  if(0)  std::cout <<  ivalues[0]<< " "
+	    <<  ivalues[1]<< " "
+	    <<  ivalues[2] << " "
+	    <<  ivalues[3]<< " "
+	    <<  ivalues[4]<< std::endl;
+
+  std::vector<float> fvalues(5);
+  fvalues[0] = ((float)ivalues[0]) * GetModbusFactor("HVVolNom");
+  fvalues[1] = ((float)ivalues[1]) * GetModbusFactor("HVCurVal");
+  fvalues[2] = ((float)ivalues[2]) * GetModbusFactor("HVVolVal");
+  fvalues[3] = ((float)ivalues[3]) * GetModbusFactor("STATUS1");
+  fvalues[4] = ((float)ivalues[4]) * GetModbusFactor("MCUTemp");
+
+  std::cout << "fvalues: ";
+  for(int i = 0; i < 5; i++) std::cout << fvalues[i] << " ";
+  std::cout << "\n";
+  
+  return fvalues;
+
+}
+
+
 
 int PMTControl::GetStatus(char *pevent, INT off)
 {
@@ -297,18 +445,22 @@ int PMTControl::GetStatus(char *pevent, INT off)
   for(int i = 0; i < 20; i++){
     //  printf("_____________ch %i _________\n",i);
     if(!fActivePMTs[i]) continue; // ignore inactive PMTs
-
-    current[i] = 0; // ReadModbusValue("HVCurVal",i);
-    read_volt[i] = 0;//ReadModbusValue("HVVolVal",i);
-    set_volt[i] = 0;//ReadModbusValue("HVVolNom",i);
-    state[i] = 0;//ReadModbusValue("STATUS1",i);
-    pmt_temp[i] = ReadModbusValue("MCUTemp",i);
+    SetCommand("SetChannel",i);
+    usleep(1000);
+    std::vector<float> values = ReadFreqModbusValue("HVCurVal",i);
+    set_volt[i] = values[0];//0;//ReadModbusValue("HVVolNom",i);
+    current[i] = values[1];//0;//ReadModbusValue("HVCurVal",i);
+    read_volt[i] = values[2];//0;//ReadModbusValue("HVVolVal",i);
+    state[i] = values[3];//0;//ReadModbusValue("STATUS1",i);
+    pmt_temp[i] = values[4];//0;//ReadModbusValue("MCUTemp",i);
     //    fFirstEvent = 0;
-    if(fFirstEvent){ // Read some variables only on first event
-      ramp_rate_up[i] = ReadModbusValue("RampUpSpd",i);
-      ramp_rate_down[i] = ReadModbusValue("RampDwnSpd",i);
-      trip_time[i] = ReadModbusValue("TripTime",i);
-      trip_threshold[i] = ReadModbusValue("HVCurrMax",i);
+    if(1 && fFirstEvent){ // Read some variables only on first event
+      std::vector<float> values2 = ReadMultiModbusValue("",i);
+
+      ramp_rate_up[i] =   values2[1]; 
+      ramp_rate_down[i] = values2[2];
+      trip_time[i] =      values2[0];
+      trip_threshold[i] = values2[3];
     }
     usleep(500);
   }
