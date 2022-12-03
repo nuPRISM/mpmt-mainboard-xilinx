@@ -248,14 +248,14 @@ void lpc_callback(midas::odb &o) {
     if(o){ //turn on
       
       // Turn on fast LED
-      SendBrbCommand("custom_command enable_fast_led \r\n");
+      SendBrbCommand("enable_fast_led \r\n");
 
       cm_msg(MINFO,"lpc_callback","Enabling fast LED");
       
     }else{ // turn off
 
       // Turn off fast LED
-      SendBrbCommand("custom_command disable_fast_led \r\n");
+      SendBrbCommand("disable_fast_led \r\n");
 
       cm_msg(MINFO,"lpc_callback","Disabling fast LED");
       
@@ -389,7 +389,7 @@ INT frontend_init()
   // Setup control of PMTs
   std::cout << "Setting up PMTs.  Reset addresses" <<std::endl;
   // Need to reset addresses first
-  SendBrbCommand("reset_all_PMT_addresses\n");
+  //  SendBrbCommand("reset_all_PMT_addresses\n");
   std::cout << "Checking for active PMTs" <<std::endl;
   pmts = new PMTControl(gSocket, get_frontend_index());
   std::cout << "Finished setting up PMTs" << std::endl;
@@ -429,7 +429,7 @@ INT frontend_exit()
 {
 
   std::cout << "Closing socket." << std::endl;
-    gSocket->shutdown();
+  gSocket->shutdown();
 
   return SUCCESS;
 }
@@ -506,9 +506,16 @@ INT begin_of_run(INT run_number, char *error)
     cm_msg(MINFO,"BOR","Enabling software trigger with rate = %f", (float)(o["soft trigger rate"]));
 
     // Set the trigger rate as per ODB
-    sprintf(buffer,"set_trigger_freq  %i \n",(int)(o["soft trigger rate"]));
+    sprintf(buffer,"set_trigger_freq %i \n",(int)(o["soft trigger rate"]));
     SendBrbCommand(buffer);
+
+    sprintf(buffer,"set_emulated_trigger_speed %i \n",(int)(o["soft trigger rate"]));
+    SendBrbCommand(buffer);
+
+    
     SendBrbCommand("ENABLE_EMULATED_TRIGGER\r\n");
+
+
     
   }else{
     cm_msg(MINFO,"BOR","Disabling software trigger");
@@ -525,8 +532,8 @@ INT begin_of_run(INT run_number, char *error)
   // Check which PMTs are active.
   if(pmts){
     // Need to reset addresses first
-    printf("Resetting all PMT addresses\n");
-    SendBrbCommand("reset_all_PMT_addresses\n");
+    //printf("Resetting all PMT addresses\n");
+    //SendBrbCommand("reset_all_PMT_addresses\n");
     pmts->CheckActivePMTs();
   }
 
@@ -538,7 +545,7 @@ INT begin_of_run(INT run_number, char *error)
   
   //  SendBrbCommand("udp_stream_start 0 192.168.0.253 1500\r\n");
   // start acquisition... send to port 1500
-  SendBrbCommand("start_periodic_acquisition_ext_trigger 192.168.0.253 1500\n");
+  SendBrbCommand("start_periodic_acquisition_ext_trigger 192.168.0.253 1500 1\n");
   usleep(200000);
 
 
@@ -695,6 +702,7 @@ float get_brb_value(std::string command, bool with_ok=false){
 INT read_slow_control(char *pevent, INT off)
 {
 
+  printf("BRB read_slow_controlk\n");
   sleep(1);
 
   bk_init32(pevent);
