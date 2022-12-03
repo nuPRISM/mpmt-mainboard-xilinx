@@ -76,6 +76,8 @@ float PMTControl::GetModbusFactor(std::string command){
     factor = 1.0;
   }else if(command.find("STATUS1") != std::string::npos){
     factor = 1.0;
+  }else if(command.find("0x1") != std::string::npos){
+    factor = 1.0;
   }else if((command.find("SetChannel") != std::string::npos) || (command.find("pmt_toggle_hv") != std::string::npos)){
     ;
   }else{
@@ -253,14 +255,14 @@ float PMTControl::ReadModbusValue(std::string command,int chan){
   usleep(2000);
   char buffer[200];
   sprintf(buffer,"pmt_read_reg %i %s\n",chan,command.c_str());
-  //  std::cout <<"Command= " << command.c_str() << " (Chan=" << chan << ") ";
+  //std::cout <<"Command= " << command.c_str() << " (Chan=" << chan << ") ";
   int size=strlen(buffer);
   size = strlen(buffer);
   fSocket->write(buffer,size);
   char bigbuffer[50];
   size = sizeof(bigbuffer);
 
-  usleep(20000);
+  usleep(2000);
   fSocket->read(bigbuffer,size);
 
   std::string readback(bigbuffer);
@@ -440,6 +442,7 @@ int PMTControl::GetStatus(char *pevent, INT off)
   std::vector<float> read_volt(20,0);
   std::vector<float> set_volt(20,0);
   std::vector<float> state(20,0);
+  std::vector<float> status0(20,0);
   std::vector<float> trip_state(20,0);
   std::vector<float> pmt_temp(20,0);
 
@@ -456,6 +459,7 @@ int PMTControl::GetStatus(char *pevent, INT off)
     state[i] = values[3];//0;//ReadModbusValue("STATUS1",i);
     pmt_temp[i] = values[4];//0;//ReadModbusValue("MCUTemp",i);
     //    fFirstEvent = 0;
+    
     if(1 && fFirstEvent){ // Read some variables only on first event
       std::vector<float> values2 = ReadMultiModbusValue("",i);
 
@@ -463,6 +467,8 @@ int PMTControl::GetStatus(char *pevent, INT off)
       ramp_rate_down[i] = values2[2];
       trip_time[i] =      values2[0];
       trip_threshold[i] = values2[3];
+      status0[i] = ReadModbusValue("0x1",i);
+
     }
     printf(".");
     usleep(500);
@@ -507,9 +513,17 @@ int PMTControl::GetStatus(char *pevent, INT off)
   // error status from PMT
   sprintf(bank_name,"PME%i",get_frontend_index());
   bk_create(pevent, bank_name, TID_INT, (void**)&pddata42);
-  printf("PMT error: ");
-  for(int i = 0; i < 20; i++){ *pddata42++ = (((int)state[i]) & 0x3c);printf("%f ",state[i]);}   printf("\n");
+  printf("PMT status1: ");
+  for(int i = 0; i < 20; i++){ *pddata42++ = (((int)state[i]));printf("%f ",state[i]);}   printf("\n");
   bk_close(pevent, pddata42);
+
+  int *pddata43;
+  // error status from PMT
+  sprintf(bank_name,"PM0%i",get_frontend_index());
+  bk_create(pevent, bank_name, TID_INT, (void**)&pddata43);
+  printf("PMT status0: ");
+  for(int i = 0; i < 20; i++){ *pddata43++ = (((int)status0[i]));printf("%f ",status0[i]);}   printf("\n");
+  bk_close(pevent, pddata43);
 
 
   float *pddata_tmp;
