@@ -346,7 +346,7 @@ int frontend_init()
 
    std::string path1 = path + "/udp_port";
 
-   int udp_port = 50005;
+   int udp_port = 1500;
    int size = sizeof(udp_port);
    status = db_get_value(hDB, 0, path1.c_str(), &udp_port, &size, TID_INT, TRUE);
    
