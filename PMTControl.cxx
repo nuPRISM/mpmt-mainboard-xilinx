@@ -76,8 +76,10 @@ float PMTControl::GetModbusFactor(std::string command){
     factor = 1.0;
   }else if(command.find("STATUS1") != std::string::npos){
     factor = 1.0;
-  }else if(command.find("0x1") != std::string::npos){
+  }else if(command.find("0x1") != std::string::npos){ // STATUS0 reg
     factor = 1.0;
+  }else if(command.find("0x27") != std::string::npos){ // HV tolerance reg
+    factor = 1500.0 / 65535.0;
   }else if((command.find("SetChannel") != std::string::npos) || (command.find("pmt_toggle_hv") != std::string::npos)){
     ;
   }else{
@@ -143,7 +145,9 @@ bool PMTControl::SetCommand(std::string command, float value, int ch){
     sprintf(buffer,"pmt_toggle_hv %i %i \n",ch,(int)value);
   }else{
     // Use the correct factor to convert from physical units to digital units
-    int int_value = (int)(value / factor);
+    
+    int int_value = 0;
+    if(factor != 0){ int_value = (int)(value / factor);}
 
     // create write command
     sprintf(buffer,"pmt_write_reg %i %s %i \n",ch,command.c_str(),int_value);
@@ -187,6 +191,8 @@ bool PMTControl::SetDefaults(){
     SetCommand("TripTime",2.0,i);
     usleep(10000);
     SetCommand("HVCurrMax",6.0,i);
+    usleep(10000);
+    SetCommand("0x27",20.0,i);
     usleep(10000);
   }
   
