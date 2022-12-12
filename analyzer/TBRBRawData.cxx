@@ -76,6 +76,7 @@ TBRBRawData::TBRBRawData(int bklen, int bktype, const char* name, void *pdata):
 	int index = i+21+istart; 
 	//	uint32_t data = (fData[index] >> 4);
 	uint32_t tmp1 = (((fData[index] & 0xff00)>>8) | ((fData[index] & 0xff)<<8)); // endian flip
+	//uint32_t tmp1 = tmp1; //(((fData[index] & 0xff00)>>8) | ((fData[index] & 0xff)<<8)); // endian flip
 	uint32_t tmp2 = (((tmp1 & 0xfff0)>>4) & 0xfff); // shift right four bits
 
 	uint32_t data;
@@ -89,7 +90,8 @@ TBRBRawData::TBRBRawData(int bklen, int bktype, const char* name, void *pdata):
 		    << tmp1 << " "<< tmp2 << " " << data << " ( " << fData[index] << "/"
 		    << std::hex << fData[index] << std::dec <<std::endl; 
 	}
-	//	if(ch == 1 || ch == 3){ data = 4096 - data;}  // Swap polarity of data for channels 1 and 3.
+
+	if(ch == 0 || ch == 2){ data = 4096 - data;}  // Swap polarity of data for channels 1 and 3.
 
 	if(0 and i < 50 and p == 0 and ch==0){
 	  std::cout << "after data("<<i<<")="

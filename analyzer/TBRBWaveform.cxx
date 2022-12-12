@@ -364,7 +364,7 @@ void TBRBBaseline::CreateHistograms(){
     
     sprintf(title,"BRB Baseline for channel=%i",i);	
     
-    TH1D *tmp = new TH1D(name, title, 1000, 1990, 2070);
+    TH1D *tmp = new TH1D(name, title, 1000, 1990, 2100);
     tmp->SetXTitle("Average Baseline");
     push_back(tmp);
   }
