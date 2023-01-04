@@ -270,7 +270,7 @@ void lpc_callback(midas::odb &o) {
     if(dac < 0) dac = 0;
     
     char buffer[256];
-    sprintf(buffer,"write_mezzanine_dac 1 1 %i \r\n",dac);
+    sprintf(buffer,"write_mezzanine_dac 1 1 %i 1 \r\n",dac);
     SendBrbCommand(buffer);
 
     cm_msg(MINFO,"lpc_callback","Setting LPC DAC to %i",dac);
@@ -401,7 +401,7 @@ INT frontend_init()
   // Set LPC to external trigger and set DAC to minimum light
   SendBrbCommand("select_sync_to_external_fast_led \r\n");
   SendBrbCommand("enable_mezzanine_dac \r\n");
-  SendBrbCommand("write_mezzanine_dac 1 1 255 \r\n");
+  SendBrbCommand("write_mezzanine_dac 1 1 255 1 \r\n");
   cm_msg(MINFO,"init","Setting LPC to use external trigger"); 
 
   // Setup the LPC ODB keys and setup callback
