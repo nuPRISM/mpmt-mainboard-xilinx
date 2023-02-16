@@ -70,7 +70,7 @@ class runlog:
     htmlfile.write('<td> <pre> # BRB \n events</pre> </td> \n')
     htmlfile.write('<td> Chan 0 HV </td> \n')
     htmlfile.write('<td> Comments </td>\n')
-    htmlfile.write('<td> Laser on? </td> </tr>\n')
+    htmlfile.write('<td> Log data? </td> </tr>\n')
     
     txtfile.write("Run number, Start Time, Beamline enabled?, Beam on time, UCN Valve Open, ")
     txtfile.write("He-3 events, Li-6 events, UCN Experiment, Shifter, Comments")
@@ -93,17 +93,18 @@ class runlog:
     brb_events = odb['Equipment']['UDP']['Statistics']['Events sent']
 
     hv_set = 0
-    if "PMTS00" in odb['Equipment']:
-      hv_set = odb['Equipment']['PMTS00']['Settings']['HVset'][0]
-    if "PMTS" in odb['Equipment']:
-      hv_set = odb['Equipment']['PMTS00']['Settings']['HVset'][0]
+    if "PMTS06" in odb['Equipment']:
+      if "Settings" in odb['Equipment']['PMTS06']:
+        hv_set = odb['Equipment']['PMTS06']['Settings']['HVset'][0]
+    #if "PMTS" in odb['Equipment']:
+    #  hv_set = odb['Equipment']['PMTS06']['Settings']['HVset'][0]
       
     comment = "*NO COMMENT FIELD*"
     laser = False
     if "Edit on start" in odb['Experiment']:
       comment = odb['Experiment']['Edit on start']['Description']
-      if "Laser on" in odb['Experiment']['Edit on start']:
-        laser = odb['Experiment']['Edit on start']['Laser on']
+      if "EnableLogging" in odb['Experiment']['Edit on start']:
+        laser = odb['Logger']['Channels']['0']['Settings']['Active']
 
     htmlfile.write("<tr>")
     self.writecolumn(htmlfile,txtfile,str(run_number))
@@ -131,13 +132,13 @@ class runlog:
 
   def bulkupload(self):
 
-    htmlfile = open('/home/mpmtdaq/packages/rootana/examples/html/runlist.html','w')
-    txtfile = open('/home/mpmtdaq/packages/rootana/examples/html/runlist.txt','w')
+    htmlfile = open('/home/mpmtdaq3/packages/rootana/examples/html/runlist.html','w')
+    txtfile = open('/home/mpmtdaq3/packages/rootana/examples/html/runlist.txt','w')
     self.initialize_files(htmlfile,txtfile)
 
 
     seen_datadirs = []
-    data_dir = "/home/mpmtdaq/online/history/"
+    data_dir = "/home/mpmtdaq3/online/history/"
     print "done"
     os.chdir(data_dir)
     print "done2"

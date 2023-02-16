@@ -1,8 +1,8 @@
 #!/bin/bash
 
-/home/mpmtdaq/online/mpmt-mainboard/html/create_runlog.py
+/home/mpmtdaq3/online/mpmt-mainboard-xilinx/html/create_runlog.py
 
-/home/mpmtdaq/online/mpmt-mainboard/midas2root_eor.sh
+/home/mpmtdaq3/online/mpmt-mainboard-xilinx/midas2root_eor.sh
 
 
 
