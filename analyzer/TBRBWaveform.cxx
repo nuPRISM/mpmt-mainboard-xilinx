@@ -43,7 +43,7 @@ void TBRBWaveform::CreateHistograms(){
     sprintf(title,"BRB Waveform for channel=%i",i);	
 
     
-    TH1D *tmp = new TH1D(name, title, 1024, -0.5*8, 1023.5*8);
+    TH1D *tmp = new TH1D(name, title, 50, -0.5*8, 49.5*8);
     tmp->SetXTitle("ns");
     tmp->SetYTitle("ADC value");
     
@@ -137,7 +137,7 @@ void TBRBWaveformHit::CreateHistograms(){
     sprintf(title,"BRB Waveform for channel=%i (hit)",i);	
 
     
-    TH1D *tmp = new TH1D(name, title, 1024, -0.5*8, 1023.5*8);
+    TH1D *tmp = new TH1D(name, title, 50, -0.5*8, 49.5*8);
     tmp->SetXTitle("ns");
     tmp->SetYTitle("ADC value");
     
@@ -384,12 +384,12 @@ void TBRBBaseline::UpdateHistograms(TDataContainer& dataContainer){
       int chan = measurements[i].GetChannel();
       int nsamples = measurements[i].GetNSamples();
 
-      // Use the first 100 samples for baseline
+      // Use the first 30 samples for baseline
       double avg = 0.0;
-      for(int ib = 0; ib < 100; ib++){ // <<<<--------
+      for(int ib = 0; ib < 30; ib++){ // <<<<--------
 	avg += measurements[i].GetSample(ib);
       }
-      avg /= 100.0;
+      avg /= 30.0;
       
       GetHistogram(chan)->Fill(avg);   
     }
@@ -495,7 +495,7 @@ void TBRBPH::CreateHistograms(){
     
     sprintf(title,"BRB Pulse Height for channel=%i",i);	
 
-    TH1D *tmp= new TH1D(name, title, 80, 0.5, 80.5);
+    TH1D *tmp= new TH1D(name, title, 120, 0.5, 120.5);
     tmp->SetXTitle("Pulse Height");
     push_back(tmp);
   }
