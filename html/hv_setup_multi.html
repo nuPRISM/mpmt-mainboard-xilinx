@@ -32,6 +32,11 @@ function myFunction() {
   }else{
     document.getElementById("table3").style.display = "none";
   }
+  if(document.getElementById("brb07").checked){ 
+    document.getElementById("table4").style.display = "block";
+  }else{
+    document.getElementById("table4").style.display = "none";
+  }
 }
 </script>
 
@@ -58,6 +63,8 @@ function myFunction() {
   <label for="brb01">brb01</label>
   <input type="radio" id="brb06" name="brb_switch" value="brb06" onclick="myFunction()" checked="y"> 
   <label for="brb06">brb06</label>
+  <input type="radio" id="brb07" name="brb_switch" value="brb07" onclick="myFunction()"> 
+  <label for="brb07">brb07</label>
   <br>
 
 
@@ -893,6 +900,427 @@ function myFunction() {
     </tr>
   </table>
 
+</div>
+  
+<div id="table4" style="display:none" >
+
+
+  <table class="mtable">
+    <tr>
+      <th colspan="15" class="mtableheader">HV Setup brb07 </th>
+    </tr>
+    <tr>
+      <th colspan="1"> Chan </th>
+      <th colspan="1"> Active </th>
+      <th colspan="2"> Enable </th>
+      <th colspan="3"> HV (V) </th>
+      <th colspan="1"> Current (uA) </th>
+      <th colspan="1"> Temp </th>
+      <th colspan="1"> STATUS0 </th>
+      <th colspan="1"> STATUS1 </th>
+      <th colspan="2"> Ramp Rate (V/s) </th>
+      <th colspan="2"> Current Trip Param </th>
+      <th colspan="1"> Hit Rate </th>
+    </tr>
+    <tr>
+      <td>  </td>
+      <td>  </td>
+      <td> Set </td>
+      <td> Read </td>
+      <td> Set</td>
+      <td> Read </td>
+      <td> Measured </td>
+      <td> Measured </td>
+      <td> (C) </td>
+      <td> Bits </td>
+      <td> Bits </td>
+      <td> Up </td>
+      <td> Down </td>
+      <td>MaxI (uA)</td>
+      <td>Time (ms)</td>
+      <td>(Hz)</td>
+    </tr>
+
+    <tr>
+      <td>
+	0 <br>
+	1 <br>
+	2 <br>
+	3 <br>
+	4 <br>
+	5 <br>
+	6 <br>
+	7 <br>
+	8 <br>
+	9 <br>
+	10 <br>
+	11 <br>
+	12 <br>
+	13 <br>
+	14 <br>
+	15 <br>
+	16 <br>
+	17 <br>
+	18 <br>
+	19
+
+      </td>
+      <td>
+        <div class="modbvalue"  data-odb-path="/Equipment/PMTS07/Variables/PMA7[0]" ></div> 
+        <div class="modbvalue"  data-odb-path="/Equipment/PMTS07/Variables/PMA7[1]" ></div> 
+        <div class="modbvalue"  data-odb-path="/Equipment/PMTS07/Variables/PMA7[2]" ></div> 
+        <div class="modbvalue"  data-odb-path="/Equipment/PMTS07/Variables/PMA7[3]" ></div> 
+        <div class="modbvalue"  data-odb-path="/Equipment/PMTS07/Variables/PMA7[4]" ></div> 
+        <div class="modbvalue"  data-odb-path="/Equipment/PMTS07/Variables/PMA7[5]" ></div> 
+        <div class="modbvalue"  data-odb-path="/Equipment/PMTS07/Variables/PMA7[6]" ></div> 
+        <div class="modbvalue"  data-odb-path="/Equipment/PMTS07/Variables/PMA7[7]" ></div> 
+        <div class="modbvalue"  data-odb-path="/Equipment/PMTS07/Variables/PMA7[8]" ></div> 
+        <div class="modbvalue"  data-odb-path="/Equipment/PMTS07/Variables/PMA7[9]" ></div> 
+        <div class="modbvalue"  data-odb-path="/Equipment/PMTS07/Variables/PMA7[10]" ></div> 
+        <div class="modbvalue"  data-odb-path="/Equipment/PMTS07/Variables/PMA7[11]" ></div> 
+        <div class="modbvalue"  data-odb-path="/Equipment/PMTS07/Variables/PMA7[12]" ></div> 
+        <div class="modbvalue"  data-odb-path="/Equipment/PMTS07/Variables/PMA7[13]" ></div> 
+        <div class="modbvalue"  data-odb-path="/Equipment/PMTS07/Variables/PMA7[14]" ></div> 
+        <div class="modbvalue"  data-odb-path="/Equipment/PMTS07/Variables/PMA7[15]" ></div> 
+        <div class="modbvalue"  data-odb-path="/Equipment/PMTS07/Variables/PMA7[16]" ></div> 
+        <div class="modbvalue"  data-odb-path="/Equipment/PMTS07/Variables/PMA7[17]" ></div> 
+        <div class="modbvalue"  data-odb-path="/Equipment/PMTS07/Variables/PMA7[18]" ></div> 
+        <div class="modbvalue"  data-odb-path="/Equipment/PMTS07/Variables/PMA7[19]" ></div> 
+      </td>
+      <td>
+        <div class="modbvalue" data-odb-editable="1" data-odb-path="/Equipment/PMTS07/Settings/HVenable[0]" ></div> 
+        <div class="modbvalue" data-odb-editable="1" data-odb-path="/Equipment/PMTS07/Settings/HVenable[1]" ></div> 
+        <div class="modbvalue" data-odb-editable="1" data-odb-path="/Equipment/PMTS07/Settings/HVenable[2]" ></div> 
+        <div class="modbvalue" data-odb-editable="1" data-odb-path="/Equipment/PMTS07/Settings/HVenable[3]" ></div> 
+        <div class="modbvalue" data-odb-editable="1" data-odb-path="/Equipment/PMTS07/Settings/HVenable[4]" ></div> 
+        <div class="modbvalue" data-odb-editable="1" data-odb-path="/Equipment/PMTS07/Settings/HVenable[5]" ></div> 
+        <div class="modbvalue" data-odb-editable="1" data-odb-path="/Equipment/PMTS07/Settings/HVenable[6]" ></div> 
+        <div class="modbvalue" data-odb-editable="1" data-odb-path="/Equipment/PMTS07/Settings/HVenable[7]" ></div> 
+        <div class="modbvalue" data-odb-editable="1" data-odb-path="/Equipment/PMTS07/Settings/HVenable[8]" ></div> 
+        <div class="modbvalue" data-odb-editable="1" data-odb-path="/Equipment/PMTS07/Settings/HVenable[9]" ></div> 
+        <div class="modbvalue" data-odb-editable="1" data-odb-path="/Equipment/PMTS07/Settings/HVenable[10]" ></div> 
+        <div class="modbvalue" data-odb-editable="1" data-odb-path="/Equipment/PMTS07/Settings/HVenable[11]" ></div> 
+        <div class="modbvalue" data-odb-editable="1" data-odb-path="/Equipment/PMTS07/Settings/HVenable[12]" ></div> 
+        <div class="modbvalue" data-odb-editable="1" data-odb-path="/Equipment/PMTS07/Settings/HVenable[13]" ></div> 
+        <div class="modbvalue" data-odb-editable="1" data-odb-path="/Equipment/PMTS07/Settings/HVenable[14]" ></div> 
+        <div class="modbvalue" data-odb-editable="1" data-odb-path="/Equipment/PMTS07/Settings/HVenable[15]" ></div> 
+        <div class="modbvalue" data-odb-editable="1" data-odb-path="/Equipment/PMTS07/Settings/HVenable[16]" ></div> 
+        <div class="modbvalue" data-odb-editable="1" data-odb-path="/Equipment/PMTS07/Settings/HVenable[17]" ></div> 
+        <div class="modbvalue" data-odb-editable="1" data-odb-path="/Equipment/PMTS07/Settings/HVenable[18]" ></div> 
+        <div class="modbvalue" data-odb-editable="1" data-odb-path="/Equipment/PMTS07/Settings/HVenable[19]" ></div> 
+      </td>
+      <td>
+        <div class="modbvalue"  data-odb-path="/Equipment/PMTS07/Variables/PMG7[0]" ></div> 
+        <div class="modbvalue"  data-odb-path="/Equipment/PMTS07/Variables/PMG7[1]" ></div> 
+        <div class="modbvalue"  data-odb-path="/Equipment/PMTS07/Variables/PMG7[2]" ></div> 
+        <div class="modbvalue"  data-odb-path="/Equipment/PMTS07/Variables/PMG7[3]" ></div> 
+        <div class="modbvalue"  data-odb-path="/Equipment/PMTS07/Variables/PMG7[4]" ></div> 
+        <div class="modbvalue"  data-odb-path="/Equipment/PMTS07/Variables/PMG7[5]" ></div> 
+        <div class="modbvalue"  data-odb-path="/Equipment/PMTS07/Variables/PMG7[6]" ></div> 
+        <div class="modbvalue"  data-odb-path="/Equipment/PMTS07/Variables/PMG7[7]" ></div> 
+        <div class="modbvalue"  data-odb-path="/Equipment/PMTS07/Variables/PMG7[8]" ></div> 
+        <div class="modbvalue"  data-odb-path="/Equipment/PMTS07/Variables/PMG7[9]" ></div> 
+        <div class="modbvalue"  data-odb-path="/Equipment/PMTS07/Variables/PMG7[10]" ></div> 
+        <div class="modbvalue"  data-odb-path="/Equipment/PMTS07/Variables/PMG7[11]" ></div> 
+        <div class="modbvalue"  data-odb-path="/Equipment/PMTS07/Variables/PMG7[12]" ></div> 
+        <div class="modbvalue"  data-odb-path="/Equipment/PMTS07/Variables/PMG7[13]" ></div> 
+        <div class="modbvalue"  data-odb-path="/Equipment/PMTS07/Variables/PMG7[14]" ></div> 
+        <div class="modbvalue"  data-odb-path="/Equipment/PMTS07/Variables/PMG7[15]" ></div> 
+        <div class="modbvalue"  data-odb-path="/Equipment/PMTS07/Variables/PMG7[16]" ></div> 
+        <div class="modbvalue"  data-odb-path="/Equipment/PMTS07/Variables/PMG7[17]" ></div> 
+        <div class="modbvalue"  data-odb-path="/Equipment/PMTS07/Variables/PMG7[18]" ></div> 
+        <div class="modbvalue"  data-odb-path="/Equipment/PMTS07/Variables/PMG7[19]" ></div> 
+      </td>
+      <td>
+        <div class="modbvalue" data-odb-editable="1" data-odb-path="/Equipment/PMTS07/Settings/HVset[0]" ></div> 
+        <div class="modbvalue" data-odb-editable="1" data-odb-path="/Equipment/PMTS07/Settings/HVset[1]" ></div> 
+        <div class="modbvalue" data-odb-editable="1" data-odb-path="/Equipment/PMTS07/Settings/HVset[2]" ></div> 
+        <div class="modbvalue" data-odb-editable="1" data-odb-path="/Equipment/PMTS07/Settings/HVset[3]" ></div> 
+        <div class="modbvalue" data-odb-editable="1" data-odb-path="/Equipment/PMTS07/Settings/HVset[4]" ></div> 
+        <div class="modbvalue" data-odb-editable="1" data-odb-path="/Equipment/PMTS07/Settings/HVset[5]" ></div> 
+        <div class="modbvalue" data-odb-editable="1" data-odb-path="/Equipment/PMTS07/Settings/HVset[6]" ></div> 
+        <div class="modbvalue" data-odb-editable="1" data-odb-path="/Equipment/PMTS07/Settings/HVset[7]" ></div> 
+        <div class="modbvalue" data-odb-editable="1" data-odb-path="/Equipment/PMTS07/Settings/HVset[8]" ></div> 
+        <div class="modbvalue" data-odb-editable="1" data-odb-path="/Equipment/PMTS07/Settings/HVset[9]" ></div> 
+        <div class="modbvalue" data-odb-editable="1" data-odb-path="/Equipment/PMTS07/Settings/HVset[10]" ></div> 
+        <div class="modbvalue" data-odb-editable="1" data-odb-path="/Equipment/PMTS07/Settings/HVset[11]" ></div> 
+        <div class="modbvalue" data-odb-editable="1" data-odb-path="/Equipment/PMTS07/Settings/HVset[12]" ></div> 
+        <div class="modbvalue" data-odb-editable="1" data-odb-path="/Equipment/PMTS07/Settings/HVset[13]" ></div> 
+        <div class="modbvalue" data-odb-editable="1" data-odb-path="/Equipment/PMTS07/Settings/HVset[14]" ></div> 
+        <div class="modbvalue" data-odb-editable="1" data-odb-path="/Equipment/PMTS07/Settings/HVset[15]" ></div> 
+        <div class="modbvalue" data-odb-editable="1" data-odb-path="/Equipment/PMTS07/Settings/HVset[16]" ></div> 
+        <div class="modbvalue" data-odb-editable="1" data-odb-path="/Equipment/PMTS07/Settings/HVset[17]" ></div> 
+        <div class="modbvalue" data-odb-editable="1" data-odb-path="/Equipment/PMTS07/Settings/HVset[18]" ></div> 
+        <div class="modbvalue" data-odb-editable="1" data-odb-path="/Equipment/PMTS07/Settings/HVset[19]" ></div> 
+      </td>
+
+      <td>
+        <div class="modbvalue" data-format="%f3"  data-odb-path="/Equipment/PMTS07/Variables/PMH7[0]" ></div> 
+        <div class="modbvalue" data-format="%f3"  data-odb-path="/Equipment/PMTS07/Variables/PMH7[1]" ></div> 
+        <div class="modbvalue" data-format="%f3"  data-odb-path="/Equipment/PMTS07/Variables/PMH7[2]" ></div> 
+        <div class="modbvalue" data-format="%f3"  data-odb-path="/Equipment/PMTS07/Variables/PMH7[3]" ></div> 
+        <div class="modbvalue" data-format="%f3"  data-odb-path="/Equipment/PMTS07/Variables/PMH7[4]" ></div> 
+        <div class="modbvalue" data-format="%f3" data-odb-path="/Equipment/PMTS07/Variables/PMH7[5]" ></div> 
+        <div class="modbvalue" data-format="%f3"  data-odb-path="/Equipment/PMTS07/Variables/PMH7[6]" ></div> 
+        <div class="modbvalue" data-format="%f3"  data-odb-path="/Equipment/PMTS07/Variables/PMH7[7]" ></div> 
+        <div class="modbvalue" data-format="%f3"  data-odb-path="/Equipment/PMTS07/Variables/PMH7[8]" ></div> 
+        <div class="modbvalue" data-format="%f3"  data-odb-path="/Equipment/PMTS07/Variables/PMH7[9]" ></div> 
+        <div class="modbvalue" data-format="%f3"  data-odb-path="/Equipment/PMTS07/Variables/PMH7[10]" ></div> 
+        <div class="modbvalue" data-format="%f3"  data-odb-path="/Equipment/PMTS07/Variables/PMH7[11]" ></div> 
+        <div class="modbvalue" data-format="%f3"  data-odb-path="/Equipment/PMTS07/Variables/PMH7[12]" ></div> 
+        <div class="modbvalue" data-format="%f3"  data-odb-path="/Equipment/PMTS07/Variables/PMH7[13]" ></div> 
+        <div class="modbvalue" data-format="%f3"  data-odb-path="/Equipment/PMTS07/Variables/PMH7[14]" ></div> 
+        <div class="modbvalue" data-format="%f3"  data-odb-path="/Equipment/PMTS07/Variables/PMH7[15]" ></div> 
+        <div class="modbvalue" data-format="%f3"  data-odb-path="/Equipment/PMTS07/Variables/PMH7[16]" ></div> 
+        <div class="modbvalue" data-format="%f3"  data-odb-path="/Equipment/PMTS07/Variables/PMH7[17]" ></div> 
+        <div class="modbvalue" data-format="%f3"  data-odb-path="/Equipment/PMTS07/Variables/PMH7[18]" ></div> 
+        <div class="modbvalue" data-format="%f3"  data-odb-path="/Equipment/PMTS07/Variables/PMH7[19]" ></div> 
+      </td>
+
+      <td>
+        <div class="modbvalue" data-format="%f3"  data-odb-path="/Equipment/PMTS07/Variables/PMV7[0]" ></div> 
+        <div class="modbvalue" data-format="%f3"  data-odb-path="/Equipment/PMTS07/Variables/PMV7[1]" ></div> 
+        <div class="modbvalue" data-format="%f3"  data-odb-path="/Equipment/PMTS07/Variables/PMV7[2]" ></div> 
+        <div class="modbvalue" data-format="%f3"  data-odb-path="/Equipment/PMTS07/Variables/PMV7[3]" ></div> 
+        <div class="modbvalue" data-format="%f3"  data-odb-path="/Equipment/PMTS07/Variables/PMV7[4]" ></div> 
+        <div class="modbvalue" data-format="%f3" data-odb-path="/Equipment/PMTS07/Variables/PMV7[5]" ></div> 
+        <div class="modbvalue" data-format="%f3"  data-odb-path="/Equipment/PMTS07/Variables/PMV7[6]" ></div> 
+        <div class="modbvalue" data-format="%f3"  data-odb-path="/Equipment/PMTS07/Variables/PMV7[7]" ></div> 
+        <div class="modbvalue" data-format="%f3"  data-odb-path="/Equipment/PMTS07/Variables/PMV7[8]" ></div> 
+        <div class="modbvalue" data-format="%f3"  data-odb-path="/Equipment/PMTS07/Variables/PMV7[9]" ></div> 
+        <div class="modbvalue" data-format="%f3"  data-odb-path="/Equipment/PMTS07/Variables/PMV7[10]" ></div> 
+        <div class="modbvalue" data-format="%f3"  data-odb-path="/Equipment/PMTS07/Variables/PMV7[11]" ></div> 
+        <div class="modbvalue" data-format="%f3"  data-odb-path="/Equipment/PMTS07/Variables/PMV7[12]" ></div> 
+        <div class="modbvalue" data-format="%f3"  data-odb-path="/Equipment/PMTS07/Variables/PMV7[13]" ></div> 
+        <div class="modbvalue" data-format="%f3"  data-odb-path="/Equipment/PMTS07/Variables/PMV7[14]" ></div> 
+        <div class="modbvalue" data-format="%f3"  data-odb-path="/Equipment/PMTS07/Variables/PMV7[15]" ></div> 
+        <div class="modbvalue" data-format="%f3"  data-odb-path="/Equipment/PMTS07/Variables/PMV7[16]" ></div> 
+        <div class="modbvalue" data-format="%f3"  data-odb-path="/Equipment/PMTS07/Variables/PMV7[17]" ></div> 
+        <div class="modbvalue" data-format="%f3"  data-odb-path="/Equipment/PMTS07/Variables/PMV7[18]" ></div> 
+        <div class="modbvalue" data-format="%f3"  data-odb-path="/Equipment/PMTS07/Variables/PMV7[19]" ></div> 
+      </td>
+
+
+      <td>
+        <div class="modbvalue" data-format="%f3"  data-odb-path="/Equipment/PMTS07/Variables/PMI7[0]" ></div> 
+        <div class="modbvalue" data-format="%f3"  data-odb-path="/Equipment/PMTS07/Variables/PMI7[1]" ></div> 
+        <div class="modbvalue" data-format="%f3"  data-odb-path="/Equipment/PMTS07/Variables/PMI7[2]" ></div> 
+        <div class="modbvalue" data-format="%f3"  data-odb-path="/Equipment/PMTS07/Variables/PMI7[3]" ></div> 
+        <div class="modbvalue" data-format="%f3"  data-odb-path="/Equipment/PMTS07/Variables/PMI7[4]" ></div> 
+        <div class="modbvalue" data-format="%f3" data-odb-path="/Equipment/PMTS07/Variables/PMI7[5]" ></div> 
+        <div class="modbvalue" data-format="%f3"  data-odb-path="/Equipment/PMTS07/Variables/PMI7[6]" ></div> 
+        <div class="modbvalue" data-format="%f3"  data-odb-path="/Equipment/PMTS07/Variables/PMI7[7]" ></div> 
+        <div class="modbvalue" data-format="%f3"  data-odb-path="/Equipment/PMTS07/Variables/PMI7[8]" ></div> 
+        <div class="modbvalue" data-format="%f3"  data-odb-path="/Equipment/PMTS07/Variables/PMI7[9]" ></div> 
+        <div class="modbvalue" data-format="%f3"  data-odb-path="/Equipment/PMTS07/Variables/PMI7[10]" ></div> 
+        <div class="modbvalue" data-format="%f3"  data-odb-path="/Equipment/PMTS07/Variables/PMI7[11]" ></div> 
+        <div class="modbvalue" data-format="%f3"  data-odb-path="/Equipment/PMTS07/Variables/PMI7[12]" ></div> 
+        <div class="modbvalue" data-format="%f3"  data-odb-path="/Equipment/PMTS07/Variables/PMI7[13]" ></div> 
+        <div class="modbvalue" data-format="%f3"  data-odb-path="/Equipment/PMTS07/Variables/PMI7[14]" ></div> 
+        <div class="modbvalue" data-format="%f3"  data-odb-path="/Equipment/PMTS07/Variables/PMI7[15]" ></div> 
+        <div class="modbvalue" data-format="%f3"  data-odb-path="/Equipment/PMTS07/Variables/PMI7[16]" ></div> 
+        <div class="modbvalue" data-format="%f3"  data-odb-path="/Equipment/PMTS07/Variables/PMI7[17]" ></div> 
+        <div class="modbvalue" data-format="%f3"  data-odb-path="/Equipment/PMTS07/Variables/PMI7[18]" ></div> 
+        <div class="modbvalue" data-format="%f3"  data-odb-path="/Equipment/PMTS07/Variables/PMI7[19]" ></div> 
+      </td>
+
+      <td>
+        <div class="modbvalue" data-format="%f1"  data-odb-path="/Equipment/PMTS07/Variables/PMC7[0]" ></div> 
+        <div class="modbvalue" data-format="%f1"  data-odb-path="/Equipment/PMTS07/Variables/PMC7[1]" ></div> 
+        <div class="modbvalue" data-format="%f1"  data-odb-path="/Equipment/PMTS07/Variables/PMC7[2]" ></div> 
+        <div class="modbvalue" data-format="%f1"  data-odb-path="/Equipment/PMTS07/Variables/PMC7[3]" ></div> 
+        <div class="modbvalue" data-format="%f1"  data-odb-path="/Equipment/PMTS07/Variables/PMC7[4]" ></div> 
+        <div class="modbvalue" data-format="%f1" data-odb-path="/Equipment/PMTS07/Variables/PMC7[5]" ></div> 
+        <div class="modbvalue" data-format="%f1"  data-odb-path="/Equipment/PMTS07/Variables/PMC7[6]" ></div> 
+        <div class="modbvalue" data-format="%f1"  data-odb-path="/Equipment/PMTS07/Variables/PMC7[7]" ></div> 
+        <div class="modbvalue" data-format="%f1"  data-odb-path="/Equipment/PMTS07/Variables/PMC7[8]" ></div> 
+        <div class="modbvalue" data-format="%f1"  data-odb-path="/Equipment/PMTS07/Variables/PMC7[9]" ></div> 
+        <div class="modbvalue" data-format="%f1"  data-odb-path="/Equipment/PMTS07/Variables/PMC7[10]" ></div> 
+        <div class="modbvalue" data-format="%f1"  data-odb-path="/Equipment/PMTS07/Variables/PMC7[11]" ></div> 
+        <div class="modbvalue" data-format="%f1"  data-odb-path="/Equipment/PMTS07/Variables/PMC7[12]" ></div> 
+        <div class="modbvalue" data-format="%f1"  data-odb-path="/Equipment/PMTS07/Variables/PMC7[13]" ></div> 
+        <div class="modbvalue" data-format="%f1"  data-odb-path="/Equipment/PMTS07/Variables/PMC7[14]" ></div> 
+        <div class="modbvalue" data-format="%f1"  data-odb-path="/Equipment/PMTS07/Variables/PMC7[15]" ></div> 
+        <div class="modbvalue" data-format="%f1"  data-odb-path="/Equipment/PMTS07/Variables/PMC7[16]" ></div> 
+        <div class="modbvalue" data-format="%f1"  data-odb-path="/Equipment/PMTS07/Variables/PMC7[17]" ></div> 
+        <div class="modbvalue" data-format="%f1"  data-odb-path="/Equipment/PMTS07/Variables/PMC7[18]" ></div> 
+        <div class="modbvalue" data-format="%f1"  data-odb-path="/Equipment/PMTS07/Variables/PMC7[19]" ></div> 
+      </td>
+
+
+      <td>
+        <div class="modbvalue"  data-odb-path="/Equipment/PMTS07/Variables/PM07[0]" ></div> 
+        <div class="modbvalue"  data-odb-path="/Equipment/PMTS07/Variables/PM07[1]" ></div> 
+        <div class="modbvalue"  data-odb-path="/Equipment/PMTS07/Variables/PM07[2]" ></div> 
+        <div class="modbvalue"  data-odb-path="/Equipment/PMTS07/Variables/PM07[3]" ></div> 
+        <div class="modbvalue"  data-odb-path="/Equipment/PMTS07/Variables/PM07[4]" ></div> 
+        <div class="modbvalue"  data-odb-path="/Equipment/PMTS07/Variables/PM07[5]" ></div> 
+        <div class="modbvalue"  data-odb-path="/Equipment/PMTS07/Variables/PM07[6]" ></div> 
+        <div class="modbvalue"  data-odb-path="/Equipment/PMTS07/Variables/PM07[7]" ></div> 
+        <div class="modbvalue"  data-odb-path="/Equipment/PMTS07/Variables/PM07[8]" ></div> 
+        <div class="modbvalue"  data-odb-path="/Equipment/PMTS07/Variables/PM07[9]" ></div> 
+        <div class="modbvalue"  data-odb-path="/Equipment/PMTS07/Variables/PM07[10]" ></div> 
+        <div class="modbvalue"  data-odb-path="/Equipment/PMTS07/Variables/PM07[11]" ></div> 
+        <div class="modbvalue"  data-odb-path="/Equipment/PMTS07/Variables/PM07[12]" ></div> 
+        <div class="modbvalue"  data-odb-path="/Equipment/PMTS07/Variables/PM07[13]" ></div> 
+        <div class="modbvalue"  data-odb-path="/Equipment/PMTS07/Variables/PM07[14]" ></div> 
+        <div class="modbvalue"  data-odb-path="/Equipment/PMTS07/Variables/PM07[15]" ></div> 
+        <div class="modbvalue"  data-odb-path="/Equipment/PMTS07/Variables/PM07[16]" ></div> 
+        <div class="modbvalue"  data-odb-path="/Equipment/PMTS07/Variables/PM07[17]" ></div> 
+        <div class="modbvalue"  data-odb-path="/Equipment/PMTS07/Variables/PM07[18]" ></div> 
+        <div class="modbvalue"  data-odb-path="/Equipment/PMTS07/Variables/PM07[19]" ></div> 
+      </td>
+
+      
+      <td>
+        <div class="modbvalue"  data-odb-path="/Equipment/PMTS07/Variables/PME7[0]" ></div> 
+        <div class="modbvalue"  data-odb-path="/Equipment/PMTS07/Variables/PME7[1]" ></div> 
+        <div class="modbvalue"  data-odb-path="/Equipment/PMTS07/Variables/PME7[2]" ></div> 
+        <div class="modbvalue"  data-odb-path="/Equipment/PMTS07/Variables/PME7[3]" ></div> 
+        <div class="modbvalue"  data-odb-path="/Equipment/PMTS07/Variables/PME7[4]" ></div> 
+        <div class="modbvalue"  data-odb-path="/Equipment/PMTS07/Variables/PME7[5]" ></div> 
+        <div class="modbvalue"  data-odb-path="/Equipment/PMTS07/Variables/PME7[6]" ></div> 
+        <div class="modbvalue"  data-odb-path="/Equipment/PMTS07/Variables/PME7[7]" ></div> 
+        <div class="modbvalue"  data-odb-path="/Equipment/PMTS07/Variables/PME7[8]" ></div> 
+        <div class="modbvalue"  data-odb-path="/Equipment/PMTS07/Variables/PME7[9]" ></div> 
+        <div class="modbvalue"  data-odb-path="/Equipment/PMTS07/Variables/PME7[10]" ></div> 
+        <div class="modbvalue"  data-odb-path="/Equipment/PMTS07/Variables/PME7[11]" ></div> 
+        <div class="modbvalue"  data-odb-path="/Equipment/PMTS07/Variables/PME7[12]" ></div> 
+        <div class="modbvalue"  data-odb-path="/Equipment/PMTS07/Variables/PME7[13]" ></div> 
+        <div class="modbvalue"  data-odb-path="/Equipment/PMTS07/Variables/PME7[14]" ></div> 
+        <div class="modbvalue"  data-odb-path="/Equipment/PMTS07/Variables/PME7[15]" ></div> 
+        <div class="modbvalue"  data-odb-path="/Equipment/PMTS07/Variables/PME7[16]" ></div> 
+        <div class="modbvalue"  data-odb-path="/Equipment/PMTS07/Variables/PME7[17]" ></div> 
+        <div class="modbvalue"  data-odb-path="/Equipment/PMTS07/Variables/PME7[18]" ></div> 
+        <div class="modbvalue"  data-odb-path="/Equipment/PMTS07/Variables/PME7[19]" ></div> 
+      </td>
+
+
+      <td>
+        <div class="modbvalue" data-format="%f3"  data-odb-path="/Equipment/PMTS07/Variables/PMU7[0]" ></div> 
+        <div class="modbvalue" data-format="%f3"  data-odb-path="/Equipment/PMTS07/Variables/PMU7[1]" ></div> 
+        <div class="modbvalue" data-format="%f3"  data-odb-path="/Equipment/PMTS07/Variables/PMU7[2]" ></div> 
+        <div class="modbvalue" data-format="%f3"  data-odb-path="/Equipment/PMTS07/Variables/PMU7[3]" ></div> 
+        <div class="modbvalue" data-format="%f3"  data-odb-path="/Equipment/PMTS07/Variables/PMU7[4]" ></div> 
+        <div class="modbvalue" data-format="%f3" data-odb-path="/Equipment/PMTS07/Variables/PMU7[5]" ></div> 
+        <div class="modbvalue" data-format="%f3"  data-odb-path="/Equipment/PMTS07/Variables/PMU7[6]" ></div> 
+        <div class="modbvalue" data-format="%f3"  data-odb-path="/Equipment/PMTS07/Variables/PMU7[7]" ></div> 
+        <div class="modbvalue" data-format="%f3"  data-odb-path="/Equipment/PMTS07/Variables/PMU7[8]" ></div> 
+        <div class="modbvalue" data-format="%f3"  data-odb-path="/Equipment/PMTS07/Variables/PMU7[9]" ></div> 
+        <div class="modbvalue" data-format="%f3"  data-odb-path="/Equipment/PMTS07/Variables/PMU7[10]" ></div> 
+        <div class="modbvalue" data-format="%f3"  data-odb-path="/Equipment/PMTS07/Variables/PMU7[11]" ></div> 
+        <div class="modbvalue" data-format="%f3"  data-odb-path="/Equipment/PMTS07/Variables/PMU7[12]" ></div> 
+        <div class="modbvalue" data-format="%f3"  data-odb-path="/Equipment/PMTS07/Variables/PMU7[13]" ></div> 
+        <div class="modbvalue" data-format="%f3"  data-odb-path="/Equipment/PMTS07/Variables/PMU7[14]" ></div> 
+        <div class="modbvalue" data-format="%f3"  data-odb-path="/Equipment/PMTS07/Variables/PMU7[15]" ></div> 
+        <div class="modbvalue" data-format="%f3"  data-odb-path="/Equipment/PMTS07/Variables/PMU7[16]" ></div> 
+        <div class="modbvalue" data-format="%f3"  data-odb-path="/Equipment/PMTS07/Variables/PMU7[17]" ></div> 
+        <div class="modbvalue" data-format="%f3"  data-odb-path="/Equipment/PMTS07/Variables/PMU7[18]" ></div> 
+        <div class="modbvalue" data-format="%f3"  data-odb-path="/Equipment/PMTS07/Variables/PMU7[19]" ></div> 
+      </td>
+
+      <td>
+        <div class="modbvalue" data-format="%f3"  data-odb-path="/Equipment/PMTS07/Variables/PMD7[0]" ></div> 
+        <div class="modbvalue" data-format="%f3"  data-odb-path="/Equipment/PMTS07/Variables/PMD7[1]" ></div> 
+        <div class="modbvalue" data-format="%f3"  data-odb-path="/Equipment/PMTS07/Variables/PMD7[2]" ></div> 
+        <div class="modbvalue" data-format="%f3"  data-odb-path="/Equipment/PMTS07/Variables/PMD7[3]" ></div> 
+        <div class="modbvalue" data-format="%f3"  data-odb-path="/Equipment/PMTS07/Variables/PMD7[4]" ></div> 
+        <div class="modbvalue" data-format="%f3" data-odb-path="/Equipment/PMTS07/Variables/PMD7[5]" ></div> 
+        <div class="modbvalue" data-format="%f3"  data-odb-path="/Equipment/PMTS07/Variables/PMD7[6]" ></div> 
+        <div class="modbvalue" data-format="%f3"  data-odb-path="/Equipment/PMTS07/Variables/PMD7[7]" ></div> 
+        <div class="modbvalue" data-format="%f3"  data-odb-path="/Equipment/PMTS07/Variables/PMD7[8]" ></div> 
+        <div class="modbvalue" data-format="%f3"  data-odb-path="/Equipment/PMTS07/Variables/PMD7[9]" ></div> 
+        <div class="modbvalue" data-format="%f3"  data-odb-path="/Equipment/PMTS07/Variables/PMD7[10]" ></div> 
+        <div class="modbvalue" data-format="%f3"  data-odb-path="/Equipment/PMTS07/Variables/PMD7[11]" ></div> 
+        <div class="modbvalue" data-format="%f3"  data-odb-path="/Equipment/PMTS07/Variables/PMD7[12]" ></div> 
+        <div class="modbvalue" data-format="%f3"  data-odb-path="/Equipment/PMTS07/Variables/PMD7[13]" ></div> 
+        <div class="modbvalue" data-format="%f3"  data-odb-path="/Equipment/PMTS07/Variables/PMD7[14]" ></div> 
+        <div class="modbvalue" data-format="%f3"  data-odb-path="/Equipment/PMTS07/Variables/PMD7[15]" ></div> 
+        <div class="modbvalue" data-format="%f3"  data-odb-path="/Equipment/PMTS07/Variables/PMD7[16]" ></div> 
+        <div class="modbvalue" data-format="%f3"  data-odb-path="/Equipment/PMTS07/Variables/PMD7[17]" ></div> 
+        <div class="modbvalue" data-format="%f3"  data-odb-path="/Equipment/PMTS07/Variables/PMD7[18]" ></div> 
+        <div class="modbvalue" data-format="%f3"  data-odb-path="/Equipment/PMTS07/Variables/PMD7[19]" ></div> 
+      </td>
+
+
+
+      <td>
+        <div class="modbvalue" data-format="%f3"  data-odb-path="/Equipment/PMTS07/Variables/PMM7[0]" ></div> 
+        <div class="modbvalue" data-format="%f3"  data-odb-path="/Equipment/PMTS07/Variables/PMM7[1]" ></div> 
+        <div class="modbvalue" data-format="%f3"  data-odb-path="/Equipment/PMTS07/Variables/PMM7[2]" ></div> 
+        <div class="modbvalue" data-format="%f3"  data-odb-path="/Equipment/PMTS07/Variables/PMM7[3]" ></div> 
+        <div class="modbvalue" data-format="%f3"  data-odb-path="/Equipment/PMTS07/Variables/PMM7[4]" ></div> 
+        <div class="modbvalue" data-format="%f3" data-odb-path="/Equipment/PMTS07/Variables/PMM7[5]" ></div> 
+        <div class="modbvalue" data-format="%f3"  data-odb-path="/Equipment/PMTS07/Variables/PMM7[6]" ></div> 
+        <div class="modbvalue" data-format="%f3"  data-odb-path="/Equipment/PMTS07/Variables/PMM7[7]" ></div> 
+        <div class="modbvalue" data-format="%f3"  data-odb-path="/Equipment/PMTS07/Variables/PMM7[8]" ></div> 
+        <div class="modbvalue" data-format="%f3"  data-odb-path="/Equipment/PMTS07/Variables/PMM7[9]" ></div> 
+        <div class="modbvalue" data-format="%f3"  data-odb-path="/Equipment/PMTS07/Variables/PMM7[10]" ></div> 
+        <div class="modbvalue" data-format="%f3"  data-odb-path="/Equipment/PMTS07/Variables/PMM7[11]" ></div> 
+        <div class="modbvalue" data-format="%f3"  data-odb-path="/Equipment/PMTS07/Variables/PMM7[12]" ></div> 
+        <div class="modbvalue" data-format="%f3"  data-odb-path="/Equipment/PMTS07/Variables/PMM7[13]" ></div> 
+        <div class="modbvalue" data-format="%f3"  data-odb-path="/Equipment/PMTS07/Variables/PMM7[14]" ></div> 
+        <div class="modbvalue" data-format="%f3"  data-odb-path="/Equipment/PMTS07/Variables/PMM7[15]" ></div> 
+        <div class="modbvalue" data-format="%f3"  data-odb-path="/Equipment/PMTS07/Variables/PMM7[16]" ></div> 
+        <div class="modbvalue" data-format="%f3"  data-odb-path="/Equipment/PMTS07/Variables/PMM7[17]" ></div> 
+        <div class="modbvalue" data-format="%f3"  data-odb-path="/Equipment/PMTS07/Variables/PMM7[18]" ></div> 
+        <div class="modbvalue" data-format="%f3"  data-odb-path="/Equipment/PMTS07/Variables/PMM7[19]" ></div> 
+      </td>
+
+
+
+      <td>
+        <div class="modbvalue" data-format="%f3"  data-odb-path="/Equipment/PMTS07/Variables/PMT7[0]" ></div> 
+        <div class="modbvalue" data-format="%f3"  data-odb-path="/Equipment/PMTS07/Variables/PMT7[1]" ></div> 
+        <div class="modbvalue" data-format="%f3"  data-odb-path="/Equipment/PMTS07/Variables/PMT7[2]" ></div> 
+        <div class="modbvalue" data-format="%f3"  data-odb-path="/Equipment/PMTS07/Variables/PMT7[3]" ></div> 
+        <div class="modbvalue" data-format="%f3"  data-odb-path="/Equipment/PMTS07/Variables/PMT7[4]" ></div> 
+        <div class="modbvalue" data-format="%f3" data-odb-path="/Equipment/PMTS07/Variables/PMT7[5]" ></div> 
+        <div class="modbvalue" data-format="%f3"  data-odb-path="/Equipment/PMTS07/Variables/PMT7[6]" ></div> 
+        <div class="modbvalue" data-format="%f3"  data-odb-path="/Equipment/PMTS07/Variables/PMT7[7]" ></div> 
+        <div class="modbvalue" data-format="%f3"  data-odb-path="/Equipment/PMTS07/Variables/PMT7[8]" ></div> 
+        <div class="modbvalue" data-format="%f3"  data-odb-path="/Equipment/PMTS07/Variables/PMT7[9]" ></div> 
+        <div class="modbvalue" data-format="%f3"  data-odb-path="/Equipment/PMTS07/Variables/PMT7[10]" ></div> 
+        <div class="modbvalue" data-format="%f3"  data-odb-path="/Equipment/PMTS07/Variables/PMT7[11]" ></div> 
+        <div class="modbvalue" data-format="%f3"  data-odb-path="/Equipment/PMTS07/Variables/PMT7[12]" ></div> 
+        <div class="modbvalue" data-format="%f3"  data-odb-path="/Equipment/PMTS07/Variables/PMT7[13]" ></div> 
+        <div class="modbvalue" data-format="%f3"  data-odb-path="/Equipment/PMTS07/Variables/PMT7[14]" ></div> 
+        <div class="modbvalue" data-format="%f3"  data-odb-path="/Equipment/PMTS07/Variables/PMT7[15]" ></div> 
+        <div class="modbvalue" data-format="%f3"  data-odb-path="/Equipment/PMTS07/Variables/PMT7[16]" ></div> 
+        <div class="modbvalue" data-format="%f3"  data-odb-path="/Equipment/PMTS07/Variables/PMT7[17]" ></div> 
+        <div class="modbvalue" data-format="%f3"  data-odb-path="/Equipment/PMTS07/Variables/PMT7[18]" ></div> 
+        <div class="modbvalue" data-format="%f3"  data-odb-path="/Equipment/PMTS07/Variables/PMT7[19]" ></div> 
+      </td>
+
+
+      <td>
+        <div class="modbvalue" data-format="%f2"  data-odb-path="/Analyzer/DarkNoiseRate/Dark Rate[0]" ></div> 
+        <div class="modbvalue" data-format="%f2"  data-odb-path="/Analyzer/DarkNoiseRate/Dark Rate[1]" ></div> 
+        <div class="modbvalue" data-format="%f2"  data-odb-path="/Analyzer/DarkNoiseRate/Dark Rate[2]" ></div> 
+        <div class="modbvalue" data-format="%f2"  data-odb-path="/Analyzer/DarkNoiseRate/Dark Rate[3]" ></div> 
+        <div class="modbvalue" data-format="%f2"  data-odb-path="/Analyzer/DarkNoiseRate/Dark Rate[4]" ></div> 
+        <div class="modbvalue" data-format="%f2" data-odb-path="/Analyzer/DarkNoiseRate/Dark Rate[5]" ></div> 
+        <div class="modbvalue" data-format="%f2"  data-odb-path="/Analyzer/DarkNoiseRate/Dark Rate[6]" ></div> 
+        <div class="modbvalue" data-format="%f2"  data-odb-path="/Analyzer/DarkNoiseRate/Dark Rate[7]" ></div> 
+        <div class="modbvalue" data-format="%f2"  data-odb-path="/Analyzer/DarkNoiseRate/Dark Rate[8]" ></div> 
+        <div class="modbvalue" data-format="%f2"  data-odb-path="/Analyzer/DarkNoiseRate/Dark Rate[9]" ></div> 
+        <div class="modbvalue" data-format="%f2"  data-odb-path="/Analyzer/DarkNoiseRate/Dark Rate[10]" ></div> 
+        <div class="modbvalue" data-format="%f2"  data-odb-path="/Analyzer/DarkNoiseRate/Dark Rate[11]" ></div> 
+        <div class="modbvalue" data-format="%f2"  data-odb-path="/Analyzer/DarkNoiseRate/Dark Rate[12]" ></div> 
+        <div class="modbvalue" data-format="%f2"  data-odb-path="/Analyzer/DarkNoiseRate/Dark Rate[13]" ></div> 
+        <div class="modbvalue" data-format="%f2"  data-odb-path="/Analyzer/DarkNoiseRate/Dark Rate[14]" ></div> 
+        <div class="modbvalue" data-format="%f2"  data-odb-path="/Analyzer/DarkNoiseRate/Dark Rate[15]" ></div> 
+        <div class="modbvalue" data-format="%f2"  data-odb-path="/Analyzer/DarkNoiseRate/Dark Rate[16]" ></div> 
+        <div class="modbvalue" data-format="%f2"  data-odb-path="/Analyzer/DarkNoiseRate/Dark Rate[17]" ></div> 
+        <div class="modbvalue" data-format="%f2"  data-odb-path="/Analyzer/DarkNoiseRate/Dark Rate[18]" ></div> 
+        <div class="modbvalue" data-format="%f2"  data-odb-path="/Analyzer/DarkNoiseRate/Dark Rate[19]" ></div> 
+      </td>
+
+
+
+    </tr>
+  </table>
+</div>
 
   <table class="mtable">
     <tr>
