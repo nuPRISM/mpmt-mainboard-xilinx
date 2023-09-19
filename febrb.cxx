@@ -719,9 +719,11 @@ INT read_slow_control(char *pevent, INT off)
 
     double resistor = 1.0;
     if(j==0){ resistor = 0.1; }
-    if(j==2){ resistor =200; }
-    if(j==5){ resistor =0.1; }
-    if(j==6){ resistor =0.05; }
+    if(j==1){ resistor = 0.03; }
+    if(j==2){ resistor =150; }
+    if(j==4){ resistor = 0.05;}
+    if(j==5){ resistor =0.03; }
+    if(j==6){ resistor =0.03; }
     if(j==7){ resistor =0.05;}
 
 
