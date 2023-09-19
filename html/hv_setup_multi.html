@@ -915,6 +915,7 @@ function myFunction() {
       <th colspan="1"> Active </th>
       <th colspan="2"> Enable </th>
       <th colspan="3"> HV (V) </th>
+      <th colspan="1"> HV2 (V) </th>
       <th colspan="1"> Current (uA) </th>
       <th colspan="1"> Temp </th>
       <th colspan="1"> STATUS0 </th>
@@ -931,6 +932,7 @@ function myFunction() {
       <td> Read </td>
       <td> Set</td>
       <td> Read </td>
+      <td> Measured </td>
       <td> Measured </td>
       <td> Measured </td>
       <td> (C) </td>
@@ -1121,6 +1123,29 @@ function myFunction() {
         <div class="modbvalue" data-format="%f3"  data-odb-path="/Equipment/PMTS07/Variables/PMV7[17]" ></div> 
         <div class="modbvalue" data-format="%f3"  data-odb-path="/Equipment/PMTS07/Variables/PMV7[18]" ></div> 
         <div class="modbvalue" data-format="%f3"  data-odb-path="/Equipment/PMTS07/Variables/PMV7[19]" ></div> 
+      </td>
+
+      <td>
+        <div class="modbvalue" data-format="%f3"  data-odb-path="/Equipment/PMTS07/Variables/P207[0]" ></div> 
+        <div class="modbvalue" data-format="%f3"  data-odb-path="/Equipment/PMTS07/Variables/P207[1]" ></div> 
+        <div class="modbvalue" data-format="%f3"  data-odb-path="/Equipment/PMTS07/Variables/P207[2]" ></div> 
+        <div class="modbvalue" data-format="%f3"  data-odb-path="/Equipment/PMTS07/Variables/P207[3]" ></div> 
+        <div class="modbvalue" data-format="%f3"  data-odb-path="/Equipment/PMTS07/Variables/P207[4]" ></div> 
+        <div class="modbvalue" data-format="%f3" data-odb-path="/Equipment/PMTS07/Variables/P207[5]" ></div> 
+        <div class="modbvalue" data-format="%f3"  data-odb-path="/Equipment/PMTS07/Variables/P207[6]" ></div> 
+        <div class="modbvalue" data-format="%f3"  data-odb-path="/Equipment/PMTS07/Variables/P207[7]" ></div> 
+        <div class="modbvalue" data-format="%f3"  data-odb-path="/Equipment/PMTS07/Variables/P207[8]" ></div> 
+        <div class="modbvalue" data-format="%f3"  data-odb-path="/Equipment/PMTS07/Variables/P207[9]" ></div> 
+        <div class="modbvalue" data-format="%f3"  data-odb-path="/Equipment/PMTS07/Variables/P207[10]" ></div> 
+        <div class="modbvalue" data-format="%f3"  data-odb-path="/Equipment/PMTS07/Variables/P207[11]" ></div> 
+        <div class="modbvalue" data-format="%f3"  data-odb-path="/Equipment/PMTS07/Variables/P207[12]" ></div> 
+        <div class="modbvalue" data-format="%f3"  data-odb-path="/Equipment/PMTS07/Variables/P207[13]" ></div> 
+        <div class="modbvalue" data-format="%f3"  data-odb-path="/Equipment/PMTS07/Variables/P207[14]" ></div> 
+        <div class="modbvalue" data-format="%f3"  data-odb-path="/Equipment/PMTS07/Variables/P207[15]" ></div> 
+        <div class="modbvalue" data-format="%f3"  data-odb-path="/Equipment/PMTS07/Variables/P207[16]" ></div> 
+        <div class="modbvalue" data-format="%f3"  data-odb-path="/Equipment/PMTS07/Variables/P207[17]" ></div> 
+        <div class="modbvalue" data-format="%f3"  data-odb-path="/Equipment/PMTS07/Variables/P207[18]" ></div> 
+        <div class="modbvalue" data-format="%f3"  data-odb-path="/Equipment/PMTS07/Variables/P207[19]" ></div> 
       </td>
 
 
@@ -1389,6 +1414,18 @@ function myFunction() {
       <td > 5 </td>
       <td > 32 </td>
       <td > trip detected </td>
+
+    </tr>
+    <tr>
+      <td > 6 </td>
+      <td > 64 </td>
+      <td > HV2VolVal comparison failed (10% different) </td>
+
+    </tr>
+    <tr>
+      <td > 7 </td>
+      <td > 128 </td>
+      <td > 5V rail wrong; less than 4V </td>
 
     </tr>
 </div>
