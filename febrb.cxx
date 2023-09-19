@@ -26,9 +26,8 @@ Control and slow readout of BRB (Big Red Board), aka mPMT mainboard
 
 /* Hardware */
 extern HNDLE hDB;
-
 /* make frontend functions callable from the C framework */
-
+extern BOOL equipment_common_overwrite = false;
 /*-- Globals -------------------------------------------------------*/
 
 /* The frontend name (client name) as seen by other MIDAS clients   */
