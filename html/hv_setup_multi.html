@@ -916,7 +916,8 @@ function myFunction() {
       <th colspan="2"> Enable </th>
       <th colspan="3"> HV (V) </th>
       <th colspan="1"> HV2 (V) </th>
-      <th colspan="1"> Current (uA) </th>
+      <th colspan="1"> Cur (uA) </th>
+      <th colspan="1"> 5V Meas </th>
       <th colspan="1"> Temp </th>
       <th colspan="1"> STATUS0 </th>
       <th colspan="1"> STATUS1 </th>
@@ -935,13 +936,14 @@ function myFunction() {
       <td> Measured </td>
       <td> Measured </td>
       <td> Measured </td>
+      <td> (V) </td>
       <td> (C) </td>
       <td> Bits </td>
       <td> Bits </td>
       <td> Up </td>
       <td> Down </td>
-      <td>MaxI (uA)</td>
-      <td>Time (ms)</td>
+      <td>Max(uA)</td>
+      <td>Time(ms)</td>
       <td>(Hz)</td>
     </tr>
     <tr>
@@ -1173,6 +1175,29 @@ function myFunction() {
       </td>
 
       <td>
+        <div class="modbvalue" data-format="%f3"  data-odb-path="/Equipment/PMTS07/Variables/P507[0]" ></div> 
+        <div class="modbvalue" data-format="%f3"  data-odb-path="/Equipment/PMTS07/Variables/P507[1]" ></div> 
+        <div class="modbvalue" data-format="%f3"  data-odb-path="/Equipment/PMTS07/Variables/P507[2]" ></div> 
+        <div class="modbvalue" data-format="%f3"  data-odb-path="/Equipment/PMTS07/Variables/P507[3]" ></div> 
+        <div class="modbvalue" data-format="%f3"  data-odb-path="/Equipment/PMTS07/Variables/P507[4]" ></div> 
+        <div class="modbvalue" data-format="%f3" data-odb-path="/Equipment/PMTS07/Variables/P507[5]" ></div> 
+        <div class="modbvalue" data-format="%f3"  data-odb-path="/Equipment/PMTS07/Variables/P507[6]" ></div> 
+        <div class="modbvalue" data-format="%f3"  data-odb-path="/Equipment/PMTS07/Variables/P507[7]" ></div> 
+        <div class="modbvalue" data-format="%f3"  data-odb-path="/Equipment/PMTS07/Variables/P507[8]" ></div> 
+        <div class="modbvalue" data-format="%f3"  data-odb-path="/Equipment/PMTS07/Variables/P507[9]" ></div> 
+        <div class="modbvalue" data-format="%f3"  data-odb-path="/Equipment/PMTS07/Variables/P507[10]" ></div> 
+        <div class="modbvalue" data-format="%f3"  data-odb-path="/Equipment/PMTS07/Variables/P507[11]" ></div> 
+        <div class="modbvalue" data-format="%f3"  data-odb-path="/Equipment/PMTS07/Variables/P507[12]" ></div> 
+        <div class="modbvalue" data-format="%f3"  data-odb-path="/Equipment/PMTS07/Variables/P507[13]" ></div> 
+        <div class="modbvalue" data-format="%f3"  data-odb-path="/Equipment/PMTS07/Variables/P507[14]" ></div> 
+        <div class="modbvalue" data-format="%f3"  data-odb-path="/Equipment/PMTS07/Variables/P507[15]" ></div> 
+        <div class="modbvalue" data-format="%f3"  data-odb-path="/Equipment/PMTS07/Variables/P507[16]" ></div> 
+        <div class="modbvalue" data-format="%f3"  data-odb-path="/Equipment/PMTS07/Variables/P507[17]" ></div> 
+        <div class="modbvalue" data-format="%f3"  data-odb-path="/Equipment/PMTS07/Variables/P507[18]" ></div> 
+        <div class="modbvalue" data-format="%f3"  data-odb-path="/Equipment/PMTS07/Variables/P507[19]" ></div> 
+      </td>
+
+      <td>
         <div class="modbvalue" data-format="%f1"  data-odb-path="/Equipment/PMTS07/Variables/PMC7[0]" ></div> 
         <div class="modbvalue" data-format="%f1"  data-odb-path="/Equipment/PMTS07/Variables/PMC7[1]" ></div> 
         <div class="modbvalue" data-format="%f1"  data-odb-path="/Equipment/PMTS07/Variables/PMC7[2]" ></div> 
@@ -1342,26 +1367,26 @@ function myFunction() {
 
 
       <td>
-        <div class="modbvalue" data-format="%f2"  data-odb-path="/Analyzer/DarkNoiseRate/Dark Rate[0]" ></div> 
-        <div class="modbvalue" data-format="%f2"  data-odb-path="/Analyzer/DarkNoiseRate/Dark Rate[1]" ></div> 
-        <div class="modbvalue" data-format="%f2"  data-odb-path="/Analyzer/DarkNoiseRate/Dark Rate[2]" ></div> 
-        <div class="modbvalue" data-format="%f2"  data-odb-path="/Analyzer/DarkNoiseRate/Dark Rate[3]" ></div> 
-        <div class="modbvalue" data-format="%f2"  data-odb-path="/Analyzer/DarkNoiseRate/Dark Rate[4]" ></div> 
-        <div class="modbvalue" data-format="%f2" data-odb-path="/Analyzer/DarkNoiseRate/Dark Rate[5]" ></div> 
-        <div class="modbvalue" data-format="%f2"  data-odb-path="/Analyzer/DarkNoiseRate/Dark Rate[6]" ></div> 
-        <div class="modbvalue" data-format="%f2"  data-odb-path="/Analyzer/DarkNoiseRate/Dark Rate[7]" ></div> 
-        <div class="modbvalue" data-format="%f2"  data-odb-path="/Analyzer/DarkNoiseRate/Dark Rate[8]" ></div> 
-        <div class="modbvalue" data-format="%f2"  data-odb-path="/Analyzer/DarkNoiseRate/Dark Rate[9]" ></div> 
-        <div class="modbvalue" data-format="%f2"  data-odb-path="/Analyzer/DarkNoiseRate/Dark Rate[10]" ></div> 
-        <div class="modbvalue" data-format="%f2"  data-odb-path="/Analyzer/DarkNoiseRate/Dark Rate[11]" ></div> 
-        <div class="modbvalue" data-format="%f2"  data-odb-path="/Analyzer/DarkNoiseRate/Dark Rate[12]" ></div> 
-        <div class="modbvalue" data-format="%f2"  data-odb-path="/Analyzer/DarkNoiseRate/Dark Rate[13]" ></div> 
-        <div class="modbvalue" data-format="%f2"  data-odb-path="/Analyzer/DarkNoiseRate/Dark Rate[14]" ></div> 
-        <div class="modbvalue" data-format="%f2"  data-odb-path="/Analyzer/DarkNoiseRate/Dark Rate[15]" ></div> 
-        <div class="modbvalue" data-format="%f2"  data-odb-path="/Analyzer/DarkNoiseRate/Dark Rate[16]" ></div> 
-        <div class="modbvalue" data-format="%f2"  data-odb-path="/Analyzer/DarkNoiseRate/Dark Rate[17]" ></div> 
-        <div class="modbvalue" data-format="%f2"  data-odb-path="/Analyzer/DarkNoiseRate/Dark Rate[18]" ></div> 
-        <div class="modbvalue" data-format="%f2"  data-odb-path="/Analyzer/DarkNoiseRate/Dark Rate[19]" ></div> 
+        <div class="modbvalue" data-format="%e2"  data-odb-path="/Analyzer/DarkNoiseRate/Dark Rate[0]" ></div> 
+        <div class="modbvalue" data-format="%e2"  data-odb-path="/Analyzer/DarkNoiseRate/Dark Rate[1]" ></div> 
+        <div class="modbvalue" data-format="%e2"  data-odb-path="/Analyzer/DarkNoiseRate/Dark Rate[2]" ></div> 
+        <div class="modbvalue" data-format="%e2"  data-odb-path="/Analyzer/DarkNoiseRate/Dark Rate[3]" ></div> 
+        <div class="modbvalue" data-format="%e2"  data-odb-path="/Analyzer/DarkNoiseRate/Dark Rate[4]" ></div> 
+        <div class="modbvalue" data-format="%e2" data-odb-path="/Analyzer/DarkNoiseRate/Dark Rate[5]" ></div> 
+        <div class="modbvalue" data-format="%e2"  data-odb-path="/Analyzer/DarkNoiseRate/Dark Rate[6]" ></div> 
+        <div class="modbvalue" data-format="%e2"  data-odb-path="/Analyzer/DarkNoiseRate/Dark Rate[7]" ></div> 
+        <div class="modbvalue" data-format="%e2"  data-odb-path="/Analyzer/DarkNoiseRate/Dark Rate[8]" ></div> 
+        <div class="modbvalue" data-format="%e2"  data-odb-path="/Analyzer/DarkNoiseRate/Dark Rate[9]" ></div> 
+        <div class="modbvalue" data-format="%e2"  data-odb-path="/Analyzer/DarkNoiseRate/Dark Rate[10]" ></div> 
+        <div class="modbvalue" data-format="%e2"  data-odb-path="/Analyzer/DarkNoiseRate/Dark Rate[11]" ></div> 
+        <div class="modbvalue" data-format="%e2"  data-odb-path="/Analyzer/DarkNoiseRate/Dark Rate[12]" ></div> 
+        <div class="modbvalue" data-format="%e2"  data-odb-path="/Analyzer/DarkNoiseRate/Dark Rate[13]" ></div> 
+        <div class="modbvalue" data-format="%e2"  data-odb-path="/Analyzer/DarkNoiseRate/Dark Rate[14]" ></div> 
+        <div class="modbvalue" data-format="%e2"  data-odb-path="/Analyzer/DarkNoiseRate/Dark Rate[15]" ></div> 
+        <div class="modbvalue" data-format="%e2"  data-odb-path="/Analyzer/DarkNoiseRate/Dark Rate[16]" ></div> 
+        <div class="modbvalue" data-format="%e2"  data-odb-path="/Analyzer/DarkNoiseRate/Dark Rate[17]" ></div> 
+        <div class="modbvalue" data-format="%e2"  data-odb-path="/Analyzer/DarkNoiseRate/Dark Rate[18]" ></div> 
+        <div class="modbvalue" data-format="%e2"  data-odb-path="/Analyzer/DarkNoiseRate/Dark Rate[19]" ></div> 
       </td>
 
 

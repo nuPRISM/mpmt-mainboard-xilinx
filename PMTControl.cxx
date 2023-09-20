@@ -82,6 +82,8 @@ float PMTControl::GetModbusFactor(std::string command){
     factor = 1500.0 / 65535.0;
   }else if(command.find("0x2B") != std::string::npos){ // HV tolerance reg
     factor = 1500.0 / 65535.0;
+  }else if(command.find("0x2C") != std::string::npos){ // 5V rail measure
+    factor = 5.0 / 65535.0;
   }else if(command.find("0x2D") != std::string::npos){ // HV2 disable registers
     factor = 1.0;
   }else if((command.find("SetChannel") != std::string::npos) || (command.find("pmt_toggle_hv") != std::string::npos)){
@@ -464,6 +466,7 @@ int PMTControl::GetStatus(char *pevent, INT off)
   std::vector<float> trip_state(20,0);
   std::vector<float> pmt_temp(20,0);
   std::vector<float> HV2Vol(20,0);
+  std::vector<float> V5Val(20,0);
 
   printf("PMTs ");
   for(int i = 0; i < 20; i++){
@@ -480,6 +483,7 @@ int PMTControl::GetStatus(char *pevent, INT off)
     //    fFirstEvent = 0;
 
     HV2Vol[i] = ReadModbusValue("0x2B",i);
+    V5Val[i] = ReadModbusValue("0x2C",i);
     
     if(1 && fFirstEvent){ // Read some variables only on first event
       std::vector<float> values2 = ReadMultiModbusValue("",i);
@@ -602,11 +606,17 @@ int PMTControl::GetStatus(char *pevent, INT off)
 
 
   float *pddata_hv2;
-  // Trip threshold
   sprintf(bank_name,"P2%02i",get_frontend_index());
   bk_create(pevent, bank_name, TID_FLOAT, (void**)&pddata_hv2);
   for(int i = 0; i < 20; i++){ *pddata_hv2++ = HV2Vol[i];printf("%f ",HV2Vol[i]);} printf("\n");
   bk_close(pevent, pddata_hv2);
+
+
+  float *pddata_v5;
+  sprintf(bank_name,"P5%02i",get_frontend_index());
+  bk_create(pevent, bank_name, TID_FLOAT, (void**)&pddata_v5);
+  for(int i = 0; i < 20; i++){ *pddata_v5++ = V5Val[i];printf("%f ",V5Val[i]);} printf("\n");
+  bk_close(pevent, pddata_v5);
 
   struct timeval t2;
   gettimeofday(&t2, NULL);
