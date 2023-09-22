@@ -473,6 +473,7 @@ INT begin_of_run(INT run_number, char *error)
     {"enableSoftwareTrigger", false },
     {"soft trigger rate", 450.0f },
     {"channel mask", 0x1f },
+    {"number samples per packet", 4096},
     {"trigger delay", 250 }
   };
   
@@ -547,7 +548,15 @@ INT begin_of_run(INT run_number, char *error)
   }
 
   usleep(100000);
-  SendBrbCommand("set_num_samples_per_packet 4096\n");
+  //SendBrbCommand("set_num_samples_per_packet 4096\n");
+  //SendBrbCommand("set_num_samples_per_packet 512\n");
+  int number_samples = (int)(o["number samples per packet"]);
+  if(number_samples%512 != 0){
+    cm_msg(MERROR,"BOR","Error set_num_samples_per_packet must be divisible by 512; not %i",number_samples);
+    number_samples = 4096;
+  }
+  sprintf(buffer,"set_num_samples_per_packet %i\n",number_samples);
+  SendBrbCommand(buffer);
   
 
   usleep(1000000);
