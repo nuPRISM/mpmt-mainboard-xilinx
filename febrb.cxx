@@ -259,6 +259,30 @@ void lpc_callback(midas::odb &o) {
       cm_msg(MINFO,"lpc_callback","Disabling fast LED");
       
     }
+  }else if(o.get_full_path().find("EnableSlowLED") != std::string::npos){
+    
+    // Turn on or off?
+    if(o){ //turn on
+
+      // Enable VCC LDO and DAC control
+      SendBrbCommand("enable_ldo_en\r\n");
+      SendBrbCommand("enable_vccl_en\r\n");
+      SendBrbCommand("enable_mezzanine_dac\r\n");
+      
+      // Turn on slow LED
+      sleep(1);
+      SendBrbCommand("turn_slow_leds_on\r\n");
+
+      cm_msg(MINFO,"lpc_callback","Enabling slow LEDs");
+      
+    }else{ // turn off
+
+      // Turn off fast LED
+      SendBrbCommand("turn_slow_leds_off\r\n");
+
+      cm_msg(MINFO,"lpc_callback","Disabling slow LEDs");
+      
+    }
 
   }else if(o.get_full_path().find("LED_DAC") != std::string::npos){
 
@@ -394,7 +418,7 @@ INT frontend_init()
   std::cout << "Finished setting up PMTs" << std::endl;
 
   // initialize the temp correction for magnetometer
-  //SendBrbCommand("mmeter_get_new_offset \r\n");
+  SendBrbCommand("mmeter_get_new_offset \r\n");
 
 
   // Set LPC to external trigger and set DAC to minimum light
@@ -407,6 +431,7 @@ INT frontend_init()
 
   midas::odb lpc = {
     {"EnableFastLED", false },
+    {"EnableSlowLED", false },
     {"LED_DAC", 255 }
   };
 
@@ -866,9 +891,9 @@ INT read_slow_control(char *pevent, INT off)
   sprintf(bank_name,"BRM%i",get_frontend_index());
   bk_create(pevent, bank_name, TID_FLOAT, (void**)&pddata6);
 
-  float mag_x = 0;//get_brb_value("mmeter_read_mag_field 0",true);
-  float mag_y = 0;//get_brb_value("mmeter_read_mag_field 1",true);
-  float mag_z = 0;//get_brb_value("mmeter_read_mag_field 2",true);
+  float mag_x = get_brb_value("mmeter_read_mag_field 0",true);
+  float mag_y = get_brb_value("mmeter_read_mag_field 1",true);
+  float mag_z = get_brb_value("mmeter_read_mag_field 2",true);
   float mag_tot = sqrt(mag_x*mag_x + mag_y*mag_y + mag_z*mag_z);
   printf("mag status %f %f %f %f\n",mag_x,mag_y,mag_z,mag_tot);
 
@@ -885,7 +910,7 @@ INT read_slow_control(char *pevent, INT off)
   mag_counter++;
   printf("%i %i\n",mag_counter,mag_counter%500);
   if(mag_counter%1200 == 0){ // 0.2Hz trigger rate * 60 sec * 60 minutes = 18000
-    //SendBrbCommand("mmeter_get_new_offset \r\n");
+    SendBrbCommand("mmeter_get_new_offset \r\n");
     cm_msg(MINFO,"febrb_readout","Updating the magnetometer temperature offsets");
     
   }
