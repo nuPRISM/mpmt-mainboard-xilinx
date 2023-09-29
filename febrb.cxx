@@ -752,7 +752,7 @@ INT read_slow_control(char *pevent, INT off)
   for(int j = 0; j < 8; j++){
 
     double resistor = 1.0;
-    if(j==0){ resistor = 0.1; }
+    if(j==0){ resistor = 0.03; }
     if(j==1){ resistor = 0.03; }
     if(j==2){ resistor =150; }
     if(j==4){ resistor = 0.05;}
