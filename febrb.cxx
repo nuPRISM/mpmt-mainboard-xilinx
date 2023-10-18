@@ -336,20 +336,20 @@ INT frontend_init()
   // Set the names for the ODB keys
   o[names1][0] = "+6V Amp Current";
   o[names1][1] = "+6V Amp Voltage";
-  o[names1][2] = "-5V PMT Current";
-  o[names1][3] = "-5V PMT Voltage";
+  o[names1][2] = "-4V Amp Current";
+  o[names1][3] = "-4V Amp Voltage";
   o[names1][4] = "+1.8V ADC Current";
   o[names1][5] = "+1.8V ADC Voltage";
   o[names1][6] = "+5V PMT Current";
   o[names1][7] = "+5V PMT Voltage";
   o[names1][8] = "+3.3V PMT Current";
   o[names1][9] = "+3.3V PMT Voltage";
-  o[names1][10] = "-4V Amp Current";
-  o[names1][11] = "-4V Amp Voltage";
-  o[names1][12] = "+12V POE Current";
-  o[names1][13] = "+12V POE Voltage";
-  o[names1][14] = "+3.3V non-SoM Current";
-  o[names1][15] = "+3.3V non-SoM Voltage";
+  o[names1][10] = "+12V POE Current";
+  o[names1][11] = "+12V POE Voltage";
+  o[names1][12] = "+3.3V non-SoM Current";
+  o[names1][13] = "+3.3V non-SoM Voltage";
+  o[names1][14] = "Unused Current";
+  o[names1][15] = "Unused Voltage";
   o[names1][16] = "+12V SoM Current";
   o[names1][17] = "+12V SoM Voltage";
 
@@ -758,7 +758,7 @@ INT read_slow_control(char *pevent, INT off)
     if(j==4){ resistor = 0.05;}
     if(j==5){ resistor =0.03; }
     if(j==6){ resistor =0.03; }
-    if(j==7){ resistor =0.05;}
+    if(j==7){ resistor =0.03;}
 
 
     struct timeval t1;  
@@ -782,19 +782,17 @@ INT read_slow_control(char *pevent, INT off)
   }
 
   // Calculate the 12V power used by SoM
-  double power_12VPOE = -ptmp[12] * 12.0 / 1000.0;
+  double power_12VPOE = ptmp[10] * 12.0 / 1000.0;
   double power_6Vamp  = ptmp[0] * 6.0 / 1000.0;
-  double power_n5Vpmt = ptmp[2] * 5.0 / 1000.0;
   double power_1_8Vadc = ptmp[4] * 1.8 / 1000.0;
-  double power_n4Vamp = ptmp[10] * 4.0 / 1000.0;
-  double power_3_3Vclock = ptmp[14] * 3.3 / 1000.0;
-  double power_som = power_12VPOE - power_6Vamp - power_n5Vpmt - power_1_8Vadc - power_n4Vamp - power_3_3Vclock;
+  double power_n4Vamp = ptmp[2] * 4.0 / 1000.0;
+  double power_3_3Vclock = ptmp[12] * 3.3 / 1000.0;
+  double power_som = power_12VPOE - power_6Vamp  - power_1_8Vadc - power_n4Vamp - power_3_3Vclock;
 
   std::cout << "POE = " << power_12VPOE 
 	    << "W, 6V(amp) = " << power_6Vamp
-	    << "W, -5V(PMT) = " << power_n5Vpmt 
-	    << "W, 1.8V(ADC) = " << power_1_8Vadc
 	    << "W, -4V(amp) = " << power_n4Vamp
+	    << "W, 1.8V(ADC) = " << power_1_8Vadc
 	    << "W, 3.3V(clock) = " << power_3_3Vclock
 	    << "W, 12V(SOM) = " << power_som << "W" << std::endl;
     
