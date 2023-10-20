@@ -68,8 +68,10 @@ class runlog:
     htmlfile.write('<tr> <td> Run # </td>  <td> Start </td> <td> End Time </td>\n')
     #htmlfile.write('<tr> <td> Run </td>  <td> Start </td>\n')
     htmlfile.write('<td> <pre> # BRB \n events</pre> </td> \n')
-    htmlfile.write('<td> Chan 0 HV </td> \n')
+    htmlfile.write('<td> full mPMT </td> \n')
+    htmlfile.write('<td> mPMT ID </td> \n')
     htmlfile.write('<td> Comments </td>\n')
+    htmlfile.write('<td> Who? </td> \n')
     htmlfile.write('<td> Log data? </td> </tr>\n')
     
     txtfile.write("Run number, Start Time, Beamline enabled?, Beam on time, UCN Valve Open, ")
@@ -90,7 +92,9 @@ class runlog:
 
 
     beamon_time = 0
-    brb_events = odb['Equipment']['UDP']['Statistics']['Events sent']
+    brb_events = 0
+    if "UDP" in odb['Equipment']:
+      brb_events = odb['Equipment']['UDP']['Statistics']['Events sent']
 
     hv_set = 0
     if "PMTS06" in odb['Equipment']:
@@ -101,18 +105,30 @@ class runlog:
       
     comment = "*NO COMMENT FIELD*"
     laser = False
+    who = ""
+    full_mpmt = False
+    mpmt_id = ""
     if "Edit on start" in odb['Experiment']:
-      comment = odb['Experiment']['Edit on start']['Description']
-      if "EnableLogging" in odb['Experiment']['Edit on start']:
-        laser = odb['Logger']['Channels']['0']['Settings']['Active']
+      comment = odb['Experiment']['Edit on start']['Run Description']
+      if "Data taker" in odb['Experiment']['Edit on start']:
+        who = odb['Experiment']['Edit on start']['Data taker']
+      if "mPMT ID" in odb['Experiment']['Edit on start']:
+        mpmt_id = odb['Experiment']['Edit on start']["mPMT ID"]
+        full_mpmt = odb['Experiment']['Edit on start']["Full mPMT?"]
+
+    laser = odb['Logger']['Channels']['0']['Settings']['Active']
+
+    
 
     htmlfile.write("<tr>")
     self.writecolumn(htmlfile,txtfile,str(run_number))
     self.writecolumn(htmlfile,txtfile,str(start_time))
     self.writecolumn(htmlfile,txtfile,str(stop_time))
     self.writecolumn(htmlfile,txtfile,str(brb_events))
-    self.writecolumn(htmlfile,txtfile,str(hv_set))
+    self.writecolumn(htmlfile,txtfile,str(full_mpmt))
+    self.writecolumn(htmlfile,txtfile,mpmt_id)
     self.writecolumn(htmlfile,txtfile,comment)
+    self.writecolumn(htmlfile,txtfile,who)
     self.writecolumn(htmlfile,txtfile,str(laser))
     htmlfile.write("</tr>\n")
 
@@ -132,13 +148,13 @@ class runlog:
 
   def bulkupload(self):
 
-    htmlfile = open('/home/mpmtdaq3/packages/rootana/examples/html/runlist.html','w')
-    txtfile = open('/home/mpmtdaq3/packages/rootana/examples/html/runlist.txt','w')
+    htmlfile = open('/home/mpmttest/online/custom/runlist.html','w')
+    txtfile = open('/home/mpmttest/online/custom/runlist.txt','w')
     self.initialize_files(htmlfile,txtfile)
 
 
     seen_datadirs = []
-    data_dir = "/home/mpmtdaq3/online/history/"
+    data_dir = "/data/mpmttest/data/"
     print "done"
     os.chdir(data_dir)
     print "done2"
