@@ -311,19 +311,24 @@ void lpc_callback(midas::odb &o) {
       
     }
 
-  }else if(o.get_full_path().find("LED_DAC") != std::string::npos){
+  }else if(o.get_full_path().find("LED_DAC") != std::string::npos || 
+	   o.get_full_path().find("DAC_high_gain") != std::string::npos){
 
     // Set DAC value
-    int dac = o;
+    int dac = lpc["LED_DAC"];
     // Sanity checks
-    if(dac > 255) dac = 255;
+    if(dac > 590) dac = 590;
     if(dac < 0) dac = 0;
+
+
+    int dac_gain = 0;
+    if(lpc["DAC_high_gain"]) dac_gain = 1;
     
     char buffer[256];
-    sprintf(buffer,"write_mezzanine_dac 1 1 %i 1 \r\n",dac);
+    sprintf(buffer,"write_mezzanine_dac %i 1 %i 1 \r\n",dac_gain,dac);
     SendBrbCommand(buffer);
 
-    cm_msg(MINFO,"lpc_callback","Setting LPC DAC to %i",dac);
+    cm_msg(MINFO,"lpc_callback","Setting LPC DAC to %i with gain=%i",dac,dac_gain);
 
   }else if(o.get_full_path().find("LED1_enable") != std::string::npos
 	   || o.get_full_path().find("LED2_enable") != std::string::npos
@@ -472,7 +477,7 @@ INT frontend_init()
   // Set LPC to external trigger and set DAC to minimum light
   SendBrbCommand("select_sync_to_external_fast_led \r\n");
   SendBrbCommand("enable_mezzanine_dac \r\n");
-  SendBrbCommand("write_mezzanine_dac 1 1 255 1 \r\n");
+  SendBrbCommand("write_mezzanine_dac 0 1 590 1 \r\n");
   cm_msg(MINFO,"init","Setting LPC to use external trigger"); 
 
   // Setup the LPC ODB keys and setup callback
@@ -481,6 +486,7 @@ INT frontend_init()
     {"EnableFastLED", false },
     {"EnableSlowLED", false },
     {"LED_DAC", 255 },
+    {"DAC_high_gain", false },
     {"LED1_enable", false },
     {"LED2_enable", false },
     {"LED3_enable", false }
