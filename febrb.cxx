@@ -239,6 +239,18 @@ void lpc_callback(midas::odb &o) {
   int gSelectedChannel = o.get_last_index();
   std::cout << "Change value for " << gSelectedChannel << " " << o.get_full_path() << " " << o << std::endl;
   // check that the selected PMT is active                                                                                                         
+  midas::odb lpc = {
+    {"EnableFastLED", false },
+    {"EnableSlowLED", false },
+    {"LED_DAC", 255 },
+    {"LED1_enable", false },
+    {"LED2_enable", false },
+    {"LED3_enable", false }
+  };
+
+  char eq_dir[200];
+  sprintf(eq_dir,"/Equipment/BRB%02i/Settings/LPC",get_frontend_index());
+  lpc.connect(eq_dir);
  
   // Handle Turning on/off fast LED
   if(o.get_full_path().find("EnableFastLED") != std::string::npos){
@@ -246,11 +258,26 @@ void lpc_callback(midas::odb &o) {
     // Turn on or off?
     if(o){ //turn on
       
+
+      int led_mask = 0;
+      std::string led_string;
+      if(lpc["LED1_enable"]){ led_mask += 1; led_string.append("LED1,");}
+      if(lpc["LED2_enable"]){ led_mask += 2; led_string.append("LED2,");}
+      if(lpc["LED3_enable"]){ led_mask += 4; led_string.append("LED3,");}
+
+      // Enable the correct LEDs
+      char buffer[256];
+      sprintf(buffer,"set_fast_led_mask %i \r\n",led_mask);
+      SendBrbCommand(buffer);
+
       // Turn on fast LED
       SendBrbCommand("enable_fast_led \r\n");
-
-      cm_msg(MINFO,"lpc_callback","Enabling fast LED");
       
+      if(led_mask){
+	cm_msg(MINFO,"lpc_callback","Enabling fast LED, led mask = %i; %s firing",led_mask,led_string.c_str());
+      }else{
+	cm_msg(MINFO,"lpc_callback","Enabling fast LED, led mask = %i; no LEDs firing",led_mask);
+      }
     }else{ // turn off
 
       // Turn off fast LED
@@ -298,6 +325,27 @@ void lpc_callback(midas::odb &o) {
 
     cm_msg(MINFO,"lpc_callback","Setting LPC DAC to %i",dac);
 
+  }else if(o.get_full_path().find("LED1_enable") != std::string::npos
+	   || o.get_full_path().find("LED2_enable") != std::string::npos
+	   || o.get_full_path().find("LED3_enable") != std::string::npos
+	   ){ // LED choice
+    
+    int led_mask = 0;
+    std::string led_string;
+    if(lpc["LED1_enable"]){ led_mask += 1; led_string.append("LED1,");}
+    if(lpc["LED2_enable"]){ led_mask += 2; led_string.append("LED2,");}
+    if(lpc["LED3_enable"]){ led_mask += 4; led_string.append("LED3,");}
+    
+    // Enable the correct LEDs
+    char buffer[256];
+    sprintf(buffer,"set_fast_led_mask %i \r\n",led_mask);
+    SendBrbCommand(buffer);
+    
+    if(led_mask){
+      cm_msg(MINFO,"lpc_callback","Changing fast led mask; mask = %i; %s firing",led_mask, led_string.c_str());
+    }else{
+      cm_msg(MINFO,"lpc_callback","Changing fast led mask; mask = %i; no LEDs firing",led_mask);
+    }
   }
 
 }
@@ -432,7 +480,10 @@ INT frontend_init()
   midas::odb lpc = {
     {"EnableFastLED", false },
     {"EnableSlowLED", false },
-    {"LED_DAC", 255 }
+    {"LED_DAC", 255 },
+    {"LED1_enable", false },
+    {"LED2_enable", false },
+    {"LED3_enable", false }
   };
 
   sprintf(eq_dir,"/Equipment/BRB%02i/Settings/LPC",get_frontend_index());
