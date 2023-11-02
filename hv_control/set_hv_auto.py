@@ -2,16 +2,11 @@ import subprocess
 import time
 import sys
 
-n=int(sys.argv[1])
-#n=1
-#print(n)
-#n=int(nq)
+n = int(sys.argv[1])
+
 Start_Channel=0
 Num_CH = 20
 HV_Change=0 #The change in the HV from the 
-
-#modbset(['/Sequencer/Command/Start script'],
-#         ['hv_scan_new.msl', 'Yes', 'Yes'])
 
 for i in range(Start_Channel,Start_Channel+int(Num_CH)):
     
@@ -51,9 +46,4 @@ for i in range(Start_Channel,Start_Channel+int(Num_CH)):
     
         #Sets the HV value on the mpmt test site
         Set_HV = f'odbedit -c "set /Equipment/PMTS08/Settings/HVset[{i}] {HV_Value}"'
-##################3        c = f'odbedit -c "set /Equipment/PMTS08/Settings/HVset[8] {n}"'
         subprocess.run(Set_HV, shell=True, check=True)
-
-
-        #Set_HV = f'ODBSET "/Equipment/PMTS08/Settings/HVset[{i}]", 1000'
-#######################        subprocess.run(c, shell=True, check=True)
