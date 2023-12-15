@@ -258,6 +258,10 @@ void lpc_callback(midas::odb &o) {
     // Turn on or off?
     if(o){ //turn on
       
+      // Enable VCC LDO and DAC control                                                                     
+      SendBrbCommand("enable_ldo_en\r\n");
+      SendBrbCommand("enable_vccl_en\r\n");
+      SendBrbCommand("enable_mezzanine_dac\r\n");
 
       int led_mask = 0;
       std::string led_string;
