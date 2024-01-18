@@ -70,7 +70,7 @@ endif
 #-------------------------------------------------------------------
 # The following lines define directories. Adjust if necessary
 #
-MIDAS_INC = $(MIDASSYS)/include
+MIDAS_INC = $(MIDASSYS)/include -I$(MIDASSYS)/mxml/
 MIDAS_LIB = $(MIDASSYS)/lib
 MIDAS_SRC = $(MIDASSYS)/src
 MIDAS_DRV = $(MIDASSYS)/drivers/vme

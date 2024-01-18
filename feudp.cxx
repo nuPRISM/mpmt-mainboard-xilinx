@@ -28,6 +28,7 @@
 const char *frontend_name = "feudp";                     /* fe MIDAS client name */
 const char *frontend_file_name = __FILE__;               /* The frontend file name */
 
+BOOL equipment_common_overwrite = FALSE;
    BOOL frontend_call_loop = TRUE;       /* frontend_loop called periodically TRUE */
    int display_period = 0;               /* status page displayed with this freq[ms] */
    int max_event_size = 1*1024*1024;     /* max event size produced by this frontend */
