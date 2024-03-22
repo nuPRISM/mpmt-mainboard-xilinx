@@ -24,7 +24,7 @@
 
 #include "midas.h"
 #include "mfe.h"
-
+extern BOOL equipment_common_overwrite = false;
 const char *frontend_name = "feudp";                     /* fe MIDAS client name */
 const char *frontend_file_name = __FILE__;               /* The frontend file name */
 
@@ -520,7 +520,7 @@ int read_event(char *pevent, int off)
    // Temp hack for lack of consistent frameIDs
    packetID = packetID + (adc*8);
 
-   if(0)std::cout << "packet has frameID: " << frameID 
+   if(1)std::cout << "packet has frameID: " << frameID 
              << " packetID: " << packetID << " for ADC " << adc 
              << " triggerCount = " << triggerCount 
              << " with length: " << length << std::endl;
@@ -547,15 +547,15 @@ int read_event(char *pevent, int off)
 
       bool bad_event = false;
      
-      if(nUDPpackets[bname]%8 != 0) bad_event = true; // check if number of packets is divisible by 8.
+      if(nUDPpackets[bname]%1 != 0) bad_event = true; // check if number of packets is divisible by 8.
       
       // Check that each set of eight packets are sequential
       if(!bad_event){
-         int nadcs = nUDPpackets[bname] / 8;
+         int nadcs = nUDPpackets[bname] / 1;
          for(int tadc = 0; tadc < nadcs; tadc++){
                        
             int initial_number = event_datas[bname][tadc*8].first;
-            for (int i = 1; i < 8; i++){
+            for (int i = 1; i < 1; i++){
                int this_number = initial_number + i;
                if(this_number != event_datas[bname][tadc*8+i].first) bad_event = true;
             }               
@@ -592,7 +592,7 @@ int read_event(char *pevent, int off)
 
          nUDPpackets[bname] = 0;
          
-         if(0)std::cout << "Saving " << event_datas[bname].size() << " words." << std::endl;
+         if(1)std::cout << "Saving " << event_datas[bname].size() << " packets." << std::endl;
          //printf("%4i %4i %4i %4i\n",(event_data[21]>>4),(event_data[22]>>4),(event_data[23]>>4),(event_data[24]>>4));
          //printf("%4i %4i %4i %4i\n",(event_data[554]>>4),(event_data[555]>>4),(event_data[556]>>4),(event_data[557]>>4));
          //printf("%4i %4i %4i %4i\n",(event_data[1087]>>4),(event_data[1088]>>4),(event_data[1089]>>4),(event_data[1090]>>4));
@@ -637,12 +637,19 @@ int read_event(char *pevent, int off)
    std::pair<int, std::vector<uint16_t> > this_data;
    this_data.first = packetID;
    this_data.second = std::vector<uint16_t>();
-   for(int i  = 0; i < length/2; i++){
-      uint16_t tmp = (((data[i] & 0xff00)>>8) | ((data[i] & 0xff)<<8));
-      
+
+   int nwords = length/2;
+   // save the data in overall packet.  Endian flip                                                                                                        
+   bool want_short = true;
+   if(want_short){ if(nwords > 221) nwords = 221; } // Only save 221 words; 21 header words and 50 ADC samples for 4 channels                                                
+
+   for(int i  = 0; i < nwords; i++){
+      uint16_t tmp = (((data[i] & 0xff00)>>8) | ((data[i] & 0xff)<<8));      
       //      event_datas[bname].push_back(tmp);
       this_data.second.push_back(tmp);    
    }
+
+
 
    packet_list.push_back(packetID);
 

@@ -239,6 +239,18 @@ void lpc_callback(midas::odb &o) {
   int gSelectedChannel = o.get_last_index();
   std::cout << "Change value for " << gSelectedChannel << " " << o.get_full_path() << " " << o << std::endl;
   // check that the selected PMT is active                                                                                                         
+  midas::odb lpc = {
+    {"EnableFastLED", false },
+    {"EnableSlowLED", false },
+    {"LED_DAC", 255 },
+    {"LED1_enable", false },
+    {"LED2_enable", false },
+    {"LED3_enable", false }
+  };
+
+  char eq_dir[200];
+  sprintf(eq_dir,"/Equipment/BRB%02i/Settings/LPC",get_frontend_index());
+  lpc.connect(eq_dir);
  
   // Handle Turning on/off fast LED
   if(o.get_full_path().find("EnableFastLED") != std::string::npos){
@@ -246,11 +258,26 @@ void lpc_callback(midas::odb &o) {
     // Turn on or off?
     if(o){ //turn on
       
+
+      int led_mask = 0;
+      std::string led_string;
+      if(lpc["LED1_enable"]){ led_mask += 1; led_string.append("LED1,");}
+      if(lpc["LED2_enable"]){ led_mask += 2; led_string.append("LED2,");}
+      if(lpc["LED3_enable"]){ led_mask += 4; led_string.append("LED3,");}
+
+      // Enable the correct LEDs
+      char buffer[256];
+      sprintf(buffer,"set_fast_led_mask %i \r\n",led_mask);
+      SendBrbCommand(buffer);
+
       // Turn on fast LED
       SendBrbCommand("enable_fast_led \r\n");
-
-      cm_msg(MINFO,"lpc_callback","Enabling fast LED");
       
+      if(led_mask){
+	cm_msg(MINFO,"lpc_callback","Enabling fast LED, led mask = %i; %s firing",led_mask,led_string.c_str());
+      }else{
+	cm_msg(MINFO,"lpc_callback","Enabling fast LED, led mask = %i; no LEDs firing",led_mask);
+      }
     }else{ // turn off
 
       // Turn off fast LED
@@ -284,20 +311,46 @@ void lpc_callback(midas::odb &o) {
       
     }
 
-  }else if(o.get_full_path().find("LED_DAC") != std::string::npos){
+  }else if(o.get_full_path().find("LED_DAC") != std::string::npos || 
+	   o.get_full_path().find("DAC_high_gain") != std::string::npos){
 
     // Set DAC value
-    int dac = o;
+    int dac = lpc["LED_DAC"];
     // Sanity checks
-    if(dac > 255) dac = 255;
+    if(dac > 590) dac = 590;
     if(dac < 0) dac = 0;
+
+
+    int dac_gain = 0;
+    if(lpc["DAC_high_gain"]) dac_gain = 1;
     
     char buffer[256];
-    sprintf(buffer,"write_mezzanine_dac 1 1 %i 1 \r\n",dac);
+    sprintf(buffer,"write_mezzanine_dac %i 1 %i 1 \r\n",dac_gain,dac);
     SendBrbCommand(buffer);
 
-    cm_msg(MINFO,"lpc_callback","Setting LPC DAC to %i",dac);
+    cm_msg(MINFO,"lpc_callback","Setting LPC DAC to %i with gain=%i",dac,dac_gain);
 
+  }else if(o.get_full_path().find("LED1_enable") != std::string::npos
+	   || o.get_full_path().find("LED2_enable") != std::string::npos
+	   || o.get_full_path().find("LED3_enable") != std::string::npos
+	   ){ // LED choice
+    
+    int led_mask = 0;
+    std::string led_string;
+    if(lpc["LED1_enable"]){ led_mask += 1; led_string.append("LED1,");}
+    if(lpc["LED2_enable"]){ led_mask += 2; led_string.append("LED2,");}
+    if(lpc["LED3_enable"]){ led_mask += 4; led_string.append("LED3,");}
+    
+    // Enable the correct LEDs
+    char buffer[256];
+    sprintf(buffer,"set_fast_led_mask %i \r\n",led_mask);
+    SendBrbCommand(buffer);
+    
+    if(led_mask){
+      cm_msg(MINFO,"lpc_callback","Changing fast led mask; mask = %i; %s firing",led_mask, led_string.c_str());
+    }else{
+      cm_msg(MINFO,"lpc_callback","Changing fast led mask; mask = %i; no LEDs firing",led_mask);
+    }
   }
 
 }
@@ -424,7 +477,7 @@ INT frontend_init()
   // Set LPC to external trigger and set DAC to minimum light
   SendBrbCommand("select_sync_to_external_fast_led \r\n");
   SendBrbCommand("enable_mezzanine_dac \r\n");
-  SendBrbCommand("write_mezzanine_dac 1 1 255 1 \r\n");
+  SendBrbCommand("write_mezzanine_dac 0 1 590 1 \r\n");
   cm_msg(MINFO,"init","Setting LPC to use external trigger"); 
 
   // Setup the LPC ODB keys and setup callback
@@ -432,7 +485,11 @@ INT frontend_init()
   midas::odb lpc = {
     {"EnableFastLED", false },
     {"EnableSlowLED", false },
-    {"LED_DAC", 255 }
+    {"LED_DAC", 255 },
+    {"DAC_high_gain", false },
+    {"LED1_enable", false },
+    {"LED2_enable", false },
+    {"LED3_enable", false }
   };
 
   sprintf(eq_dir,"/Equipment/BRB%02i/Settings/LPC",get_frontend_index());
