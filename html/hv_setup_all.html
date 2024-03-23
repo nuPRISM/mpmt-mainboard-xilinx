@@ -12,13 +12,23 @@
       .mtable td { padding: 6px; }
    </style>
    <script>
+
+     function switch_brb(e){
+
+	 brbno = e.value;
+	 write_HV_table(brbno);
+
+     }
+     
      
      // write the HV table
-     function write_HV_table(){
+     function write_HV_table(this_brbno){
 
+	 console.log("BRB " + this_brbno + " selected");
+	 
 	 const hv_table_div = document.getElementById("hv_tables"); 
 
-	 brbno = 8;
+	 brbno = this_brbno;
 	 
 	 myhtml = ''
 	 myhtml += '  <table class="mtable">'
@@ -103,7 +113,7 @@
 
 </head>
 
-<body class="mcss" onload="mhttpd_init('HV Setup All');;">
+<body class="mcss" onload="mhttpd_init('HV Setup All');write_HV_table(8);">
 
 <!-- header and side navigation will be filled in mhttpd_init -->
 <div id="mheader"></div>
@@ -111,12 +121,24 @@
 
 <div id="mmain">
 
+  Select BRB:
+  <select name="navyOp" onchange="switch_brb(this);">
+  <option value="0">brb00</option>
+  <option value="1">brb01</option>
+  <option value="2">brb02</option>
+  <option value="3">brb03</option>
+  <option value="4">brb04</option>
+  <option value="5">brb05</option>
+  <option value="6">brb06</option>
+  <option value="7">brb07</option>
+  <option value="8" selected="y">brb08</option>
+  <option value="9">brb09</option>
+  </select>
   
   <div id="hv_tables">
 
   </div>
   
-  <button onclick="write_HV_table()">Click me</button>
 </div>
 </body>
 </html>
