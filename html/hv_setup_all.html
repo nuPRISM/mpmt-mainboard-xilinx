@@ -13,6 +13,19 @@
    </style>
    <script>
 
+     function switch_brb_hv() {
+	 if(document.getElementById("hv_control").checked){
+	     document.getElementById("hv_tables").style.display = "block";
+	 }else{
+	     document.getElementById("hv_tables").style.display = "none";
+	 }
+	 if(document.getElementById("brb_control").checked){
+	     document.getElementById("brb_tables").style.display = "block";
+	 }else{
+	     document.getElementById("brb_tables").style.display = "none";
+	 }
+     }
+     
      function switch_brb(e){
 
 	 brbno = e.value;
@@ -38,7 +51,7 @@
 	 myhtml += '<tr> <th colspan="1"> PMT ID </th> <th colspan="1"> Chan </th> <th colspan="1"> Active </th>'
 	 myhtml += '<th colspan="2"> Enable </th> <th colspan="3"> HV (V) </th> <th colspan="1"> HV2 (V) </th>'
 	 myhtml += '<th colspan="1"> Cur (uA) </th> <th colspan="1"> 5V Meas </th> <th colspan="1"> Temp </th>'
-	 myhtml += '<th colspan="1"> STATUS0 </th> <th colspan="1"> STATUS1 </th> <th colspan="2"> Ramp Rate (V/s) </th>'
+	 myhtml += '<th colspan="1"> STAT0 </th> <th colspan="1"> STAT1 </th> <th colspan="2"> Ramp Rate (V/s) </th>'
 	 myhtml += '<th colspan="2"> Current Trip Param </th>  </tr>'
 
          myhtml += '<tr><td></td><td></td><td></td><td> Set </td><td> Read </td><td> Set</td>'
@@ -104,8 +117,100 @@
          myhtml += '</table>'	 
 	 hv_table_div.innerHTML = myhtml;
 
+         const brb_table_div = document.getElementById("brb_tables");
+
+         myhtml2 = ''
+         myhtml2 += '  <table class="mtable">'	 
+         myhtml2 += '<tr> <th colspan="18" class="mtableheader">brb'+ String(brbno).padStart(2, '0') + ' Setup</th> </tr>'
+
+
+	 myhtml2 += '<tr><td>Host IP</td><td> <div class="modbvalue" data-odb-editable="1" data-odb-path='
+	 myhtml2 += '"/Equipment/BRB'+String(brbno).padStart(2, '0')+'/Settings/host" ></div></td></tr>'
+
+	 myhtml2 += '<tr><td>Turn on slow LED</td><td> <div class="modbvalue" data-odb-editable="1" data-odb-path='
+	 myhtml2 += '"/Equipment/BRB'+String(brbno).padStart(2, '0')+'/Settings/LPC/EnableSlowLED" ></div></td></tr>'
+
+	 myhtml2 += '<tr><td>Software Trigger Enable</td><td> <div class="modbvalue" data-odb-editable="1" data-odb-path='
+	 myhtml2 += '"/Equipment/BRB'+String(brbno).padStart(2, '0')+'/Settings/enableSoftwareTrigger" ></div></td></tr>'
+	 
+	 myhtml2 += '<tr><td>Software Trigger Rate</td><td> <div class="modbvalue" data-odb-editable="1" data-odb-path='
+	 myhtml2 += '"/Equipment/BRB'+String(brbno).padStart(2, '0')+'/Settings/soft trigger rate" ></div></td></tr>'
+
+	 myhtml2 += '<tr><td>Enable ADC Test Pattern</td><td> <div class="modbvalue" data-odb-editable="1" data-odb-path='
+	 myhtml2 += '"/Equipment/BRB'+String(brbno).padStart(2, '0')+'/Settings/testPatternAdc" ></div></td></tr>'
+	 
+	 myhtml2 += '<tr><td>Channel Mask</td><td> <div class="modbvalue" data-odb-editable="1" data-odb-path='
+	 myhtml2 += '"/Equipment/BRB'+String(brbno).padStart(2, '0')+'/Settings/channel mask" ></div></td></tr>'
+
+	 myhtml2 += '<tr><td>Fast LED enable</td><td> <div class="modbvalue" data-odb-editable="1" data-odb-path='
+	 myhtml2 += '"/Equipment/BRB'+String(brbno).padStart(2, '0')+'/Settings/LPC/EnableFastLED" ></div></td></tr>'
+	 
+	 /* myhtml2 += '<tr><td>LED1 Enable</td><td> <div class="modbvalue" data-odb-editable="1" data-odb-path='
+	 myhtml2 += '"/Equipment/BRB'+String(brbno).padStart(2, '0')+'/Settings/LPC/LED1_enable" ></div></td></tr>'
+*/
+
+
+/*
+
+    <tr>
+      <td>
+        LED1 enable
+      </td>
+       <td >
+        <div class="modbvalue" data-odb-editable="1" data-odb-path="/Equipment/BRB08/Settings/LPC/LED1_enable" ></div>
+      </td>
+    </tr>
+
+
+    <tr>
+      <td>
+        LED2 enable
+      </td>
+       <td >
+        <div class="modbvalue" data-odb-editable="1" data-odb-path="/Equipment/BRB08/Settings/LPC/LED2_enable" ></div>
+      </td>
+    </tr>
+
+
+    <tr>
+      <td>
+        LED3 enable
+      </td>
+       <td >
+        <div class="modbvalue" data-odb-editable="1" data-odb-path="/Equipment/BRB08/Settings/LPC/LED3_enable" ></div>
+      </td>
+    </tr>
+
+	     <tr>
+	     <td>
+        Fast LED DAC
+      </td>
+       <td >
+        <div class="modbvalue" data-odb-editable="1" data-odb-path="/Equipment/BRB08/Settings/LPC/LED_DAC" ></div>
+      </td>
+    </tr>
+
+    <tr>
+      <td>
+        LED DAC high gain
+      </td>
+       <td >
+        <div class="modbvalue" data-odb-editable="1" data-odb-path="/Equipment/BRB08/Settings/LPC/DAC_high_gain" ></div>
+      </td>
+    </tr>
+*/
+
+
+
+	 
+	 myhtml2 += '</table>'	 
+	 brb_table_div.innerHTML = myhtml2;
+
+
+
+	 
 	 mhttpd_refresh();
-	 mhttpd_refresh_history();
+	 //mhttpd_refresh_history();
 	 console.log("Finished1");
      }
    </script>
@@ -134,10 +239,35 @@
   <option value="8" selected="y">brb08</option>
   <option value="9">brb09</option>
   </select>
+
+  <input type="radio" id="brb_control" name="brb_switch" value="brb_control" onclick="switch_brb_hv()">
+  <label for="brb_control">Mainboard Control</label>
+  <input type="radio" id="hv_control" name="brb_switch" value="hv_control" onclick="switch_brb_hv()" checked="y">
+  <label for="hv_control">HV Control</label>
+
   
-  <div id="hv_tables">
+  <div id="hv_tables" style="display:block">
 
   </div>
+
+  <div id="brb_tables" style="display:none">
+
+    <table class="mtable">
+      <tr>
+	<th colspan="2" class="mtableheader">brb08 Setup</th>
+      </tr>
+      <tr>
+	<td>
+          Host IP
+	</td>
+      <td>
+        <div class="modbvalue" data-odb-editable="1" data-odb-path="/Equipment/BRB08/Settings/host" ></div>
+      </td>
+      </tr>
+    </table>
+    
+  </div>
+
   
 </div>
 </body>
