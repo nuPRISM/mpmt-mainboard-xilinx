@@ -467,6 +467,7 @@ int PMTControl::GetStatus(char *pevent, INT off)
   std::vector<float> pmt_temp(20,0);
   std::vector<float> HV2Vol(20,0);
   std::vector<float> V5Val(20,0);
+  std::vector<float> FW_Ver(20,0);
 
   printf("PMTs ");
   for(int i = 0; i < 20; i++){
@@ -484,6 +485,7 @@ int PMTControl::GetStatus(char *pevent, INT off)
 
     HV2Vol[i] = ReadModbusValue("0x2B",i);
     V5Val[i] = ReadModbusValue("0x2C",i);
+    FW_Ver[i] = ReadModbusValue("0x2",i);
     
     if(1 && fFirstEvent){ // Read some variables only on first event
       std::vector<float> values2 = ReadMultiModbusValue("",i);
@@ -617,6 +619,12 @@ int PMTControl::GetStatus(char *pevent, INT off)
   bk_create(pevent, bank_name, TID_FLOAT, (void**)&pddata_v5);
   for(int i = 0; i < 20; i++){ *pddata_v5++ = V5Val[i];printf("%f ",V5Val[i]);} printf("\n");
   bk_close(pevent, pddata_v5);
+
+  int *pddata_v6;
+  sprintf(bank_name,"FW%02i",get_frontend_index());
+  bk_create(pevent, bank_name, TID_INT, (void**)&pddata_v6);
+  for(int i = 0; i < 20; i++){ *pddata_v6++ = FW_Ver[i];};
+  bk_close(pevent, pddata_v6);
 
   struct timeval t2;
   gettimeofday(&t2, NULL);
