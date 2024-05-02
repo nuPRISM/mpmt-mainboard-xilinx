@@ -86,6 +86,8 @@ float PMTControl::GetModbusFactor(std::string command){
     factor = 5.0 / 65535.0;
   }else if(command.find("0x2D") != std::string::npos){ // HV2 disable registers
     factor = 1.0;
+  }else if(command.find("0x2") != std::string::npos){ // firmware version number
+    factor = 1.0;
   }else if((command.find("SetChannel") != std::string::npos) || (command.find("pmt_toggle_hv") != std::string::npos)){
     ;
   }else{
@@ -623,7 +625,7 @@ int PMTControl::GetStatus(char *pevent, INT off)
   int *pddata_v6;
   sprintf(bank_name,"FW%02i",get_frontend_index());
   bk_create(pevent, bank_name, TID_INT, (void**)&pddata_v6);
-  for(int i = 0; i < 20; i++){ *pddata_v6++ = FW_Ver[i];};
+  for(int i = 0; i < 20; i++){ *pddata_v6++ = abs(FW_Ver[i]);};
   bk_close(pevent, pddata_v6);
 
   struct timeval t2;
