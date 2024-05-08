@@ -24,7 +24,6 @@
 
 #include "midas.h"
 #include "mfe.h"
-extern BOOL equipment_common_overwrite = false;
 const char *frontend_name = "feudp";                     /* fe MIDAS client name */
 const char *frontend_file_name = __FILE__;               /* The frontend file name */
 
