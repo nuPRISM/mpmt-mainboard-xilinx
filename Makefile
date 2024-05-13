@@ -100,11 +100,15 @@ LIBMIDAS = -L$(MIDAS_LIB) -lmidas
 #
 # All includes
 INCS = -I. -I$(MIDAS_INC) -I$(MIDAS_DRV) 
-all: $(UFE).exe  feudp.exe test_brb.exe print_brb_currents.exe
+all: $(UFE).exe  feudp.exe feudpMulti.exe test_brb.exe print_brb_currents.exe
 
 
 feudp.exe: $(LIB) $(MIDAS_LIB)/mfe.o $(DRIVERS) feudp.o
 	$(CXX) $(CFLAGS) $(OSFLAGS) $(INCS) -o feudp.exe feudp.o $(DRIVERS) \
+	$(MIDAS_LIB)/mfe.o  $(LIBMIDAS) $(LIBS)
+
+feudpMulti.exe: $(LIB) $(MIDAS_LIB)/mfe.o $(DRIVERS) feudpMulti.o
+	$(CXX) $(CFLAGS) $(OSFLAGS) $(INCS) -o feudpMulti.exe feudpMulti.o $(DRIVERS) \
 	$(MIDAS_LIB)/mfe.o  $(LIBMIDAS) $(LIBS)
 
 
@@ -113,6 +117,9 @@ feodbxx_test.exe: $(LIB) $(MIDAS_LIB)/mfe.o $(DRIVERS) feodbxx_test.o
 	$(MIDAS_LIB)/mfe.o  $(LIBMIDAS) $(LIBS)
 
 feudp.o: feudp.cxx
+	$(CXX) $(CFLAGS) $(INCS) $(OSFLAGS) -o $@ -c $<
+
+feudpMulti.o: feudpMulti.cxx
 	$(CXX) $(CFLAGS) $(INCS) $(OSFLAGS) -o $@ -c $<
 
 feodbxx_test.o: feodbxx_test.cxx
