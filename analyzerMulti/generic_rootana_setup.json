@@ -1,0 +1,46 @@
+{ 
+  "BRB Waveform" : { 
+    "MaxChannels" : 20,
+    "WebserverName" : "BRB"
+  },
+  "BRB Waveform Hit" : {
+    "MaxChannels" : 20,
+    "WebserverName" : "BRB_Hit"
+  },  
+  "BRB Waveform Corrupt" : {
+    "MaxChannels" : 20,
+    "WebserverName" : "BRB_Corrupt"
+  },
+  "BRB Baseline" : { 
+    "MaxChannels" : 20,
+    "WebserverName" : "BRB_Baseline"
+  },
+  "BRB RMS" : { 
+    "MaxChannels" : 20,
+    "WebserverName" : "BRB_RMS"
+  },
+  "Pulse Height" : {
+    "MaxChannels" : 20,
+    "WebserverName" : "BRB_PH"
+  },
+  "Pulse Height Big" : {
+    "MaxChannels" : 20,
+    "WebserverName" : "BRB_PH_Big"
+  },
+  "Pulse Time" : {
+    "MaxChannels" : 20,
+    "WebserverName" : "BRB_Time"
+  },
+  "PMT Rate" : {
+    "MaxChannels" : 20,
+    "WebserverName" : "BRB_Rates"
+  },
+  "PMT Rate (uncorrelated)" : {
+    "MaxChannels" : 20,
+    "WebserverName" : "BRB_Rates_Single"
+  },
+  "DisplaySettings" : {
+    "DisplayStyle" : "root",
+    "UpdatePeriod" : 1000
+  }
+} 
