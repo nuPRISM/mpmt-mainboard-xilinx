@@ -43,7 +43,7 @@ TAnaManager::TAnaManager(bool isoffline){
     {"HVEnable", std::array<bool, 20>{} },
     {"HVSet", std::array<double, 20>{} }
   };
-  o2.connect("/Equipment/PMTS07/Settings");
+  o2.connect("/Equipment/PMTS00/Settings");
   for(int i = 0; i < 20; i++){
     hv_set[i] = o2["HVset"][i];
     hv_enable[i] = o2["HVenable"][i];
