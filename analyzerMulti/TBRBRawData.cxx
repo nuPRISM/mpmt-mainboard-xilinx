@@ -20,8 +20,8 @@ TBRBRawData::TBRBRawData(int bklen, int bktype, const char* name, void *pdata):
 
   int nwords = bklen;
   //  int npackets = (bklen - 29) / 533; // Number of full packets, discard tail packet with just 29 words
-  //int npackets = (bklen) / 533; // Number of full packets, 
-  int npackets = (bklen) / 221; // Number of full packets, 
+  int npackets = (bklen) / 533; // Number of full packets, 
+  //int npackets = (bklen) / 221; // Number of full packets, 
   if(1)std::cout << "Number of words: " << nwords
             << ", number of packets : " << npackets << std::endl;
   
@@ -32,7 +32,7 @@ TBRBRawData::TBRBRawData(int bklen, int bktype, const char* name, void *pdata):
 
   
 
-  int nadcs = ((npackets))/1;
+  int nadcs = ((npackets))/8;
   if(1)  std::cout << "Number of words: " << nwords
 	    << ", number of packets : " << npackets 
 	    << " nadcs=" << nadcs 
@@ -47,11 +47,11 @@ TBRBRawData::TBRBRawData(int bklen, int bktype, const char* name, void *pdata):
     std::vector<std::vector<uint32_t> >Samples;
     for(int ch = 0; ch < 4; ch++){ Samples.push_back(std::vector<uint32_t>());}
 
-    for(int p = 0; p < 1; p++){ // loop over packets// now 1024 samples hopefully
+    for(int p = 0; p < 8; p++){ // loop over packets// now 1024 samples hopefully
       //for(int p = 0; p < 4; p++){ // loop over packets
 
-      int counter = adc*1 + p;
-      int istart = counter*221;
+      int counter = adc*8 + p;
+      int istart = counter*533;
 
       int frameid = fData[istart + 4];
       int packetid = fData[istart + 2];
@@ -71,7 +71,7 @@ TBRBRawData::TBRBRawData(int bklen, int bktype, const char* name, void *pdata):
       // Save data samples; data for 4 channels is interleaved
       // need to convert between ADC channel number and connector channel number
       int chan_map[4] = {2,3,0,1};
-      for(int i = 0; i < 200; i++){
+      for(int i = 0; i < 512; i++){
 	//	int ch = chan_map[i%4];  // which channel?
 	int ch = i%4;  // which channel?
 	int index = i+21+istart; 
@@ -168,7 +168,7 @@ TBRBRawData::TBRBRawData(int bklen, int bktype, const char* name, void *pdata):
 	  //for(int p = 0; p < 4; p++){ // loop over packets                                                    
 	  
 	  int counter = adc*8 + p;
-	  int istart = counter*221;
+	  int istart = counter*533;
 
 	  int frameid = fData[istart + 4];
 	  int packetid = fData[istart + 2];
