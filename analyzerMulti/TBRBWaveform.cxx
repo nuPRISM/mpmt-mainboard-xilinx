@@ -28,26 +28,28 @@ void TBRBWaveform::CreateHistograms(){
   
   // Otherwise make histograms
   clear();
-  
-  for(int i = 0; i < 20; i++){ // loop over 2 channels
-    
-    char name[100];
-    char title[100];
-    sprintf(name,"BRB_%i",i);
-    //TH1D *tmp2 = (TH1D*)gDirectory->Get(tname);
-    //    if (tmp2){
-    //std::cout << "Found " << tname << " and will delete !!! " << std::endl;
-    // delete tmp2;
-    //}
-    std::cout << "Creating " << name << std::endl;
-    sprintf(title,"BRB Waveform for channel=%i",i);	
 
+  for(int j = 0; j < 3; j++){ // loop over 3 BRBS
+    for(int i = 0; i < 20; i++){ // loop over 20 channels
     
-    TH1D *tmp = new TH1D(name, title, 50, -0.5*8, 49.5*8);
-    tmp->SetXTitle("ns");
-    tmp->SetYTitle("ADC value");
-    
-    push_back(tmp);
+      char name[100];
+      char title[100];
+      sprintf(name,"BRB_%i_%i",j,i);
+      //TH1D *tmp2 = (TH1D*)gDirectory->Get(tname);
+      //    if (tmp2){
+      //std::cout << "Found " << tname << " and will delete !!! " << std::endl;
+      // delete tmp2;
+      //}
+      std::cout << "Creating " << name << std::endl;
+      sprintf(title,"BRB Waveform for BRB=%i channel=%i",j,i);	
+
+      
+      TH1D *tmp = new TH1D(name, title, 512, -0.5*8, 511.5*8);
+      tmp->SetXTitle("ns");
+      tmp->SetYTitle("ADC value");
+      
+      push_back(tmp);
+    }
   }
   std::cout << "TBRBWaveform done init...... " << std::endl;
   FrequencySetting = -1;
@@ -58,35 +60,37 @@ void TBRBWaveform::UpdateHistograms(TDataContainer& dataContainer){
   
   int eventid = dataContainer.GetMidasData().GetEventId();
   int timestamp = dataContainer.GetMidasData().GetTimeStamp();
-  
-  TBRBRawData *dt743 = dataContainer.GetEventData<TBRBRawData>("BRB0");
-  
-  if(dt743){      
-    
-    
-    std::vector<RawBRBMeasurement> measurements = dt743->GetMeasurements();
 
-    bool changeHistogram = false; 
-    for(unsigned int i = 0; i < measurements.size(); i++){
+  for(int j = 0; j < 3; j++){  // loop over mPMTs
 
-      int chan = measurements[i].GetChannel();
-      int nsamples = measurements[i].GetNSamples();
-      int baseline = (int)BSingleton::GetInstance()->GetBaseline(chan);
-      for(int ib = 0; ib < nsamples; ib++){
-	if(i != 1 || 1){
-	  GetHistogram(chan)->SetBinContent(ib+1, measurements[i].GetSample(ib));
-	}else{ // scale up channel 1
-	  int sample = measurements[i].GetSample(ib);
-	  sample = ((sample-baseline) * 60) + baseline; 
-	  GetHistogram(chan)->SetBinContent(ib+1, sample);
-	}
-      }
+    char name[100];
+    sprintf(name,"BRB%i",j);
+    
+    TBRBRawData *dt743 = dataContainer.GetEventData<TBRBRawData>(name);
+    
+    if(dt743){      
+            
+      std::vector<RawBRBMeasurement> measurements = dt743->GetMeasurements();
       
-    }
-  }
-  
-}
+      bool changeHistogram = false; 
+      for(unsigned int i = 0; i < measurements.size(); i++){
+	
+	int chan = measurements[i].GetChannel();
+	int nsamples = measurements[i].GetNSamples();
 
+	int ichan = j*20 + chan;
+
+	if(chan < 20){
+	  for(int ib = 0; ib < nsamples; ib++){
+	    GetHistogram(ichan)->SetBinContent(ib+1, measurements[i].GetSample(ib));
+	  }
+	}
+	
+      }
+    }
+    
+  }
+}
 
 
 void TBRBWaveform::Reset(){
@@ -117,11 +121,9 @@ TBRBWaveformHit::TBRBWaveformHit(){
 
 void TBRBWaveformHit::CreateHistograms(){
 
-
   // check if we already have histogramss.
   char tname[100];
-  sprintf(tname,"BRB_Hit_%i",0);
-
+  sprintf(tname,"BRB_Hit_0_%i",0);
 
   int fWFLength = 7; // Need a better way of detecting this...
   int numSamples = fWFLength / 1;
@@ -129,21 +131,22 @@ void TBRBWaveformHit::CreateHistograms(){
   // Otherwise make histograms
   clear();
   
-  for(int i = 0; i < 20; i++){ // loop over 2 channels
+  for(int j = 0; j < 3; j++){ // loop over 3 BRBS
+    for(int i = 0; i < 20; i++){ // loop over 20 channels
     
-    char name[100];
-    char title[100];
-    sprintf(name,"BRB_Hit_%i",i);
-    sprintf(title,"BRB Waveform for channel=%i (hit)",i);	
+      char name[100];
+      char title[100];
+      sprintf(name,"BRB_Hit_%i_%i",j,i);
+      sprintf(title,"BRB Waveform for BRB=%i channel=%i (hit)",j,i);	
 
-    
-    TH1D *tmp = new TH1D(name, title, 50, -0.5*8, 49.5*8);
-    tmp->SetXTitle("ns");
-    tmp->SetYTitle("ADC value");
-    
-    push_back(tmp);
+      TH1D *tmp = new TH1D(name, title, 512, -0.5*8, 511.5*8);
+      tmp->SetXTitle("ns");
+      tmp->SetYTitle("ADC value");
+      
+      push_back(tmp);
+    }
   }
-  std::cout << "TBRBWaveform done init...... " << std::endl;
+  std::cout << "TBRBWaveform  hit done init...... " << std::endl;
   FrequencySetting = -1;
 }
 
@@ -152,53 +155,58 @@ void TBRBWaveformHit::UpdateHistograms(TDataContainer& dataContainer){
   
   int eventid = dataContainer.GetMidasData().GetEventId();
   int timestamp = dataContainer.GetMidasData().GetTimeStamp();
-  
-  TBRBRawData *dt743 = dataContainer.GetEventData<TBRBRawData>("BRB0");
-  
-  if(dt743){      
+
+  for(int j = 0; j < 3; j++){  // loop over mPMTs
+
+    char name[100];
+    sprintf(name,"BRB%i",j);
     
+    TBRBRawData *dt743 = dataContainer.GetEventData<TBRBRawData>(name);
     
-    std::vector<RawBRBMeasurement> measurements = dt743->GetMeasurements();
-
-
-
-
-    for(unsigned int i = 0; i < measurements.size(); i++){
+    if(dt743){      
       
-      int chan = measurements[i].GetChannel();
+      //      std::cout << "updating for hit " << j << std::endl;
       
-      // Check for hits in this waveform
+      std::vector<RawBRBMeasurement> measurements = dt743->GetMeasurements();
       
-      int nsamples = 1000;
-      int baseline = (int)BSingleton::GetInstance()->GetBaseline(chan);
-      int threshold = baseline - 5;
-      int threshold2 = baseline - 10;
-      bool found_hit = false;
-      int pulse_height = 0;
-      int pulse_time = 0;
-      for(int ib = 0; ib < nsamples; ib++){
-	int sample = measurements[i].GetSample(ib);
-	if(sample < threshold){ // found a pulse                                                                                
-
-	  int ph = baseline-sample;
-	  if(ph > pulse_height) pulse_height = ph;
-	  found_hit = true;
-	  pulse_time = ib;
-	}
-      }
-      
-      
-      if(found_hit){
-	//	std::cout << "Pulse height: " << pulse_height << std::endl;
-	if(chan == 10) std::cout << "ch 8 : Pulse hit: " << " " << pulse_height << " " 
-				<< pulse_time << std::endl;
+      bool changeHistogram = false; 
+      for(unsigned int i = 0; i < measurements.size(); i++){
+	
+	int chan = measurements[i].GetChannel();
 	int nsamples = measurements[i].GetNSamples();
+
+	int ichan = j*20 + chan;
+
+
+	      
+	// Check for hits in this waveform
+	
+	int baseline = (int)BSingleton::GetInstance()->GetBaseline(ichan);
+	int threshold = baseline - 5;
+	int threshold2 = baseline - 10;
+	bool found_hit = false;
+	int pulse_height = 0;
+	int pulse_time = 0;
 	for(int ib = 0; ib < nsamples; ib++){
-	  GetHistogram(chan)->SetBinContent(ib+1, measurements[i].GetSample(ib));
+	  int sample = measurements[i].GetSample(ib);
+	  if(sample < threshold){ // found a pulse                                                                                
+	    
+	    int ph = baseline-sample;
+	    if(ph > pulse_height) pulse_height = ph;
+	    found_hit = true;
+	    pulse_time = ib;
+	  }
 	}
-      }      
+	
+	
+	if(found_hit){
+	  int nsamples = measurements[i].GetNSamples();
+	  for(int ib = 0; ib < nsamples; ib++){
+	    GetHistogram(ichan)->SetBinContent(ib+1, measurements[i].GetSample(ib));
+	  }
+	}      
+      }
     }
-    
   }
   
 }
@@ -241,7 +249,7 @@ void TBRBWaveformCorrupt::CreateHistograms(){
     
     push_back(tmp);
   }
-  std::cout << "TBRBWaveform done init...... " << std::endl;
+  std::cout << "TBRBWaveform corrupt done init...... " << std::endl;
   FrequencySetting = -1;
 }
 
@@ -348,50 +356,62 @@ void TBRBBaseline::CreateHistograms(){
 
   // check if we already have histogramss.
   char tname[100];
-  sprintf(tname,"BRB_Baseline_%i",0);
+  sprintf(tname,"BRB_Baseline_0_%i",0);
 
   TH1D *tmp = (TH1D*)gDirectory->Get(tname);
   if (tmp) return;
 
   // Otherwise make histograms
   clear();
-  
-  for(int i = 0; i < 20; i++){ // loop over 2 channels
+
+
+  for(int j = 0; j < 3; j++){ // loop over 3 BRBS
+    for(int i = 0; i < 20; i++){ // loop over 20 channels
     
-    char name[100];
-    char title[100];
-    sprintf(name,"BRB_Baseline_%i",i);
-    
-    sprintf(title,"BRB Baseline for channel=%i",i);	
-    
-    TH1D *tmp = new TH1D(name, title, 1000, 1990, 2100);
-    tmp->SetXTitle("Average Baseline");
-    push_back(tmp);
+      char name[100];
+      char title[100];
+      sprintf(name,"BRB_Baseline_%i_%i",j,i);
+      sprintf(title,"BRB Baseline for BRB=%i channel=%i (hit)",j,i);	
+      
+      TH1D *tmp = new TH1D(name, title, 1000, 1990, 2100);
+      tmp->SetXTitle("Average Baseline");
+      push_back(tmp);
+    }
   }
+
+  std::cout << "Baseline histo init complete... " << std::endl;
 }
 
 
 void TBRBBaseline::UpdateHistograms(TDataContainer& dataContainer){
   
-  TBRBRawData *dt743 = dataContainer.GetEventData<TBRBRawData>("BRB0");
-  
-  if(dt743){      
-     
-    std::vector<RawBRBMeasurement> measurements = dt743->GetMeasurements();
+  for(int j = 0; j < 3; j++){  // loop over mPMTs
 
-     for(int i = 0; i < measurements.size(); i++){
-           
-      int chan = measurements[i].GetChannel();
-      int nsamples = measurements[i].GetNSamples();
+    char name[100];
+    sprintf(name,"BRB%i",j);
+    
+    TBRBRawData *dt743 = dataContainer.GetEventData<TBRBRawData>(name);
+    
+    if(dt743){      
+      //      std::cout << "updating for baseline " << j << std::endl;
 
-      // Use the first 30 samples for baseline
-      double avg = 0.0;
-      for(int ib = 0; ib < 30; ib++){ // <<<<--------
-	avg += measurements[i].GetSample(ib);
-      }
-      avg /= 30.0;
+      std::vector<RawBRBMeasurement> measurements = dt743->GetMeasurements();
       
-      GetHistogram(chan)->Fill(avg);   
+      for(int i = 0; i < measurements.size(); i++){
+	
+	int chan = measurements[i].GetChannel();
+	int nsamples = measurements[i].GetNSamples();	
+	int ichan = j*20 + chan;
+
+	// Use the first 30 samples for baseline
+	double avg = 0.0;
+	for(int ib = 0; ib < 30; ib++){ // <<<<--------
+	  avg += measurements[i].GetSample(ib);
+	}
+	avg /= 30.0;
+	
+	GetHistogram(ichan)->Fill(avg);   
+      }
     }
   }
   
@@ -479,55 +499,65 @@ void TBRBPH::CreateHistograms(){
 
   // check if we already have histogramss.
   char tname[100];
-  sprintf(tname,"BRB_PH_%i",0);
+  sprintf(tname,"BRB_PH_0_%i",0);
 
   TH1D *tmp = (TH1D*)gDirectory->Get(tname);
   if (tmp) return;
 
   // Otherwise make histograms
   clear();
-  
-  for(int i = 0; i < 20; i++){ // loop over 2 channels
-    
-    char name[100];
-    char title[100];
-    sprintf(name,"BRB_PH_%i",i);
-    
-    sprintf(title,"BRB Pulse Height for channel=%i",i);	
 
-    TH1D *tmp= new TH1D(name, title, 120, 0.5, 120.5);
-    tmp->SetXTitle("Pulse Height");
-    push_back(tmp);
+  
+  for(int j = 0; j < 3; j++){ // loop over 3 BRBS
+    for(int i = 0; i < 20; i++){ // loop over 20 channels
+      
+      char name[100];
+      char title[100];
+      sprintf(name,"BRB_PH_%i_%i",j,i);
+
+      sprintf(title,"BRB Pulse Height for BRB=%i, channel=%i",j,i);	
+      
+      TH1D *tmp= new TH1D(name, title, 120, 0.5, 120.5);
+      tmp->SetXTitle("Pulse Height");
+      push_back(tmp);
+    }
   }
 }
 
 
 void TBRBPH::UpdateHistograms(TDataContainer& dataContainer){
   
-  TBRBRawData *dt743 = dataContainer.GetEventData<TBRBRawData>("BRB0");
-  
-  if(dt743){      
-     
-    std::vector<RawBRBMeasurement> measurements = dt743->GetMeasurements();
-    for(int i = 0; i < measurements.size(); i++){
+  for(int j = 0; j < 3; j++){  // loop over mPMTs
+
+    char name[100];
+    sprintf(name,"BRB%i",j);
+    
+    TBRBRawData *dt743 = dataContainer.GetEventData<TBRBRawData>(name);
+    
+    if(dt743){      
       
-      int chan = measurements[i].GetChannel();
-      int nsamples = measurements[i].GetNSamples();
-      int min_value = 4096;
-      //      int max_value = 0;
-      //      for(int j = 262; j < 280; j++){
-      int min_bin = 0;
-      for(int j = 0; j < 1000; j++){
-	if(measurements[i].GetSample(j) < min_value  & (j > 1 && j < 1000) ){
-	  min_value = measurements[i].GetSample(j);
-	  min_bin = j;
+      std::vector<RawBRBMeasurement> measurements = dt743->GetMeasurements();
+      for(int i = 0; i < measurements.size(); i++){
+	
+	int chan = measurements[i].GetChannel();
+	int ichan = j*20 + chan;
+	int nsamples = measurements[i].GetNSamples();
+	int min_value = 4096;
+	//      int max_value = 0;
+	//      for(int j = 262; j < 280; j++){
+	int min_bin = 0;
+	for(int j = 0; j < 1000; j++){
+	  if(measurements[i].GetSample(j) < min_value  & (j > 1 && j < 1000) ){
+	    min_value = measurements[i].GetSample(j);
+	    min_bin = j;
+	  }
 	}
-      }
-      int baseline = (int)BSingleton::GetInstance()->GetBaseline(chan);
-      int pulse_height = baseline - min_value;
-      if(pulse_height > 3){
-	GetHistogram(chan)->Fill(pulse_height);
-	if(chan == 10) std::cout << "Pulse height: " << chan << " " << pulse_height << " " << baseline << " " << min_value << " " << min_bin << std::endl;
+	int baseline = (int)BSingleton::GetInstance()->GetBaseline(chan);
+	int pulse_height = baseline - min_value;
+	if(pulse_height > 3){
+	  GetHistogram(ichan)->Fill(pulse_height);
+	  if(chan == 10) std::cout << "Pulse height: " << chan << " " << pulse_height << " " << baseline << " " << min_value << " " << min_bin << std::endl;
+	}
       }
       
     }  
@@ -548,7 +578,7 @@ void TBRBPHBig::CreateHistograms(){
 
   // check if we already have histogramss.
   char tname[100];
-  sprintf(tname,"BRB_PH_Big_%i",0);
+  sprintf(tname,"BRB_PH_Big_0_%i",0);
 
   TH1D *tmp = (TH1D*)gDirectory->Get(tname);
   if (tmp) return;
@@ -556,50 +586,57 @@ void TBRBPHBig::CreateHistograms(){
   // Otherwise make histograms
   clear();
   
-  for(int i = 0; i < 20; i++){ // loop over 2 channels
+  for(int j = 0; j < 3; j++){ // loop over 3 BRBS
+    for(int i = 0; i < 20; i++){ // loop over 20 channels
+      
+      char name[100];
+      char title[100];
+      sprintf(name,"BRB_PH_Big_%i_%i",j,i);
     
-    char name[100];
-    char title[100];
-    sprintf(name,"BRB_PH_Big_%i",i);
-    
-    sprintf(title,"BRB Pulse Height (Big) for channel=%i",i);	
+      sprintf(title,"BRB Pulse Height (Big) for BRB=%i channel=%i",j,i);	
 
-    TH1D *tmp= new TH1D(name, title, 600, 0.5, 2500.5);
-
-    tmp->SetXTitle("Pulse Height");
-    push_back(tmp);
+      TH1D *tmp= new TH1D(name, title, 600, 0.5, 2500.5);
+      
+      tmp->SetXTitle("Pulse Height");
+      push_back(tmp);
+    }
   }
 }
 
 
 void TBRBPHBig::UpdateHistograms(TDataContainer& dataContainer){
   
-  TBRBRawData *dt743 = dataContainer.GetEventData<TBRBRawData>("BRB0");
-  
-  if(dt743){      
-     
-    std::vector<RawBRBMeasurement> measurements = dt743->GetMeasurements();
-    for(int i = 0; i < measurements.size(); i++){
+  for(int j = 0; j < 3; j++){  // loop over mPMTs
+
+    char name[100];
+    sprintf(name,"BRB%i",j);
+    
+    TBRBRawData *dt743 = dataContainer.GetEventData<TBRBRawData>(name);
+    if(dt743){      
       
-      int chan = measurements[i].GetChannel();
-      int nsamples = measurements[i].GetNSamples();
-      int min_value = 4096;
-      //      int max_value = 0;
-      //      for(int j = 262; j < 280; j++){
-      int min_bin = 0;
-      for(int j = 0; j < 1000; j++){
-	if(measurements[i].GetSample(j) < min_value){
-	  min_value = measurements[i].GetSample(j);
-	  min_bin = j;
+      std::vector<RawBRBMeasurement> measurements = dt743->GetMeasurements();
+      for(int i = 0; i < measurements.size(); i++){
+	
+	int chan = measurements[i].GetChannel();
+	int ichan = j*20 + chan;
+	int nsamples = measurements[i].GetNSamples();
+	int min_value = 4096;
+	//      int max_value = 0;
+	//      for(int j = 262; j < 280; j++){
+	int min_bin = 0;
+	for(int j = 0; j < 1000; j++){
+	  if(measurements[i].GetSample(j) < min_value){
+	    min_value = measurements[i].GetSample(j);
+	    min_bin = j;
+	  }
+	}
+	int baseline = (int)BSingleton::GetInstance()->GetBaseline(chan);
+	int pulse_height = baseline - min_value;
+	if(pulse_height > 5){
+	  GetHistogram(ichan)->Fill(pulse_height);
+	//	if(chan == 1) std::cout << "Pulse height: " << chan << " " << pulse_height << " " << baseline << " " << min_value << " " << min_bin << std::endl;
 	}
       }
-      int baseline = (int)BSingleton::GetInstance()->GetBaseline(chan);
-      int pulse_height = baseline - min_value;
-      if(pulse_height > 5){
-	GetHistogram(chan)->Fill(pulse_height);
-	//	if(chan == 1) std::cout << "Pulse height: " << chan << " " << pulse_height << " " << baseline << " " << min_value << " " << min_bin << std::endl;
-      }
-      
     }  
   }
   
@@ -631,77 +668,72 @@ void TBRB_Time::CreateHistograms(){
 
   // Otherwise make histograms
   clear();
-  
-  for(int i = 0; i < 20; i++){ // loop over 2 channels
-    
-    char name[100];
-    char title[100];
-    sprintf(name,"BRB_Time_%i",i);
-    
-    sprintf(title,"BRB Pulse Time for channel=%i",i);	
+ 
+  for(int j = 0; j < 3; j++){ // loop over 3 BRBS
+    for(int i = 0; i < 20; i++){ // loop over 20 channels
+      
+      char name[100];
+      char title[100];
+      sprintf(name,"BRB_Time_%i_%i",j,i);
+
+      sprintf(title,"BRB Pulse Time for BRB=%i channel=%i",j,i);	
 
 
-    TH1D *tmp = new TH1D(name, title, 1024, -(0.5 + time_offset)*8, (1023.5-time_offset)*8);
-    tmp->SetXTitle("Pulse Time (ns)");
-    push_back(tmp);
+      TH1D *tmp = new TH1D(name, title, 1024, -(0.5 + time_offset)*8, (1023.5-time_offset)*8);
+      tmp->SetXTitle("Pulse Time (ns)");
+      push_back(tmp);
+    }
   }
 }
 
 
 void TBRB_Time::UpdateHistograms(TDataContainer& dataContainer){
   
-  TBRBRawData *dt743 = dataContainer.GetEventData<TBRBRawData>("BRB0");
-  
-  if(dt743){      
-     
-    std::vector<RawBRBMeasurement> measurements = dt743->GetMeasurements();
-    for(int i = 0; i < measurements.size(); i++){
+ for(int j = 0; j < 3; j++){  // loop over mPMTs
+
+    char name[100];
+    sprintf(name,"BRB%i",j);
+    
+    TBRBRawData *dt743 = dataContainer.GetEventData<TBRBRawData>(name);
       
-      int chan = measurements[i].GetChannel();
-      int nsamples = measurements[i].GetNSamples();
-
-      int baseline = (int)BSingleton::GetInstance()->GetBaseline(chan);
-      int threshold = baseline - 8;
-
-      bool in_pulse = false; // are we currently in a pulse?
-      bool laser_pulse = true; // always save hits
-      std::vector<int> pulse_times;
-      for(int ib = 0; ib < nsamples; ib++){
-	int sample = measurements[i].GetSample(ib);
-
-	if(sample < threshold && !in_pulse){ // found a pulse
-	  in_pulse = true;
+    if(dt743){      
+      
+      std::vector<RawBRBMeasurement> measurements = dt743->GetMeasurements();
+      for(int i = 0; i < measurements.size(); i++){
+	
+	int chan = measurements[i].GetChannel();
+	int ichan = chan + j*20;
+	int nsamples = measurements[i].GetNSamples();
+	
+	int baseline = (int)BSingleton::GetInstance()->GetBaseline(chan);
+	int threshold = baseline - 8;
+	
+	bool in_pulse = false; // are we currently in a pulse?
+	std::vector<int> pulse_times;
+	for(int ib = 0; ib < nsamples; ib++){
+	  int sample = measurements[i].GetSample(ib);
 	  
-	  int pulse_time = 8*(ib - time_offset);
-	  pulse_times.push_back(pulse_time);
-	  if(ib > 262 and ib < 280){ // found a laser pulse
-	    total_events += 1;
-	    laser_pulse = true;
+	  if(sample < threshold && !in_pulse){ // found a pulse
+	    in_pulse = true;
+	    
+	    int pulse_time = 8*(ib - time_offset);
+	    pulse_times.push_back(pulse_time);
 	  }
+	  
+	  if(sample >= threshold && in_pulse){ /// finished this pulse
+	    in_pulse = false;
+	  }
+	  
 	}
-
-	if(sample >= threshold && in_pulse){ /// finished this pulse
-	  in_pulse = false;
-	}
-
-      }
-
-      if(laser_pulse){
+	
 	for(int j = 0; j < pulse_times.size(); j++){
 	  int pulse_time = pulse_times[j];
-	  GetHistogram(chan)->Fill(pulse_time);
+	  GetHistogram(ichan)->Fill(pulse_time);
 	}
+	
       }
-
-      int serial = dataContainer.GetMidasData().GetSerialNumber();
-      if(chan == 0 and serial%2000 == 0){
-	double integral = GetHistogram(chan)->Integral(290,1000);
-	if(0)std::cout << "Afterpulse fraction: " << integral/((double)(total_events)) << " "
-		  << integral << " " << total_events << std::endl;
-      }  
     }
-  }
-  
+ }
 }
 
 

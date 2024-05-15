@@ -31,19 +31,23 @@ TAnaManager::TAnaManager(bool isoffline){
 
   fIsOffline = isoffline;
 
-  BSingleton::GetInstance()->UpdateBaselines();
+  //BSingleton::GetInstance()->UpdateBaselines();
 
+  std::cout << "Get setting tree "<< std::endl;
   fTree = new TTree("settings","settings");
   int hv_set[20];
   int hv_enable[20];
   fTree->Branch("hv_set",&hv_set,"hv_set[20]/Int_t");
   fTree->Branch("hv_enable",&hv_enable,"hv_enable[20]/Int_t");
 
+  std::cout << "Connect to ODB " << std::endl;
   midas::odb o2 = {
     {"HVEnable", std::array<bool, 20>{} },
     {"HVSet", std::array<double, 20>{} }
   };
+  std::cout << "Connect to ODB " << std::endl;
   o2.connect("/Equipment/PMTS00/Settings");
+ 
   for(int i = 0; i < 20; i++){
     hv_set[i] = o2["HVset"][i];
     hv_enable[i] = o2["HVenable"][i];
@@ -73,11 +77,13 @@ void TAnaManager::AddHistogram(THistogramArrayBase* histo) {
 
 }
 
-
+bool first = true;
 int TAnaManager::ProcessMidasEvent(TDataContainer& dataContainer){
 
   //std::cout << "Bank list " << dataContainer.GetMidasEvent().GetBankList() << std::endl;
-  
+
+  if(first) BSingleton::GetInstance()->UpdateBaselines();
+  first = false;
   // Fill all the  histograms
   for (unsigned int i = 0; i < fHistos.size(); i++) {
     // Some histograms are very time-consuming to draw, so we can
@@ -173,17 +179,18 @@ int TAnaManager::ProcessMidasEvent(TDataContainer& dataContainer){
     // Use opportunity to also calculate the baseline and store in ODB
     // For the moment just use maximum bin
 
+    printf("Setting current baselines in ODB\n");
     midas::odb o2 = {
-      {"Baseline", std::array<double, 20>{} }
+      {"Baseline2", std::array<double, 100>{} }
     };    
-    o2.connect("/Analyzer/Baselines");
+    o2.connect("/Analyzer/Baselines2");
     
-    for(int chan = 0; chan < 20; chan++){            
+    for(int chan = 0; chan < 60; chan++){            
       // Baseline histogram is histogram array number 1.
       TH1 *baseh = ((TH1*)(fHistos[1]->GetHistogram(chan)));
       std::cout << "Baseline: " << chan << baseh->GetEntries() <<  " "<< baseh->GetBinCenter(baseh->GetMaximumBin()) << std::endl;
       if(baseh->GetEntries() > 500){
-	o2["Baseline"][chan] = baseh->GetBinCenter(baseh->GetMaximumBin());      
+	o2["Baseline2"][chan] = baseh->GetBinCenter(baseh->GetMaximumBin());      
 	baseh->Reset();
       }
     }

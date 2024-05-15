@@ -22,7 +22,7 @@ TBRBRawData::TBRBRawData(int bklen, int bktype, const char* name, void *pdata):
   //  int npackets = (bklen - 29) / 533; // Number of full packets, discard tail packet with just 29 words
   int npackets = (bklen) / 533; // Number of full packets, 
   //int npackets = (bklen) / 221; // Number of full packets, 
-  if(1)std::cout << "Number of words: " << nwords
+  if(0)std::cout << "Number of words: " << nwords
             << ", number of packets : " << npackets << std::endl;
   
   // check for correct endian-ness
@@ -33,7 +33,7 @@ TBRBRawData::TBRBRawData(int bklen, int bktype, const char* name, void *pdata):
   
 
   int nadcs = ((npackets))/8;
-  if(1)  std::cout << "Number of words: " << nwords
+  if(0)  std::cout << "Number of words: " << nwords
 	    << ", number of packets : " << npackets 
 	    << " nadcs=" << nadcs 
 	    << " bklen=" << bklen << std::endl;
