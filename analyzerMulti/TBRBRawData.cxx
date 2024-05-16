@@ -10,7 +10,7 @@
 #define R__bswap_constant_16(x) \
   ((((x) & 0xff00) >>  8) | (((x) & 0x00ff) << 8))
 
-
+uint64_t last_timestamp = 0;
 
 TBRBRawData::TBRBRawData(int bklen, int bktype, const char* name, void *pdata):
     TGenericData(bklen, bktype, name, pdata)
@@ -38,6 +38,8 @@ TBRBRawData::TBRBRawData(int bklen, int bktype, const char* name, void *pdata):
 	    << " nadcs=" << nadcs 
 	    << " bklen=" << bklen << std::endl;
   
+  uint64_t mpmt_timestamp =0;
+  
   for(int adc =0; adc < nadcs; adc++){ // loop over ADCs
 
     // save ADC number
@@ -55,13 +57,39 @@ TBRBRawData::TBRBRawData(int bklen, int bktype, const char* name, void *pdata):
 
       int frameid = fData[istart + 4];
       int packetid = fData[istart + 2];
+
+      uint64_t time0 = fData[istart + 5];
+      uint64_t time1 = fData[istart + 6];
+      uint64_t time2 = fData[istart + 7];
+      uint64_t time3 = fData[istart + 8];
+
+      uint64_t timestamp = (time0 << 48) + (time1 << 32) + (time2 << 16) + time3;
+      
       uint32_t cadc0 = fData[istart + 19];
+
       uint32_t cadc1 = fData[istart + 20];
       uint32_t cadc = (cadc0 << 16) + cadc1;
       if(sadc == -1) sadc = fData[istart + 19] >> 8;
+
+      double tdiff = (double)(timestamp - last_timestamp) * 20.0 / 1000000.0;
+      
+      if(adc == 0 && p == 0){
+	if(0) std::cout << time0 << " "
+			<< time1 << " "
+			<< time2 << " "
+			<< time3 << " " 
+			<< timestamp << " "
+			<< timestamp - last_timestamp << " "
+			<< tdiff << "ms "
+			<< std::endl;
+	
+	last_timestamp = timestamp;
+	fTimestamp = timestamp;
+      }
+	
       if(0 and p==0){std::cout << adc << " " << p << " istart=" << istart << " frame id " << frameid
 		<< "packet id " << packetid
-		<< " channel=0x" << std::hex << cadc0 << " " << cadc1 << " 0x" << cadc << std::dec  << std::endl;
+			       << " channel=0x" << std::hex << cadc0 << " " << cadc1 << " 0x" << cadc << std::dec  << std::endl;
 	std::cout << "ADC:" 
 		  <<"  0x" << std::hex << sadc << std::dec
 		  << std::endl;

@@ -55,12 +55,12 @@ void TBRBWaveform::CreateHistograms(){
   FrequencySetting = -1;
 }
 
-
+uint64_t last_timestamp2 =0;
 void TBRBWaveform::UpdateHistograms(TDataContainer& dataContainer){
   
   int eventid = dataContainer.GetMidasData().GetEventId();
-  int timestamp = dataContainer.GetMidasData().GetTimeStamp();
-
+  
+  
   for(int j = 0; j < 3; j++){  // loop over mPMTs
 
     char name[100];
@@ -69,7 +69,13 @@ void TBRBWaveform::UpdateHistograms(TDataContainer& dataContainer){
     TBRBRawData *dt743 = dataContainer.GetEventData<TBRBRawData>(name);
     
     if(dt743){      
-            
+
+      int timestamp = dt743->GetTimestamp();
+      double tdiff = (double)(timestamp - last_timestamp2) * 20.0 / 1000000.0;
+      std::cout << tdiff << "ns" << std::endl;
+      last_timestamp2 = timestamp;
+
+      
       std::vector<RawBRBMeasurement> measurements = dt743->GetMeasurements();
       
       bool changeHistogram = false; 

@@ -76,21 +76,8 @@ public:
   TBRBRawData(int bklen, int bktype, const char* name, void *pdata);
 
 
-  /// Get Event Counter
-  uint32_t GetEventCounter() const {return (fGlobalHeader[2] & 0xffffff);};
-
-  /// Get Event Counter
-  uint32_t GetEventSize() const {return (fGlobalHeader[0] & 0xfffffff);};
-
-  /// Get Geographical Address
-  uint32_t GetGeoAddress() const {return (fGlobalHeader[1] & 0xf8000000) >> 27 ;};
-
-  /// Get the extended trigger time tag
-  uint32_t GetTriggerTimeTag() const {return fGlobalHeader[3];};
-
-  /// Get channel mask
-  uint32_t GetChMask(){return (fGlobalHeader[1] & 0xff) + ((fGlobalHeader[2] & 0xff000000) >> 16);};
-
+  uint64_t GetTimestamp(){return fTimestamp;}
+  
   void Print();
 
   /// Get the Vector of TDC Measurements.
@@ -103,8 +90,7 @@ private:
   // We have vectors of the headers/trailers/etc, since there can be 
   // multiple events in a bank.
 
-  /// The overall global header
-  std::vector<uint32_t> fGlobalHeader;  
+  uint64_t fTimestamp;
 
   /// Vector of BRB Measurements.
   std::vector<RawBRBMeasurement> fMeasurements;
