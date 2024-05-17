@@ -71,8 +71,10 @@ void TBRBWaveform::UpdateHistograms(TDataContainer& dataContainer){
     if(dt743){      
 
       int timestamp = dt743->GetTimestamp();
-      double tdiff = (double)(timestamp - last_timestamp2) * 20.0 / 1000000.0;
-      std::cout << tdiff << "ns" << std::endl;
+      double tdiff = (double)(timestamp - last_timestamp2) * 8.0 / 1000000.0;
+      std::cout << "Timestamp since last event: " << tdiff << "ms. "
+		<< " difference from expected 10ms " << (tdiff - 10.0)*1000.0 << "us"
+		<< std::endl;
       last_timestamp2 = timestamp;
 
       
