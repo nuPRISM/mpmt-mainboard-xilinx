@@ -1,8 +1,6 @@
 // Example Program for converting MIDAS format to ROOT format.
 //
-// T. Lindner (Jan 2016) 
-//
-// Example is for the CAEN V792 ADC module
+// for mPMT data
 
 #include <stdio.h>
 #include <iostream>
@@ -15,12 +13,14 @@
 
 #include "TAnaManager.hxx"
 
-#ifdef USE_V792
-#include "TV792Data.hxx"
-#endif
+#include "TBRBRawData.hxx"
+#include <fstream>
+
+const int max_samples = 0x8000;
 
 class Analyzer: public TRootanaEventLoop {
 
+  
 public:
 
   // An analysis manager.  Define and fill histograms in 
@@ -32,12 +32,11 @@ public:
 
   int timestamp;
   int serialnumber;
-#ifdef USE_V792
-  // CAEN V792 tree variables
-  int nchannels;
-  int adc_value[32];
-#endif
+  int coarsecounter;
+  int brbno; // which BRB is data from?
 
+  double BRB0_waveform[max_samples];
+  
 
   Analyzer() {
 
@@ -56,13 +55,17 @@ public:
     // Create a TTree
     fTree = new TTree("midas_data","MIDAS data");
 
+    char name[100], descr[100];
+    sprintf(name,"BRB_waveform%i",0);
+    sprintf(descr,"BRB_waveform%i[%i]/Double_t",0,max_samples);
+    fTree->Branch(name,&BRB0_waveform,descr); 
+
+    
+
     fTree->Branch("timestamp",&timestamp,"timestamp/I");
     fTree->Branch("serialnumber",&serialnumber,"serialnumber/I");
-
-#ifdef USE_V792    
-    fTree->Branch("nchannels",&nchannels,"nchannels/I");
-    fTree->Branch("adc_value",adc_value,"adc_value[nchannels]/I");
-#endif
+    fTree->Branch("coarsecounter",&coarsecounter,"coarsecounter/I");
+    fTree->Branch("brbno",&brbno,"brbno/I");
 
   }   
 
@@ -80,31 +83,48 @@ public:
     serialnumber = dataContainer.GetMidasEvent().GetSerialNumber();
     if(serialnumber%10 == 0) printf(".");
     timestamp = dataContainer.GetMidasEvent().GetTimeStamp();
- 
-#ifdef USE_V792    
-    TV792Data *data = dataContainer.GetEventData<TV792Data>("ADC0");
-    if(data){
-      nchannels = 32;
-      for(int i = 0; i < nchannels;i++) adc_value[i] = 0;
+    
+    for(int j = 0; j < 4; j++){  // loop over mPMTs
       
-      /// Get the Vector of ADC Measurements.
-      std::vector<VADCMeasurement> measurements = data->GetMeasurements();
-      for(unsigned int i = 0; i < measurements.size(); i++){ // loop over measurements
-        
-        int chan = measurements[i].GetChannel();
-        uint32_t adc = measurements[i].GetMeasurement();
-        
-        if(chan >= 0 && chan < nchannels)
-          adc_value[chan] = adc;
+      char name[100];
+      sprintf(name,"BRB%i",j);
+      
+      TBRBRawData *brbdata = dataContainer.GetEventData<TBRBRawData>(name);
+      
+      if(brbdata){      
+	coarsecounter = 0;
+
+	brbno = j;
+	std::cout << "Data from " << brbno << std::endl;
+	
+	std::vector<RawBRBMeasurement> measurements = brbdata->GetMeasurements();
+	
+	bool changeHistogram = false; 
+	for(unsigned int i = 0; i < measurements.size(); i++){
+	  
+	  int chan = measurements[i].GetChannel();
+	  int nsamples = measurements[i].GetNSamples();
+	  
+	  if(0){if(i==0)	std::cout << "N samples " <<  nsamples << std::endl;}
+	  
+	  int ichan = j*20 + chan;
+	  
+	  for(int ib = 0; ib < nsamples; ib++){
+	    BRB0_waveform[ib] = measurements[i].GetSample(ib);
+	  }
+
+	  
+
+	  
+	}
+	
       }
     }
-#endif
-
     fTree->Fill();
-
+      
     return true;
 
-  };
+  }
   
   // Complicated method to set correct filename when dealing with subruns.
   std::string SetFullOutputFileName(int run, std::string midasFilename)
