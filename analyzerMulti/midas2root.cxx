@@ -16,7 +16,7 @@
 #include "TBRBRawData.hxx"
 #include <fstream>
 
-const int max_samples = 0x8000;
+const int max_samples = 8192;
 
 class Analyzer: public TRootanaEventLoop {
 
@@ -35,8 +35,12 @@ public:
   int coarsecounter;
   int brbno; // which BRB is data from?
 
-  double BRB0_waveform[max_samples];
-  
+  double BRB_waveform[20][max_samples];
+  double BRB_waveform_ch0[max_samples];
+  double BRB_waveform_ch1[max_samples];
+  double BRB_waveform_ch2[max_samples];
+  double BRB_waveform_ch3[max_samples];
+ 
 
   Analyzer() {
 
@@ -56,11 +60,24 @@ public:
     fTree = new TTree("midas_data","MIDAS data");
 
     char name[100], descr[100];
-    sprintf(name,"BRB_waveform%i",0);
-    sprintf(descr,"BRB_waveform%i[%i]/Double_t",0,max_samples);
-    fTree->Branch(name,&BRB0_waveform,descr); 
+    sprintf(name,"BRB_waveform");
+    sprintf(descr,"BRB_waveform[20][%i]/Double_t",max_samples);
+    fTree->Branch(name,&BRB_waveform,descr); 
 
     
+
+    sprintf(descr,"BRB_waveform_ch0[%i]/Double_t",max_samples);
+    fTree->Branch("BRB_waveform_ch0",&BRB_waveform_ch0,descr); 
+
+    sprintf(descr,"BRB_waveform_ch1[%i]/Double_t",max_samples);
+    fTree->Branch("BRB_waveform_ch1",&BRB_waveform_ch1,descr); 
+
+    sprintf(descr,"BRB_waveform_ch2[%i]/Double_t",max_samples);
+    fTree->Branch("BRB_waveform_ch2",&BRB_waveform_ch2,descr); 
+
+    sprintf(descr,"BRB_waveform_ch3[%i]/Double_t",max_samples);
+    fTree->Branch("BRB_waveform_ch3",&BRB_waveform_ch3,descr); 
+  
 
     fTree->Branch("timestamp",&timestamp,"timestamp/I");
     fTree->Branch("serialnumber",&serialnumber,"serialnumber/I");
@@ -92,7 +109,7 @@ public:
       TBRBRawData *brbdata = dataContainer.GetEventData<TBRBRawData>(name);
       
       if(brbdata){      
-	coarsecounter = 0;
+	coarsecounter = brbdata->GetTimestamp();;
 
 	brbno = j;
 	std::cout << "Data from " << brbno << std::endl;
@@ -105,16 +122,17 @@ public:
 	  int chan = measurements[i].GetChannel();
 	  int nsamples = measurements[i].GetNSamples();
 	  
-	  if(0){if(i==0)	std::cout << "N samples " <<  nsamples << std::endl;}
-	  
-	  int ichan = j*20 + chan;
+	  if(1){if(i==0)	std::cout << "N samples " <<  nsamples << std::endl;}
+
+	  if(chan < 0 || chan >= 20)continue;
 	  
 	  for(int ib = 0; ib < nsamples; ib++){
-	    BRB0_waveform[ib] = measurements[i].GetSample(ib);
+	    BRB_waveform[chan][ib] = measurements[i].GetSample(ib);
+	    if(chan == 0){BRB_waveform_ch0[ib] = measurements[i].GetSample(ib);}
+	    if(chan == 1){BRB_waveform_ch1[ib] = measurements[i].GetSample(ib);}
+	    if(chan == 2){BRB_waveform_ch2[ib] = measurements[i].GetSample(ib);}
+	    if(chan == 3){BRB_waveform_ch3[ib] = measurements[i].GetSample(ib);}
 	  }
-
-	  
-
 	  
 	}
 	
