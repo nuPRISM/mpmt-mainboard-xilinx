@@ -40,7 +40,23 @@ public:
   double BRB_waveform_ch1[max_samples];
   double BRB_waveform_ch2[max_samples];
   double BRB_waveform_ch3[max_samples];
- 
+  double BRB_waveform_ch4[max_samples];
+  double BRB_waveform_ch5[max_samples];
+  double BRB_waveform_ch6[max_samples];
+  double BRB_waveform_ch7[max_samples];
+  double BRB_waveform_ch8[max_samples];
+  double BRB_waveform_ch9[max_samples];
+  double BRB_waveform_ch10[max_samples];
+  double BRB_waveform_ch11[max_samples];
+  double BRB_waveform_ch12[max_samples];
+  double BRB_waveform_ch13[max_samples];
+  double BRB_waveform_ch14[max_samples];
+  double BRB_waveform_ch15[max_samples];
+  double BRB_waveform_ch16[max_samples];
+  double BRB_waveform_ch17[max_samples];
+  double BRB_waveform_ch18[max_samples];
+  double BRB_waveform_ch19[max_samples];
+  
 
   Analyzer() {
 
@@ -65,18 +81,33 @@ public:
     fTree->Branch(name,&BRB_waveform,descr); 
 
     
+    for(int i = 0; i < 20; i++){
+      sprintf(descr,"BRB_waveform_ch%i[%i]/Double_t",i,max_samples);
+      sprintf(name,"BRB_waveform_ch%i",i);
 
-    sprintf(descr,"BRB_waveform_ch0[%i]/Double_t",max_samples);
-    fTree->Branch("BRB_waveform_ch0",&BRB_waveform_ch0,descr); 
+      if(i==0)fTree->Branch(name,&BRB_waveform_ch0,descr); 
+      if(i==1)fTree->Branch(name,&BRB_waveform_ch1,descr); 
+      if(i==2)fTree->Branch(name,&BRB_waveform_ch2,descr); 
+      if(i==3)fTree->Branch(name,&BRB_waveform_ch3,descr); 
+      if(i==4)fTree->Branch(name,&BRB_waveform_ch4,descr); 
+      if(i==5)fTree->Branch(name,&BRB_waveform_ch5,descr); 
+      if(i==6)fTree->Branch(name,&BRB_waveform_ch6,descr); 
+      if(i==7)fTree->Branch(name,&BRB_waveform_ch7,descr); 
+      if(i==8)fTree->Branch(name,&BRB_waveform_ch8,descr); 
+      if(i==9)fTree->Branch(name,&BRB_waveform_ch9,descr); 
+      if(i==10)fTree->Branch(name,&BRB_waveform_ch10,descr); 
+      if(i==11)fTree->Branch(name,&BRB_waveform_ch11,descr); 
+      if(i==12)fTree->Branch(name,&BRB_waveform_ch12,descr); 
+      if(i==13)fTree->Branch(name,&BRB_waveform_ch13,descr); 
+      if(i==14)fTree->Branch(name,&BRB_waveform_ch14,descr); 
+      if(i==15)fTree->Branch(name,&BRB_waveform_ch15,descr); 
+      if(i==16)fTree->Branch(name,&BRB_waveform_ch16,descr); 
+      if(i==17)fTree->Branch(name,&BRB_waveform_ch17,descr); 
+      if(i==18)fTree->Branch(name,&BRB_waveform_ch18,descr); 
+      if(i==19)fTree->Branch(name,&BRB_waveform_ch19,descr); 
 
-    sprintf(descr,"BRB_waveform_ch1[%i]/Double_t",max_samples);
-    fTree->Branch("BRB_waveform_ch1",&BRB_waveform_ch1,descr); 
+    }
 
-    sprintf(descr,"BRB_waveform_ch2[%i]/Double_t",max_samples);
-    fTree->Branch("BRB_waveform_ch2",&BRB_waveform_ch2,descr); 
-
-    sprintf(descr,"BRB_waveform_ch3[%i]/Double_t",max_samples);
-    fTree->Branch("BRB_waveform_ch3",&BRB_waveform_ch3,descr); 
   
 
     fTree->Branch("timestamp",&timestamp,"timestamp/I");
