@@ -29,7 +29,7 @@ void TBRBWaveform::CreateHistograms(){
   // Otherwise make histograms
   clear();
 
-  for(int j = 0; j < 3; j++){ // loop over 3 BRBS
+  for(int j = 0; j < 4; j++){ // loop over 3 BRBS
     for(int i = 0; i < 20; i++){ // loop over 20 channels
     
       char name[100];
@@ -44,7 +44,7 @@ void TBRBWaveform::CreateHistograms(){
       sprintf(title,"BRB Waveform for BRB=%i channel=%i",j,i);	
 
       
-      TH1D *tmp = new TH1D(name, title, 512, -0.5*8, 511.5*8);
+      TH1D *tmp = new TH1D(name, title, 1024, -0.5*8, 1023.5*8);
       tmp->SetXTitle("ns");
       tmp->SetYTitle("ADC value");
       
@@ -61,7 +61,7 @@ void TBRBWaveform::UpdateHistograms(TDataContainer& dataContainer){
   int eventid = dataContainer.GetMidasData().GetEventId();
   
   
-  for(int j = 0; j < 3; j++){  // loop over mPMTs
+  for(int j = 0; j < 4; j++){  // loop over mPMTs
 
     char name[100];
     sprintf(name,"BRB%i",j);
@@ -70,21 +70,24 @@ void TBRBWaveform::UpdateHistograms(TDataContainer& dataContainer){
     
     if(dt743){      
 
-      int timestamp = dt743->GetTimestamp();
-      double tdiff = (double)(timestamp - last_timestamp2) * 8.0 / 1000000.0;
-      std::cout << "Timestamp since last event: " << tdiff << "ms. "
-		<< " difference from expected 10ms " << (tdiff - 10.0)*1000.0 << "us"
-		<< std::endl;
-      last_timestamp2 = timestamp;
-
+      if(j==0){
+	int timestamp = dt743->GetTimestamp();
+	double tdiff = (double)(timestamp - last_timestamp2) * 8.0 / 1000000.0;
+	std::cout << "Timestamp since last event: " << tdiff << "ms. "
+		  << " difference from expected 10ms " << (tdiff - 10.0)*1000.0 << "us"
+		  << std::endl;
+	last_timestamp2 = timestamp;
+      }
       
       std::vector<RawBRBMeasurement> measurements = dt743->GetMeasurements();
-      
+
       bool changeHistogram = false; 
       for(unsigned int i = 0; i < measurements.size(); i++){
 	
 	int chan = measurements[i].GetChannel();
 	int nsamples = measurements[i].GetNSamples();
+
+	if(0){if(i==0)	std::cout << "N samples " <<  nsamples << std::endl;}
 
 	int ichan = j*20 + chan;
 
@@ -139,7 +142,7 @@ void TBRBWaveformHit::CreateHistograms(){
   // Otherwise make histograms
   clear();
   
-  for(int j = 0; j < 3; j++){ // loop over 3 BRBS
+  for(int j = 0; j < 4; j++){ // loop over 3 BRBS
     for(int i = 0; i < 20; i++){ // loop over 20 channels
     
       char name[100];
@@ -147,7 +150,7 @@ void TBRBWaveformHit::CreateHistograms(){
       sprintf(name,"BRB_Hit_%i_%i",j,i);
       sprintf(title,"BRB Waveform for BRB=%i channel=%i (hit)",j,i);	
 
-      TH1D *tmp = new TH1D(name, title, 512, -0.5*8, 511.5*8);
+      TH1D *tmp = new TH1D(name, title, 1024, -0.5*8, 1023.5*8);
       tmp->SetXTitle("ns");
       tmp->SetYTitle("ADC value");
       
@@ -164,7 +167,7 @@ void TBRBWaveformHit::UpdateHistograms(TDataContainer& dataContainer){
   int eventid = dataContainer.GetMidasData().GetEventId();
   int timestamp = dataContainer.GetMidasData().GetTimeStamp();
 
-  for(int j = 0; j < 3; j++){  // loop over mPMTs
+  for(int j = 0; j < 4; j++){  // loop over mPMTs
 
     char name[100];
     sprintf(name,"BRB%i",j);
@@ -312,7 +315,7 @@ void TBRBWaveformCorrupt::UpdateHistograms(TDataContainer& dataContainer){
 
       
       if(found_hit){
-	if(chan==0){ total_corrupt++;
+	if(chan==0 && 0){ total_corrupt++;
 	  std::cout << "Corrupt data = " << total_corrupt << " out of total " << total_checked 
 		    << " ratio  = " << ((float)total_corrupt/(float)total_checked) << std::endl;
 	}
@@ -373,7 +376,7 @@ void TBRBBaseline::CreateHistograms(){
   clear();
 
 
-  for(int j = 0; j < 3; j++){ // loop over 3 BRBS
+  for(int j = 0; j < 4; j++){ // loop over 3 BRBS
     for(int i = 0; i < 20; i++){ // loop over 20 channels
     
       char name[100];
@@ -393,7 +396,7 @@ void TBRBBaseline::CreateHistograms(){
 
 void TBRBBaseline::UpdateHistograms(TDataContainer& dataContainer){
   
-  for(int j = 0; j < 3; j++){  // loop over mPMTs
+  for(int j = 0; j < 4; j++){  // loop over mPMTs
 
     char name[100];
     sprintf(name,"BRB%i",j);
@@ -516,7 +519,7 @@ void TBRBPH::CreateHistograms(){
   clear();
 
   
-  for(int j = 0; j < 3; j++){ // loop over 3 BRBS
+  for(int j = 0; j < 4; j++){ // loop over 3 BRBS
     for(int i = 0; i < 20; i++){ // loop over 20 channels
       
       char name[100];
@@ -535,7 +538,7 @@ void TBRBPH::CreateHistograms(){
 
 void TBRBPH::UpdateHistograms(TDataContainer& dataContainer){
   
-  for(int j = 0; j < 3; j++){  // loop over mPMTs
+  for(int j = 0; j < 4; j++){  // loop over mPMTs
 
     char name[100];
     sprintf(name,"BRB%i",j);
@@ -594,7 +597,7 @@ void TBRBPHBig::CreateHistograms(){
   // Otherwise make histograms
   clear();
   
-  for(int j = 0; j < 3; j++){ // loop over 3 BRBS
+  for(int j = 0; j < 4; j++){ // loop over 3 BRBS
     for(int i = 0; i < 20; i++){ // loop over 20 channels
       
       char name[100];
@@ -614,7 +617,7 @@ void TBRBPHBig::CreateHistograms(){
 
 void TBRBPHBig::UpdateHistograms(TDataContainer& dataContainer){
   
-  for(int j = 0; j < 3; j++){  // loop over mPMTs
+  for(int j = 0; j < 4; j++){  // loop over mPMTs
 
     char name[100];
     sprintf(name,"BRB%i",j);
@@ -677,7 +680,7 @@ void TBRB_Time::CreateHistograms(){
   // Otherwise make histograms
   clear();
  
-  for(int j = 0; j < 3; j++){ // loop over 3 BRBS
+  for(int j = 0; j < 4; j++){ // loop over 3 BRBS
     for(int i = 0; i < 20; i++){ // loop over 20 channels
       
       char name[100];
@@ -697,7 +700,7 @@ void TBRB_Time::CreateHistograms(){
 
 void TBRB_Time::UpdateHistograms(TDataContainer& dataContainer){
   
- for(int j = 0; j < 3; j++){  // loop over mPMTs
+ for(int j = 0; j < 4; j++){  // loop over mPMTs
 
     char name[100];
     sprintf(name,"BRB%i",j);

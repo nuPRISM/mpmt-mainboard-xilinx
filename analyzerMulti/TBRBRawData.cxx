@@ -32,7 +32,7 @@ TBRBRawData::TBRBRawData(int bklen, int bktype, const char* name, void *pdata):
 
   
 
-  int nadcs = ((npackets))/8;
+  int nadcs = ((npackets))/(8);
   if(0)  std::cout << "Number of words: " << nwords
 	    << ", number of packets : " << npackets 
 	    << " nadcs=" << nadcs 
@@ -52,7 +52,7 @@ TBRBRawData::TBRBRawData(int bklen, int bktype, const char* name, void *pdata):
     for(int p = 0; p < 8; p++){ // loop over packets// now 1024 samples hopefully
       //for(int p = 0; p < 4; p++){ // loop over packets
 
-      int counter = adc*8 + p;
+      int counter = adc*(8) + p;
       int istart = counter*533;
 
       int frameid = fData[istart + 4];
