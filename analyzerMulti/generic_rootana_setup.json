@@ -1,0 +1,36 @@
+{ 
+  "BRB Waveform" : { 
+      "MaxModules" : 3,
+      "MaxChannels" : 20,
+      "WebserverName" : "BRB"
+  },
+  "BRB Waveform Hit" : {
+      "MaxModules" : 3,
+    "MaxChannels" : 20,
+    "WebserverName" : "BRB_Hit"
+  },  
+  "BRB Baseline" : { 
+      "MaxModules" : 3,
+    "MaxChannels" : 20,
+    "WebserverName" : "BRB_Baseline"
+  },
+  "Pulse Height" : {
+      "MaxModules" : 3,
+    "MaxChannels" : 20,
+    "WebserverName" : "BRB_PH"
+  },
+  "Pulse Height Big" : {
+      "MaxModules" : 3,
+    "MaxChannels" : 20,
+    "WebserverName" : "BRB_PH_Big"
+  },
+  "Pulse Time" : {
+      "MaxModules" : 3,
+    "MaxChannels" : 20,
+    "WebserverName" : "BRB_Time"
+  },
+  "DisplaySettings" : {
+    "DisplayStyle" : "root",
+    "UpdatePeriod" : 1000
+  }
+} 

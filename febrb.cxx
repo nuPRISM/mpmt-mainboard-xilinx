@@ -149,6 +149,7 @@ void SendBrbCommand(std::string command){
   midas::odb o = {
     {"host", "brb00"},
     {"port", 40},
+    {"udp_port", 1500},
   };
 
   char eq_dir[200];
@@ -376,6 +377,7 @@ INT frontend_init()
   midas::odb o = {
     {"host", "brb00"},
     {"port", 40},
+    {"udp_port", 1500},
     {names1, std::array<std::string, 18>{}},
     {names2, std::array<std::string, 6>{}},
     {names3, std::array<std::string, 2>{}},
@@ -528,6 +530,7 @@ INT begin_of_run(INT run_number, char *error)
 
   // Get ODB values (new C++ ODB!)
   midas::odb o = {
+    {"udp_port", 1500},
     {"testPatternADC", false},
     {"enableSoftwareTrigger", false },
     {"soft trigger rate", 450.0f },
@@ -637,7 +640,12 @@ INT begin_of_run(INT run_number, char *error)
   
   //  SendBrbCommand("udp_stream_start 0 192.168.0.253 1500\r\n");
   // start acquisition... send to port 1500
-  SendBrbCommand("start_periodic_acquisition_ext_trigger 192.168.0.253 1500 1\n");
+  //  {"udp_port", 1500},
+
+  //SendBrbCommand("start_periodic_acquisition_ext_trigger 192.168.0.253 1500 1\n");
+  sprintf(buffer,"start_periodic_acquisition_ext_trigger 192.168.0.253 %i 1 \n",(int)(o["udp_port"]));  
+  SendBrbCommand(buffer);
+  cm_msg(MINFO,"BOR","Sending UDP packets to 192.168.0.253 %i \n",(int)(o["udp_port"]));
   usleep(200000);
 
 

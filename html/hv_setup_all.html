@@ -127,9 +127,6 @@
 	 myhtml2 += '<tr><td>Host IP</td><td> <div class="modbvalue" data-odb-editable="1" data-odb-path='
 	 myhtml2 += '"/Equipment/BRB'+String(brbno).padStart(2, '0')+'/Settings/host" ></div></td></tr>'
 
-	 myhtml2 += '<tr><td>Turn on slow LED</td><td> <div class="modbvalue" data-odb-editable="1" data-odb-path='
-	 myhtml2 += '"/Equipment/BRB'+String(brbno).padStart(2, '0')+'/Settings/LPC/EnableSlowLED" ></div></td></tr>'
-
 	 myhtml2 += '<tr><td>Software Trigger Enable</td><td> <div class="modbvalue" data-odb-editable="1" data-odb-path='
 	 myhtml2 += '"/Equipment/BRB'+String(brbno).padStart(2, '0')+'/Settings/enableSoftwareTrigger" ></div></td></tr>'
 	 
@@ -144,7 +141,24 @@
 
 	 myhtml2 += '<tr><td>Fast LED enable</td><td> <div class="modbvalue" data-odb-editable="1" data-odb-path='
 	 myhtml2 += '"/Equipment/BRB'+String(brbno).padStart(2, '0')+'/Settings/LPC/EnableFastLED" ></div></td></tr>'
+
+	 myhtml2 += '<tr><td>Fast LED1 enable</td><td> <div class="modbvalue" data-odb-editable="1" data-odb-path='
+	 myhtml2 += '"/Equipment/BRB'+String(brbno).padStart(2, '0')+'/Settings/LPC/LED1_Enable" ></div></td></tr>'
+
+	 myhtml2 += '<tr><td>Fast LED2 enable</td><td> <div class="modbvalue" data-odb-editable="1" data-odb-path='
+	 myhtml2 += '"/Equipment/BRB'+String(brbno).padStart(2, '0')+'/Settings/LPC/LED2_Enable" ></div></td></tr>'
 	 
+	 myhtml2 += '<tr><td>Fast LED3 enable</td><td> <div class="modbvalue" data-odb-editable="1" data-odb-path='
+	 myhtml2 += '"/Equipment/BRB'+String(brbno).padStart(2, '0')+'/Settings/LPC/LED3_Enable" ></div></td></tr>'
+
+	 myhtml2 += '<tr><td>LED DAC</td><td> <div class="modbvalue" data-odb-editable="1" data-odb-path='
+	 myhtml2 += '"/Equipment/BRB'+String(brbno).padStart(2, '0')+'/Settings/LPC/LED_DAC" ></div></td></tr>'
+
+	 myhtml2 += '<tr><td>DAC High Gain</td><td> <div class="modbvalue" data-odb-editable="1" data-odb-path='
+	 myhtml2 += '"/Equipment/BRB'+String(brbno).padStart(2, '0')+'/Settings/LPC/DAC_high_gain" ></div></td></tr>'
+
+	 	 
+	 	 
 	 /* myhtml2 += '<tr><td>LED1 Enable</td><td> <div class="modbvalue" data-odb-editable="1" data-odb-path='
 	 myhtml2 += '"/Equipment/BRB'+String(brbno).padStart(2, '0')+'/Settings/LPC/LED1_enable" ></div></td></tr>'
 */
@@ -218,7 +232,7 @@
 
 </head>
 
-<body class="mcss" onload="mhttpd_init('HV Setup All');write_HV_table(8);">
+<body class="mcss" onload="mhttpd_init('HV Setup All');write_HV_table(0);">
 
 <!-- header and side navigation will be filled in mhttpd_init -->
 <div id="mheader"></div>
@@ -228,7 +242,7 @@
 
   Select BRB:
   <select name="navyOp" onchange="switch_brb(this);">
-  <option value="0">brb00</option>
+  <option value="0" selected="y">brb00</option>
   <option value="1">brb01</option>
   <option value="2">brb02</option>
   <option value="3">brb03</option>
@@ -236,7 +250,7 @@
   <option value="5">brb05</option>
   <option value="6">brb06</option>
   <option value="7">brb07</option>
-  <option value="8" selected="y">brb08</option>
+  <option value="8">brb08</option>
   <option value="9">brb09</option>
   </select>
 
