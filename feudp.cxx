@@ -24,7 +24,7 @@
 
 #include "midas.h"
 #include "mfe.h"
-extern BOOL equipment_common_overwrite = false;
+//extern BOOL equipment_common_overwrite = false;
 const char *frontend_name = "feudp";                     /* fe MIDAS client name */
 const char *frontend_file_name = __FILE__;               /* The frontend file name */
 
@@ -604,8 +604,9 @@ int read_event(char *pevent, int off)
          uint16_t* pdata;
          bk_create(pevent, bankname, TID_WORD, (void**)&pdata);
 
-         bool printy = false;
+         bool printy = true;
          if(printy)         std::cout << "packet has IDs: " ;
+         int tsize = 0;
          for(int i = 0; i < event_datas[bname].size(); i++){
             // Omit the trailer packets right now
             //            std::cout << "size: " << event_datas[bname][i].second.size() << std::endl; 
@@ -614,10 +615,12 @@ int read_event(char *pevent, int off)
             if(printy) std::cout << event_datas[bname][i].first << " ";
             for(int j = 0; j < event_datas[bname][i].second.size(); j++){
                *pdata++ = event_datas[bname][i].second[j];
+               tsize++;
             }
 
          }
          if(printy)std::cout << std::endl;
+         std::cout << "Total words in bank " << tsize << std::endl;
          bk_close(pevent, pdata);
          
          //         std::cout << "Event size: " << bk_size(pevent) << std::endl;
@@ -640,7 +643,7 @@ int read_event(char *pevent, int off)
 
    int nwords = length/2;
    // save the data in overall packet.  Endian flip                                                                                                        
-   bool want_short = true;
+   bool want_short = false;
    if(want_short){ if(nwords > 221) nwords = 221; } // Only save 221 words; 21 header words and 50 ADC samples for 4 channels                                                
 
    for(int i  = 0; i < nwords; i++){
