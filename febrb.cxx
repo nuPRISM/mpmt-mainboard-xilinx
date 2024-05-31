@@ -462,6 +462,11 @@ INT frontend_init()
   cm_msg(MINFO,"init","BRB Firmware HW version: %s",hw_version.c_str()); 
   cm_msg(MINFO,"init","BRB Firmware SW version: %s",sw_version.c_str()); 
 
+  // initialize the temp correction for magnetometer
+  SendBrbCommand("mmeter_get_new_offset \r\n");
+  printf("Finished initializing magnetometer\n");
+
+
   // Setup control of PMTs
   std::cout << "Setting up PMTs.  Reset addresses" <<std::endl;
   // Need to reset addresses first
@@ -469,9 +474,6 @@ INT frontend_init()
   std::cout << "Checking for active PMTs" <<std::endl;
   pmts = new PMTControl(gSocket, get_frontend_index());
   std::cout << "Finished setting up PMTs" << std::endl;
-
-  // initialize the temp correction for magnetometer
-  SendBrbCommand("mmeter_get_new_offset \r\n");
 
 
   // Set LPC to external trigger and set DAC to minimum light
@@ -955,6 +957,7 @@ INT read_slow_control(char *pevent, INT off)
   sprintf(bank_name,"BRM%i",get_frontend_index());
   bk_create(pevent, bank_name, TID_FLOAT, (void**)&pddata6);
 
+  printf("Try mag command \n");
   float mag_x = get_brb_value("mmeter_read_mag_field 0",true);
   float mag_y = get_brb_value("mmeter_read_mag_field 1",true);
   float mag_z = get_brb_value("mmeter_read_mag_field 2",true);
