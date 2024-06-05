@@ -16,7 +16,7 @@
 #include "TBRBRawData.hxx"
 #include <fstream>
 
-const int max_samples = 8192;
+const int max_samples = 1024;
 
 class Analyzer: public TRootanaEventLoop {
 
@@ -163,6 +163,22 @@ public:
 	    if(chan == 1){BRB_waveform_ch1[ib] = measurements[i].GetSample(ib);}
 	    if(chan == 2){BRB_waveform_ch2[ib] = measurements[i].GetSample(ib);}
 	    if(chan == 3){BRB_waveform_ch3[ib] = measurements[i].GetSample(ib);}
+	    if(chan == 4){BRB_waveform_ch4[ib] = measurements[i].GetSample(ib);}
+	    if(chan == 5){BRB_waveform_ch5[ib] = measurements[i].GetSample(ib);}
+	    if(chan == 6){BRB_waveform_ch6[ib] = measurements[i].GetSample(ib);}
+	    if(chan == 7){BRB_waveform_ch7[ib] = measurements[i].GetSample(ib);}
+	    if(chan == 8){BRB_waveform_ch8[ib] = measurements[i].GetSample(ib);}
+	    if(chan == 9){BRB_waveform_ch9[ib] = measurements[i].GetSample(ib);}
+	    if(chan == 10){BRB_waveform_ch10[ib] = measurements[i].GetSample(ib);}
+	    if(chan == 11){BRB_waveform_ch11[ib] = measurements[i].GetSample(ib);}
+	    if(chan == 12){BRB_waveform_ch12[ib] = measurements[i].GetSample(ib);}
+	    if(chan == 13){BRB_waveform_ch13[ib] = measurements[i].GetSample(ib);}
+	    if(chan == 14){BRB_waveform_ch14[ib] = measurements[i].GetSample(ib);}
+	    if(chan == 15){BRB_waveform_ch15[ib] = measurements[i].GetSample(ib);}
+	    if(chan == 16){BRB_waveform_ch16[ib] = measurements[i].GetSample(ib);}
+	    if(chan == 17){BRB_waveform_ch17[ib] = measurements[i].GetSample(ib);}
+	    if(chan == 18){BRB_waveform_ch18[ib] = measurements[i].GetSample(ib);}
+	    if(chan == 19){BRB_waveform_ch19[ib] = measurements[i].GetSample(ib);}
 	  }
 	  
 	}
