@@ -603,23 +603,26 @@ int read_event(char *pevent, int off)
          uint16_t* pdata;
          bk_create(pevent, bankname, TID_WORD, (void**)&pdata);
 
-         bool printy = false;
+         int totalw =0;
+         bool printy = true;
          if(printy)         std::cout << "packet has IDs: " ;
          for(int i = 0; i < event_datas[bname].size(); i++){
             // Omit the trailer packets right now
-            //            std::cout << "size: " << event_datas[bname][i].second.size() << std::endl; 
+            std::cout << "size: " << event_datas[bname][i].second.size() << std::endl; 
             if(event_datas[bname][i].second.size() < 100) continue;
 
             if(printy) std::cout << event_datas[bname][i].first << " ";
             for(int j = 0; j < event_datas[bname][i].second.size(); j++){
                *pdata++ = event_datas[bname][i].second[j];
+               totalw++;
             }
 
          }
          if(printy)std::cout << std::endl;
+         printf("Total words: %i\n",totalw);   
          bk_close(pevent, pdata);
          
-         //         std::cout << "Event size: " << bk_size(pevent) << std::endl;
+               std::cout << "Event size: " << bk_size(pevent) << std::endl;
 
          nUDPpackets[bname] = 0;
          for(int i = 0; i < event_datas[bname].size(); i++){
@@ -639,7 +642,7 @@ int read_event(char *pevent, int off)
 
    int nwords = length/2;
    // save the data in overall packet.  Endian flip                                                                                                        
-   bool want_short = true;
+   bool want_short = false;
    if(want_short){ if(nwords > 221) nwords = 221; } // Only save 221 words; 21 header words and 50 ADC samples for 4 channels                                                
 
    for(int i  = 0; i < nwords; i++){
