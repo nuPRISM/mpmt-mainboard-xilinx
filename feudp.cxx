@@ -24,6 +24,7 @@
 
 #include "midas.h"
 #include "mfe.h"
+//extern BOOL equipment_common_overwrite = false;
 const char *frontend_name = "feudp";                     /* fe MIDAS client name */
 const char *frontend_file_name = __FILE__;               /* The frontend file name */
 
@@ -606,6 +607,7 @@ int read_event(char *pevent, int off)
          int totalw =0;
          bool printy = true;
          if(printy)         std::cout << "packet has IDs: " ;
+         int tsize = 0;
          for(int i = 0; i < event_datas[bname].size(); i++){
             // Omit the trailer packets right now
             std::cout << "size: " << event_datas[bname][i].second.size() << std::endl; 
@@ -615,11 +617,13 @@ int read_event(char *pevent, int off)
             for(int j = 0; j < event_datas[bname][i].second.size(); j++){
                *pdata++ = event_datas[bname][i].second[j];
                totalw++;
+               tsize++;
             }
 
          }
          if(printy)std::cout << std::endl;
          printf("Total words: %i\n",totalw);   
+         std::cout << "Total words in bank " << tsize << std::endl;
          bk_close(pevent, pdata);
          
                std::cout << "Event size: " << bk_size(pevent) << std::endl;
