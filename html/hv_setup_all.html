@@ -218,7 +218,7 @@
 
 </head>
 
-<body class="mcss" onload="mhttpd_init('HV Setup All');write_HV_table(8);">
+<body class="mcss" onload="mhttpd_init('HV Setup All');write_HV_table(0);">
 
 <!-- header and side navigation will be filled in mhttpd_init -->
 <div id="mheader"></div>
@@ -228,7 +228,7 @@
 
   Select BRB:
   <select name="navyOp" onchange="switch_brb(this);">
-  <option value="0">brb00</option>
+  <option value="0" selected="y">brb00</option>
   <option value="1">brb01</option>
   <option value="2">brb02</option>
   <option value="3">brb03</option>
@@ -236,7 +236,7 @@
   <option value="5">brb05</option>
   <option value="6">brb06</option>
   <option value="7">brb07</option>
-  <option value="8" selected="y">brb08</option>
+  <option value="8">brb08</option>
   <option value="9">brb09</option>
   </select>
 
