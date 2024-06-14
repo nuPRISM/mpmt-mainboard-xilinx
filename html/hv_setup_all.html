@@ -127,9 +127,6 @@
 	 myhtml2 += '<tr><td>Host IP</td><td> <div class="modbvalue" data-odb-editable="1" data-odb-path='
 	 myhtml2 += '"/Equipment/BRB'+String(brbno).padStart(2, '0')+'/Settings/host" ></div></td></tr>'
 
-	 myhtml2 += '<tr><td>Turn on slow LED</td><td> <div class="modbvalue" data-odb-editable="1" data-odb-path='
-	 myhtml2 += '"/Equipment/BRB'+String(brbno).padStart(2, '0')+'/Settings/LPC/EnableSlowLED" ></div></td></tr>'
-
 	 myhtml2 += '<tr><td>Software Trigger Enable</td><td> <div class="modbvalue" data-odb-editable="1" data-odb-path='
 	 myhtml2 += '"/Equipment/BRB'+String(brbno).padStart(2, '0')+'/Settings/enableSoftwareTrigger" ></div></td></tr>'
 	 
@@ -144,7 +141,24 @@
 
 	 myhtml2 += '<tr><td>Fast LED enable</td><td> <div class="modbvalue" data-odb-editable="1" data-odb-path='
 	 myhtml2 += '"/Equipment/BRB'+String(brbno).padStart(2, '0')+'/Settings/LPC/EnableFastLED" ></div></td></tr>'
+
+	 myhtml2 += '<tr><td>Fast LED1 enable</td><td> <div class="modbvalue" data-odb-editable="1" data-odb-path='
+	 myhtml2 += '"/Equipment/BRB'+String(brbno).padStart(2, '0')+'/Settings/LPC/LED1_Enable" ></div></td></tr>'
+
+	 myhtml2 += '<tr><td>Fast LED2 enable</td><td> <div class="modbvalue" data-odb-editable="1" data-odb-path='
+	 myhtml2 += '"/Equipment/BRB'+String(brbno).padStart(2, '0')+'/Settings/LPC/LED2_Enable" ></div></td></tr>'
 	 
+	 myhtml2 += '<tr><td>Fast LED3 enable</td><td> <div class="modbvalue" data-odb-editable="1" data-odb-path='
+	 myhtml2 += '"/Equipment/BRB'+String(brbno).padStart(2, '0')+'/Settings/LPC/LED3_Enable" ></div></td></tr>'
+
+	 myhtml2 += '<tr><td>LED DAC</td><td> <div class="modbvalue" data-odb-editable="1" data-odb-path='
+	 myhtml2 += '"/Equipment/BRB'+String(brbno).padStart(2, '0')+'/Settings/LPC/LED_DAC" ></div></td></tr>'
+
+	 myhtml2 += '<tr><td>DAC High Gain</td><td> <div class="modbvalue" data-odb-editable="1" data-odb-path='
+	 myhtml2 += '"/Equipment/BRB'+String(brbno).padStart(2, '0')+'/Settings/LPC/DAC_high_gain" ></div></td></tr>'
+
+	 	 
+	 	 
 	 /* myhtml2 += '<tr><td>LED1 Enable</td><td> <div class="modbvalue" data-odb-editable="1" data-odb-path='
 	 myhtml2 += '"/Equipment/BRB'+String(brbno).padStart(2, '0')+'/Settings/LPC/LED1_enable" ></div></td></tr>'
 */

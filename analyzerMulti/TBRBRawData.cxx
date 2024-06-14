@@ -19,8 +19,8 @@ TBRBRawData::TBRBRawData(int bklen, int bktype, const char* name, void *pdata):
   uint16_t* fData = reinterpret_cast<uint16_t*>(pdata);
 
   int nwords = bklen;
-  //  int npackets = (bklen - 29) / 533; // Number of full packets, discard tail packet with just 29 words
-  int npackets = (bklen) / 533; // Number of full packets, 
+  int npackets = (bklen) / 533; // Number of full packets, discard tail packet with just 29 words
+  //int npackets = (bklen) / 533; // Number of full packets, 
   //int npackets = (bklen) / 221; // Number of full packets, 
   if(0)std::cout << "Number of words: " << nwords
             << ", number of packets : " << npackets << std::endl;
@@ -30,16 +30,62 @@ TBRBRawData::TBRBRawData(int bklen, int bktype, const char* name, void *pdata):
   // fData[i] = R__bswap_constant_16(fData[i]);    
   //}
 
-  
 
-  int nadcs = ((npackets))/8;
+  
+  int nadcs = ((npackets))/(8);
   if(0)  std::cout << "Number of words: " << nwords
 	    << ", number of packets : " << npackets 
 	    << " nadcs=" << nadcs 
 	    << " bklen=" << bklen << std::endl;
+
+  // Let's get coarse time from FPGA trailer word
+  int end_adc_data = nadcs * 8 * 533;
+
+  uint16_t data = fData[end_adc_data + 21 + 2];
+  uint16_t tmp = (((data & 0xff00)>>8) | ((data & 0xff)<<8)); 
+  uint64_t time0 = tmp;
+
+  data = fData[end_adc_data + 21 + 3];
+  tmp = (((data & 0xff00)>>8) | ((data & 0xff)<<8)); 
+  uint64_t time1 = tmp;
   
-  uint64_t mpmt_timestamp =0;
+  data = fData[end_adc_data + 21 + 4];
+  tmp = (((data & 0xff00)>>8) | ((data & 0xff)<<8)); 
+  uint64_t time2 = tmp;
+
+  data = fData[end_adc_data + 21 + 5];
+  tmp = (((data & 0xff00)>>8) | ((data & 0xff)<<8)); 
+  uint64_t time3 = tmp;
+
   
+  uint64_t timestamp = (time3 << 48) + (time2 << 32) + (time1 << 16) + time0;
+
+  double tdiff = (double)(timestamp - last_timestamp) * 8.0 / 1000000.0;
+
+  if(0){
+    for(int i = 0; i<29;i++){
+      uint16_t data = fData[end_adc_data +i];
+      uint16_t tmp = (((data & 0xff00)>>8) | ((data & 0xff)<<8)); 
+      //std::cout << fData[end_adc_data +i] << " ";
+      std::cout << tmp << " ";
+    }
+    std::cout << std::endl;
+  }
+  if(1){ std::cout << " " << time0 << " "
+		    << time1 << " "
+		    << time2 << " "
+		    << time3 << " " 
+		    << timestamp << " "
+		    << timestamp - last_timestamp << " "
+		    << tdiff << "ms "
+		    << std::endl;
+    
+    last_timestamp = timestamp;
+    fTimestamp = timestamp;
+  }
+
+  
+  // Now get the ADC data   
   for(int adc =0; adc < nadcs; adc++){ // loop over ADCs
 
     // save ADC number
@@ -52,8 +98,9 @@ TBRBRawData::TBRBRawData(int bklen, int bktype, const char* name, void *pdata):
     for(int p = 0; p < 8; p++){ // loop over packets// now 1024 samples hopefully
       //for(int p = 0; p < 4; p++){ // loop over packets
 
-      int counter = adc*8 + p;
-      int istart = counter*533;
+      int counter = adc*(8) + p;
+      int istart = counter*533; // 29 to handle the trailer
+      if(0)std::cout << "adc " << adc << " istart " << istart << std::endl;
 
       int frameid = fData[istart + 4];
       int packetid = fData[istart + 2];
@@ -71,21 +118,8 @@ TBRBRawData::TBRBRawData(int bklen, int bktype, const char* name, void *pdata):
       uint32_t cadc = (cadc0 << 16) + cadc1;
       if(sadc == -1) sadc = fData[istart + 19] >> 8;
 
-      double tdiff = (double)(timestamp - last_timestamp) * 20.0 / 1000000.0;
-      
-      if(adc == 0 && p == 0){
-	if(0) std::cout << time0 << " "
-			<< time1 << " "
-			<< time2 << " "
-			<< time3 << " " 
-			<< timestamp << " "
-			<< timestamp - last_timestamp << " "
-			<< tdiff << "ms "
-			<< std::endl;
-	
-	last_timestamp = timestamp;
-	fTimestamp = timestamp;
-      }
+      if(0)std::cout << "sadc " << sadc << std::endl;
+
 	
       if(0 and p==0){std::cout << adc << " " << p << " istart=" << istart << " frame id " << frameid
 		<< "packet id " << packetid

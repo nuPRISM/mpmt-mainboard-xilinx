@@ -105,7 +105,7 @@ EQUIPMENT equipment[] = {
  {""}
 };
 
-
+bool fLPC_Installed = true;
 
 /********************************************************************\
               Callback routines for system transitions
@@ -182,6 +182,59 @@ void SendBrbCommand(std::string command){
 
 }
 
+
+
+// Command to check LPC status... return true if LPC is responding correctly
+bool CheckLPC(){
+
+  std::string command("check_lpc_status \r\n");
+  
+  midas::odb o = {
+    {"host", "brb00"},
+    {"port", 40},
+    {"udp_port", 1500},
+  };
+
+  char eq_dir[200];
+  sprintf(eq_dir,"/Equipment/BRB%02i/Settings",get_frontend_index());
+  o.connect(eq_dir);
+
+  //  gSocket = new KOsocket(o["host"], o["port"]);
+  if(gSocket->getErrorCode() != 0){
+    cm_msg(MERROR,"init","Failed to connect to host; hostname/port = %s %i",((std::string)o["host"]).c_str(),(int)o["port"]);
+  }
+
+
+  usleep(200000);
+
+  char buffer[200];
+  char bigbuffer[500];
+  int size=sizeof(buffer);
+  int size2 = sizeof(bigbuffer);
+  size = command.size();
+
+  sprintf(buffer,"%s",command.c_str());
+  gSocket->write(buffer,size);
+  usleep(50000);
+  int val = gSocket->read(bigbuffer,size2);
+  usleep(100000);
+
+  std::string response(bigbuffer);
+  std::cout << command << " (" << val << ") : " << response << std::endl; ;
+  
+  //  gSocket->shutdown();
+  usleep(100000);
+  std::size_t found = response.find("NOT+FOUND");
+  if(found != std::string::npos){
+    cm_msg(MERROR,"init","No LPC detected.  Disabling LPC functionality");
+    return false;
+  }
+  
+
+  return true;
+}
+
+
 // Function for reading return from  command to BRB and receiving requests
 std::string ReadBrbCommand(std::string command){
 
@@ -237,6 +290,11 @@ midas::odb lpc_watch;
 
 void lpc_callback(midas::odb &o) {
 
+  if(!fLPC_Installed){
+    cm_msg(MINFO,"lpc_callback","LPC not installed.  LPC functionality disabled.");
+    return;
+  }
+  
   int gSelectedChannel = o.get_last_index();
   std::cout << "Change value for " << gSelectedChannel << " " << o.get_full_path() << " " << o << std::endl;
   // check that the selected PMT is active                                                                                                         
@@ -464,6 +522,11 @@ INT frontend_init()
   cm_msg(MINFO,"init","BRB Firmware HW version: %s",hw_version.c_str()); 
   cm_msg(MINFO,"init","BRB Firmware SW version: %s",sw_version.c_str()); 
 
+  // initialize the temp correction for magnetometer
+  SendBrbCommand("mmeter_get_new_offset \r\n");
+  printf("Finished initializing magnetometer\n");
+
+
   // Setup control of PMTs
   std::cout << "Setting up PMTs.  Reset addresses" <<std::endl;
   // Need to reset addresses first
@@ -472,16 +535,17 @@ INT frontend_init()
   pmts = new PMTControl(gSocket, get_frontend_index());
   std::cout << "Finished setting up PMTs" << std::endl;
 
-  // initialize the temp correction for magnetometer
-  SendBrbCommand("mmeter_get_new_offset \r\n");
 
+  // Check if LPC installed
+  fLPC_Installed = CheckLPC();  
 
   // Set LPC to external trigger and set DAC to minimum light
-  SendBrbCommand("select_sync_to_external_fast_led \r\n");
-  SendBrbCommand("enable_mezzanine_dac \r\n");
-  SendBrbCommand("write_mezzanine_dac 0 1 590 1 \r\n");
-  cm_msg(MINFO,"init","Setting LPC to use external trigger"); 
-
+  if(fLPC_Installed){
+    SendBrbCommand("select_sync_to_external_fast_led \r\n");
+    SendBrbCommand("enable_mezzanine_dac \r\n");
+    SendBrbCommand("write_mezzanine_dac 0 1 590 1 \r\n");
+    cm_msg(MINFO,"init","Setting LPC to use external trigger"); 
+  }
   // Setup the LPC ODB keys and setup callback
 
   midas::odb lpc = {
@@ -504,6 +568,8 @@ INT frontend_init()
   lpc_watch.watch(f2);
   std::cout << "Finished setting up LPC ODB" << std::endl;
 
+
+  
   return SUCCESS;
 }
 
@@ -963,10 +1029,18 @@ INT read_slow_control(char *pevent, INT off)
   sprintf(bank_name,"BRM%i",get_frontend_index());
   bk_create(pevent, bank_name, TID_FLOAT, (void**)&pddata6);
 
-  float mag_x = get_brb_value("mmeter_read_mag_field 0",true);
-  float mag_y = get_brb_value("mmeter_read_mag_field 1",true);
-  float mag_z = get_brb_value("mmeter_read_mag_field 2",true);
-  float mag_tot = sqrt(mag_x*mag_x + mag_y*mag_y + mag_z*mag_z);
+
+  float mag_x = 0.0;
+  float mag_y = 0.0;
+  float mag_z = 0.0;
+  float mag_tot = 0.0;
+  if(fLPC_Installed){
+    printf("Try mag command \n");
+    mag_x = get_brb_value("mmeter_read_mag_field 0",true);
+    mag_y = get_brb_value("mmeter_read_mag_field 1",true);
+    mag_z = get_brb_value("mmeter_read_mag_field 2",true);
+    mag_tot = sqrt(mag_x*mag_x + mag_y*mag_y + mag_z*mag_z);
+  }
   printf("mag status %f %f %f %f\n",mag_x,mag_y,mag_z,mag_tot);
 
   *pddata6++ = mag_x;
@@ -979,12 +1053,14 @@ INT read_slow_control(char *pevent, INT off)
 
   // re-initialize the temp correction for magnetometer
   // Do this about every 60 minutes.
-  mag_counter++;
-  printf("%i %i\n",mag_counter,mag_counter%500);
-  if(mag_counter%1200 == 0){ // 0.2Hz trigger rate * 60 sec * 60 minutes = 18000
-    SendBrbCommand("mmeter_get_new_offset \r\n");
-    cm_msg(MINFO,"febrb_readout","Updating the magnetometer temperature offsets");
-    
+  if(fLPC_Installed){
+    mag_counter++;
+    printf("%i %i\n",mag_counter,mag_counter%500);
+    if(mag_counter%1200 == 0){ // 0.2Hz trigger rate * 60 sec * 60 minutes = 18000
+      SendBrbCommand("mmeter_get_new_offset \r\n");
+      cm_msg(MINFO,"febrb_readout","Updating the magnetometer temperature offsets");
+      
+    }
   }
 
   return bk_size(pevent);

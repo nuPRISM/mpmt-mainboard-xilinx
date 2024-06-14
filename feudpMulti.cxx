@@ -24,7 +24,6 @@
 
 #include "midas.h"
 #include "mfe.h"
-//extern BOOL equipment_common_overwrite = false;
 const char *frontend_name = "feudp";                     /* fe MIDAS client name */
 const char *frontend_file_name = __FILE__;               /* The frontend file name */
 
@@ -71,7 +70,7 @@ int npackets = 0;
 #endif
 
 EQUIPMENT equipment[] = {
-   { EQ_NAME,                         /* equipment name */
+   { EQ_NAME "%02d",                         /* equipment name */
       {EQ_EVID, 0, "SYSTEM",          /* event ID, trigger mask, Evbuf */
        EQ_MULTITHREAD, 0, "MIDAS",    /* equipment type, EventSource, format */
        TRUE, RO_ALWAYS,               /* enabled?, WhenRead? */
@@ -237,11 +236,11 @@ int find_source(Source* src, const sockaddr* paddr, int addr_len)
    if (status == DB_NO_KEY) {
       cm_msg(MERROR, "read_udp", "UDP packet from unknown host \"%s\"", host);
       cm_msg(MINFO, "read_udp", "Register this host by running following commands:");
-      cm_msg(MINFO, "read_udp", "odbedit -c \"create STRING /Equipment/%s/Settings/%s\"", EQ_NAME, host);
-      cm_msg(MINFO, "read_udp", "odbedit -c \"set /Equipment/%s/Settings/%s AAAA\", where AAAA is the MIDAS bank name for this host", EQ_NAME, host);
+      cm_msg(MINFO, "read_udp", "odbedit -c \"create STRING /Equipment/%s%02i/Settings/%s\"", EQ_NAME, get_frontend_index(), host);
+      cm_msg(MINFO, "read_udp", "odbedit -c \"set /Equipment/%s%02i/Settings/%s AAAA\", where AAAA is the MIDAS bank name for this host", EQ_NAME, get_frontend_index(), host);
       return -1;
    } else if (status != DB_SUCCESS) {
-      cm_msg(MERROR, "read_udp", "db_get_value(\"/Equipment/%s/Settings/%s\") status %d", EQ_NAME, host, status);
+      cm_msg(MERROR, "read_udp", "db_get_value(\"/Equipment/%s%02i/Settings/%s\") status %d", EQ_NAME, get_frontend_index(), host, status);
       return -1;
    }
 
@@ -339,11 +338,14 @@ int frontend_init()
       return FE_ERR_ODB;
    }
 
-   std::string path;
-   path += "/Equipment";
-   path += "/";
-   path += EQ_NAME;
-   path += "/Settings";
+   char eq_dir[200];
+   sprintf(eq_dir,"/Equipment/%s%02i/Settings",EQ_NAME,get_frontend_index());
+ 
+   std::string path (eq_dir);
+   //   path += "/Equipment";
+   //path += "/";
+   //path += EQ_NAME;
+   //path += "/Settings";
 
    std::string path1 = path + "/udp_port";
 
@@ -508,7 +510,7 @@ int read_event(char *pevent, int off)
    // Check the frame ID
    //printf("Got packet! %i\n",length);
    //Just throw out the short packets
-   if(length < 100) return 0;
+   //   if(length < 100) return 0;
    if(length < 50) std::cerr << "Error packet too short!!! " << length << std::endl;
    uint16_t *data = (uint16_t*)buf;
  
@@ -520,18 +522,16 @@ int read_event(char *pevent, int off)
    // Temp hack for lack of consistent frameIDs
    packetID = packetID + (adc*8);
 
-   if(1)std::cout << "packet has frameID: " << frameID 
+   if(0)std::cout << "packet has frameID: " << frameID 
              << " packetID: " << packetID << " for ADC " << adc 
              << " triggerCount = " << triggerCount 
              << " with length: " << length << std::endl;
 
-   if(length < 100){
+   if(length < 100 && 0){
       printf("Trailer: ");
       for(int i = 0; i < length/2; i++){
-         //         int tttt = (((data[i] & 0xff00)>>8) | ((data[i] & 0xff)<<8));
-         int tttt = data[i];
-         unsigned int ttt = (tttt >> 4);
-         printf("%5i ",tttt);
+         uint16_t tmp = (((data[i] & 0xff00)>>8) | ((data[i] & 0xff)<<8));      
+         printf("%5i ",tmp);
          //if(i%4==3) std::cout << std::endl;
       }
       printf("\n");
@@ -604,29 +604,39 @@ int read_event(char *pevent, int off)
          uint16_t* pdata;
          bk_create(pevent, bankname, TID_WORD, (void**)&pdata);
 
-         int totalw =0;
          bool printy = true;
-         if(printy)         std::cout << "packet has IDs: " ;
-         int tsize = 0;
+         if(printy)         std::cout << "adc packet has IDs: " ;
+
+         // Add the ADC packets first
          for(int i = 0; i < event_datas[bname].size(); i++){
-            // Omit the trailer packets right now
-            std::cout << "size: " << event_datas[bname][i].second.size() << std::endl; 
+            //std::cout << "size: " << event_datas[bname][i].second.size() << std::endl; 
             if(event_datas[bname][i].second.size() < 100) continue;
 
             if(printy) std::cout << event_datas[bname][i].first << " ";
             for(int j = 0; j < event_datas[bname][i].second.size(); j++){
                *pdata++ = event_datas[bname][i].second[j];
-               totalw++;
-               tsize++;
             }
-
          }
+
+         // Next add a single trailer packet
+         bool added_trailer = false;
+         if(printy) std::cout << " trailer packet has ID: ";
+         for(int i = 0; i < event_datas[bname].size(); i++){
+            if(added_trailer) continue;
+
+            if(event_datas[bname][i].second.size() > 100) continue;
+
+            if(printy) std::cout << event_datas[bname][i].first << " ";
+            for(int j = 0; j < event_datas[bname][i].second.size(); j++){
+               *pdata++ = event_datas[bname][i].second[j];
+            }
+            added_trailer = true;
+         }
+
          if(printy)std::cout << std::endl;
-         printf("Total words: %i\n",totalw);   
-         std::cout << "Total words in bank " << tsize << std::endl;
          bk_close(pevent, pdata);
          
-               std::cout << "Event size: " << bk_size(pevent) << std::endl;
+         //         std::cout << "Event size: " << bk_size(pevent) << std::endl;
 
          nUDPpackets[bname] = 0;
          for(int i = 0; i < event_datas[bname].size(); i++){
