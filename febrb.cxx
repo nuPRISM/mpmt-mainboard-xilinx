@@ -85,23 +85,23 @@ EQUIPMENT equipment[] = {
     },
     read_slow_control,       /* readout routine */
   }, 
-  { "PMTS"  "%02d",                 /* equipment name */
+  /*  { "PMTS"  "%02d",         
     {
-      EQ_EVID, EQ_TRGMSK,     /* event ID, trigger mask */
-      "SYSTEM",              /* event buffer */
-      EQ_PERIODIC ,      /* equipment type */
-      LAM_SOURCE(0, 0x8111),     /* event source crate 0, all stations */
-      "MIDAS",                /* format */
-      FALSE,                   /* enabled */
-      RO_ALWAYS | RO_ODB,             /* read always */
-      1000,                    /* poll for 500ms */
-      0,                      /* stop run after this event limit */
-      0,                      /* number of sub events */
-      1,                      /* do log history */
+      EQ_EVID, EQ_TRGMSK,   
+      "SYSTEM",             
+      EQ_PERIODIC ,      
+      LAM_SOURCE(0, 0x8111),
+      "MIDAS",              
+      FALSE,                
+      RO_ALWAYS | RO_ODB,   
+      1000,                 
+      0,                    
+      0,                    
+      1,                    
       "", "", "",
     },
-    read_pmt_status,       /* readout routine */
-  },
+    read_pmt_status,    
+  },*/
  {""}
 };
 
@@ -444,8 +444,10 @@ INT frontend_init()
     {names6, std::array<std::string, 4>{}},
   };
 
-  std::cout << "Names : " << names2 << std::endl;
-
+  char eq_dir[200];
+  sprintf(eq_dir,"/Equipment/BRB%02i/Settings",get_frontend_index());
+  o.connect(eq_dir);
+  
   // Set the names for the ODB keys
   o[names1][0] = "+6V Amp Current";
   o[names1][1] = "+6V Amp Voltage";
@@ -465,6 +467,7 @@ INT frontend_init()
   o[names1][15] = "Unused Voltage";
   o[names1][16] = "+12V SoM Current";
   o[names1][17] = "+12V SoM Voltage";
+
 
   o[names2][0] = "ADC3 Temp";
   o[names2][1] = "Temp2";
@@ -487,10 +490,8 @@ INT frontend_init()
   o[names6][1] = "Mag Field Y (gauss)";
   o[names6][2] = "Mag Field Z (gauss)";
   o[names6][3] = "Mag Field tota (gauss)";
+  
 
-  char eq_dir[200];
-  sprintf(eq_dir,"/Equipment/BRB%02i/Settings",get_frontend_index());
-  o.connect(eq_dir);
 
   // Open socket to BRB
   std::cout << "Opening socket to  " << o["host"] << ":" << o["port"] << std::endl;
@@ -528,12 +529,12 @@ INT frontend_init()
 
 
   // Setup control of PMTs
-  std::cout << "Setting up PMTs.  Reset addresses" <<std::endl;
+  //  std::cout << "Setting up PMTs.  Reset addresses" <<std::endl;
   // Need to reset addresses first
   //  SendBrbCommand("reset_all_PMT_addresses\n");
-  std::cout << "Checking for active PMTs" <<std::endl;
-  pmts = new PMTControl(gSocket, get_frontend_index());
-  std::cout << "Finished setting up PMTs" << std::endl;
+  //std::cout << "Checking for active PMTs" <<std::endl;
+  //pmts = new PMTControl(gSocket, get_frontend_index());
+  //std::cout << "Finished setting up PMTs" << std::endl;
 
 
   // Check if LPC installed
@@ -597,7 +598,7 @@ INT begin_of_run(INT run_number, char *error)
     {"udp_port", 1500},
     {"testPatternADC", false},
     {"enableSoftwareTrigger", false },
-    {"soft trigger rate", 450.0f },
+    {"soft trigger rate", 1.0f },
     {"channel mask", 0x1f },
     {"number samples per packet", 4096},
     {"trigger delay", 250 }
@@ -699,7 +700,7 @@ INT begin_of_run(INT run_number, char *error)
   // initialize the temp correction for magnetometer
   SendBrbCommand("mmeter_get_new_offset \r\n");
 
-  usleep(1000000);
+  usleep(200000);
 
   
   //  SendBrbCommand("udp_stream_start 0 192.168.0.253 1500\r\n");
@@ -1073,7 +1074,9 @@ INT read_pmt_status(char *pevent, INT off)
 
   bk_init32(pevent);
 
-  return pmts->GetStatus(pevent, off);
+  if(pmts){
+    return pmts->GetStatus(pevent, off);
+  }
   return 0;
 }
 
