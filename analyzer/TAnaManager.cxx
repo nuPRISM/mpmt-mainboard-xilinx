@@ -99,6 +99,26 @@ int TAnaManager::ProcessMidasEvent(TDataContainer& dataContainer){
 
       int chan = measurements[i].GetChannel();
       int nsamples = measurements[i].GetNSamples();
+      // post some data for mplt
+      if(chan < 4){
+	std::cout << "mplot post data" << std::endl;
+
+	midas::odb o = {
+	  {"WaveformCh0", std::array<double, 1024>{} },
+	  {"WaveformCh1", std::array<double, 1024>{} },
+	  {"WaveformCh2", std::array<double, 1024>{} },
+	  {"WaveformCh3", std::array<double, 1024>{} },
+	};
+	
+	o.connect("/Analyzer/BRB0/");	
+	for(int ib = 0; ib < nsamples; ib++){
+	  if(chan == 0) o["WaveformCh0"][ib] = measurements[i].GetSample(ib);
+	  if(chan == 1) o["WaveformCh1"][ib] = measurements[i].GetSample(ib);
+	  if(chan == 2) o["WaveformCh2"][ib] = measurements[i].GetSample(ib);
+	  if(chan == 3) o["WaveformCh3"][ib] = measurements[i].GetSample(ib);
+	}
+      }
+
       bool in_pulse = false; // are we currently in a pulse?
       
 
