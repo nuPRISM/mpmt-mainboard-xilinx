@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html class="mcss" lang="en">
+<head>
+   <meta charset="UTF-8">
+   <link rel="stylesheet" href="midas.css">
+   <script src="controls.js"></script>
+   <script src="midas.js"></script>
+   <script src="mhttpd.js"></script>
+   <script src="mplot.js"></script>
+   <title>Example</title>
+</head>
+
+<script>
+
+
+</script>
+
+<body class="mcss" onload=" mhttpd_init('Plot Example');mplot_init();">
+
+<!-- header and side navigation will be filled in mhttpd_init -->
+<div id="mheader"></div>
+<div id="msidenav"></div>
+
+<div id="mmain">
+  <table class="mtable" id="maintable" style="margin:0">
+    <tr>
+      <td>
+	<!-- histogram -->
+	<div class="mplot" id="P3" style="height: 500px;width: 900px;"
+             data-odb-path="/Analyzer/BRB0"
+             data-h="WaveformCh0"
+	     data-y-text="ADC value"
+	     data-x-text="Bin number"
+           data-title="Channel 0 Waveform"></div>
+      </td>
+      <td>
+	<!-- histogram -->
+	<div class="mplot" id="P3" style="height: 500px;width: 900px;"
+             data-odb-path="/Analyzer/BRB0"
+             data-h="WaveformCh1"
+	     data-y-text="ADC value"
+	     data-x-text="Bin number"
+           data-title="Channel 1 Waveform"></div>
+      </td>
+    </tr>
+
+    <tr>
+      <td>
+	<!-- histogram -->
+	<div class="mplot" id="P3" style="height: 500px;width: 900px;"
+             data-odb-path="/Analyzer/BRB0"
+             data-h="WaveformCh2"
+	     data-y-text="ADC value"
+	     data-x-text="Bin number"
+           data-title="Channel 2 Waveform"></div>
+      </td>
+      <td>
+	<!-- histogram -->
+	<div class="mplot" id="P3" style="height: 500px;width: 900px;"
+             data-odb-path="/Analyzer/BRB0"
+             data-h="WaveformCh3"
+	     data-y-text="ADC value"
+	     data-x-text="Bin number"
+           data-title="Channel 3 Waveform"></div>
+      </td>
+
+    </tr>
+
+	
+  </table>
+</div>
+
+</body>
+</html>
