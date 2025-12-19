@@ -22,8 +22,9 @@ class FersAnalyzer:
     """
     def __init__(self):
         self.client = None
-
-
+        Matrix = [[] for y in range(20)]
+        self.waveforms = Matrix
+        
     def extract_data_from_event(self, ev):
         """
         Extract the necessary information from a midas event, and add it to
