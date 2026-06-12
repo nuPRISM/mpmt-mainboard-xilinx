@@ -25,7 +25,7 @@ var update_plots = function() {
     plot_update_rate_ms = 500;
     
     
-    // Get the waveform data via JRPC
+    // Get the waveform data via JRPC from python analyzer
     let params = new Object;
     params.client_name = "mpmt_analyzer_py";
     params.cmd = "get_plot_data";
@@ -55,6 +55,23 @@ var update_plots = function() {
     }).catch(function(error) {
 	console.log(error);
 	plot_update_timeout = setTimeout(update_plots, plot_update_rate_ms);
+    });
+
+
+    // Get the waveform data via JRPC from rootana analyzer
+    let params2 = new Object;
+    params2.client_name = "ana";
+    params2.cmd = "get_plot_data";
+    params2.args = JSON.stringify({"plot_names": ["plot1","plot2"]
+				 });
+    params2.max_reply_length = 1024*1024;
+
+    mjsonrpc_call("jrpc", params2).then(function(rpc) {
+
+	console.log("rpc results: " + rpc.status);
+	
+    }).catch(function(error) {
+	console.log(error);
     });
 
 };
