@@ -1,6 +1,7 @@
 import subprocess
 import time
 import sys
+import json
 
 n = int(sys.argv[1])
 
@@ -16,7 +17,7 @@ for i in range(Start_Channel,Start_Channel+int(Num_CH)):
     Get_PMT_CIN = f'odbedit -c "ls /Analyzer/PMT_List[{i}]"'
     PMT_CIN_Output = subprocess.check_output(Get_PMT_CIN, shell=True)
     PMT_CIN_str = str(PMT_CIN_Output.strip())
-    
+
     #Make the string received readable
     if i>9:
         start_string = 48
@@ -40,8 +41,12 @@ for i in range(Start_Channel,Start_Channel+int(Num_CH)):
         Get_HV = f'curl "https://modulo.triumf.ca/api/get_pmt_value?cin={PMT_CIN}&value=EBB"'
         #Record the output
         Output_HV = subprocess.check_output(Get_HV, shell=True)
+
+        pmt_cin_data = json.loads(Output_HV)
+        hv_hama = pmt_cin_data["EBB"]
+        
         #Converts the output to an integer
-        HV_Value = int(Output_HV.strip()) + n
+        HV_Value = int(hv_hama) + n
         print("The HV value for the PMT on CH "+ str(i) + " is " + str(HV_Value))
     
         #Sets the HV value on the mpmt test site
